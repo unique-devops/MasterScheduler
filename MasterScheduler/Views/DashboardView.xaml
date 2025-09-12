@@ -1,0 +1,55 @@
+﻿<Window x:Class="MasterScheduler.Views.DashboardView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MasterScheduler.Views"
+        mc:Ignorable="d"
+        Title="DashboardView" Height="450" Width="800">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+            <Button Content="Add Job" Width="100" Margin="5"/>
+            <Button Content="Enable All" Width="100" Margin="5"/>
+            <Button Content="Disable All" Width="100" Margin="5"/>
+            <Button Content="Config" Width="100" Margin="5"/>
+        </StackPanel>
+
+        <!-- Job Monitor Grid -->
+        <DataGrid Grid.Row="1" 
+                  ItemsSource="{Binding Jobs}" 
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  RowHeight="35">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Job Name" Binding="{Binding JobName}" Width="200"/>
+                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120"/>
+                <DataGridTextColumn Header="Last Run" Binding="{Binding LastRun}" Width="150"/>
+                <DataGridTextColumn Header="Next Run" Binding="{Binding NextRun}" Width="150"/>
+                <DataGridTemplateColumn Header="Progress" Width="150">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ProgressBar Value="{Binding Progress}" Maximum="100" Height="20"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Actions" Width="200">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Content="Start" Command="{Binding DataContext.StartCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Margin="2"/>
+                                <Button Content="Stop" Command="{Binding DataContext.StopCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Margin="2"/>
+                                <Button Content="Config" Command="{Binding DataContext.ConfigCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Margin="2"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>
