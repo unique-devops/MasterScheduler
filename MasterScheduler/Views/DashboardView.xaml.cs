@@ -1,4 +1,4 @@
-﻿using MasterScheduler.Shared;
+﻿using MasterScheduler.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,13 +18,12 @@ namespace MasterScheduler.Views
     /// <summary>
     /// Interaction logic for DashboardView.xaml
     /// </summary>
-    public partial class DashboardView : Window
+    public partial class DashboardView : UserControl
     {
-        public DashboardView()
+        public DashboardView(DashboardViewModel vm)
         {
             InitializeComponent();
-            
-
+            DataContext = vm;
         }
     }
 }

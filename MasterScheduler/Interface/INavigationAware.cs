@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MasterScheduler.ViewModels
+namespace MasterScheduler.Interface
 {
-    internal class SchedulerConfigViewModel
+    public interface INavigationAware
     {
+        void OnNavigatedTo(object parameter);
     }
+
 }

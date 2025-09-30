@@ -1,11 +1,12 @@
-﻿<Window x:Class="MasterScheduler.Views.DashboardView"
+﻿<UserControl x:Class="MasterScheduler.Views.DashboardView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:fa="http://schemas.fontawesome.io/icons/"
         xmlns:local="clr-namespace:MasterScheduler.Views"
         mc:Ignorable="d"
-        Title="DashboardView" Height="450" Width="800">
+        Height="450" Width="800">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -13,11 +14,31 @@
         </Grid.RowDefinitions>
 
         <!-- Toolbar -->
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-            <Button Content="Add Job" Width="100" Margin="5"/>
-            <Button Content="Enable All" Width="100" Margin="5"/>
-            <Button Content="Disable All" Width="100" Margin="5"/>
-            <Button Content="Config" Width="100" Margin="5"/>
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10" HorizontalAlignment="Left">
+            <Button Width="120" Margin="5" ToolTip="Add a new job" Command="{Binding AddJobCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <fa:ImageAwesome Icon="PlusCircle" Width="16" Height="16" Margin="0,0,5,0"/>
+                    <TextBlock Text="Add Job"/>
+                </StackPanel>
+            </Button>
+            <Button Width="120" Margin="5" ToolTip="Enable all jobs">
+                <StackPanel Orientation="Horizontal">
+                    <fa:ImageAwesome Icon="ToggleOn" Width="16" Height="16" Margin="0,0,5,0"/>
+                    <TextBlock Text="Enable All"/>
+                </StackPanel>
+            </Button>
+            <Button Width="120" Margin="5" ToolTip="Disable all jobs">
+                <StackPanel Orientation="Horizontal">
+                    <fa:ImageAwesome Icon="ToggleOff" Width="16" Height="16" Margin="0,0,5,0"/>
+                    <TextBlock Text="Disable All"/>
+                </StackPanel>
+            </Button>
+            <Button Width="120" Margin="5" ToolTip="Open global configuration">
+                <StackPanel Orientation="Horizontal">
+                    <fa:ImageAwesome Icon="Cogs" Width="16" Height="16" Margin="0,0,5,0"/>
+                    <TextBlock Text="Config"/>
+                </StackPanel>
+            </Button>
         </StackPanel>
 
         <!-- Job Monitor Grid -->
@@ -25,31 +46,58 @@
                   ItemsSource="{Binding Jobs}" 
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
-                  RowHeight="35">
+                  RowHeight="40"
+                  HeadersVisibility="Column"
+                  AlternatingRowBackground="#FFF"
+                  GridLinesVisibility="None"
+                  Background="White"
+                  BorderBrush="#DDD"
+                  BorderThickness="1"
+                  Padding="5"
+                  HorizontalGridLinesBrush="#EEE"
+                  VerticalGridLinesBrush="#EEE">
+
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Job Name" Binding="{Binding JobName}" Width="200"/>
                 <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120"/>
                 <DataGridTextColumn Header="Last Run" Binding="{Binding LastRun}" Width="150"/>
                 <DataGridTextColumn Header="Next Run" Binding="{Binding NextRun}" Width="150"/>
+
+                <!-- Progress Bar Column -->
                 <DataGridTemplateColumn Header="Progress" Width="150">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <ProgressBar Value="{Binding Progress}" Maximum="100" Height="20"/>
+                            <ProgressBar Value="{Binding Progress}" Maximum="100" Height="20" Foreground="Green" Background="#EEE"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Actions" Width="200">
+
+                <!-- Action Buttons Column -->
+                <DataGridTemplateColumn Header="Actions" Width="220">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <Button Content="Start" Command="{Binding DataContext.StartCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Margin="2"/>
-                                <Button Content="Stop" Command="{Binding DataContext.StopCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Margin="2"/>
-                                <Button Content="Config" Command="{Binding DataContext.ConfigCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Margin="2"/>
+                                <Button Width="30" Height="30" ToolTip="Start Job"
+                                        Command="{Binding DataContext.StartCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}" Margin="2">
+                                    <fa:ImageAwesome Icon="Play" Width="14" Height="14"/>
+                                </Button>
+                                <Button Width="30" Height="30" ToolTip="Stop Job"
+                                        Command="{Binding DataContext.StopCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}" Margin="2">
+                                    <fa:ImageAwesome Icon="Stop" Width="14" Height="14"/>
+                                </Button>
+                                <Button Width="30" Height="30" ToolTip="Configure Job"
+                                        Command="{Binding DataContext.ConfigCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}" Margin="2">
+                                    <fa:ImageAwesome Icon="Cogs" Width="14" Height="14"/>
+                                </Button>
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
+
             </DataGrid.Columns>
         </DataGrid>
     </Grid>
-</Window>
+</UserControl>
