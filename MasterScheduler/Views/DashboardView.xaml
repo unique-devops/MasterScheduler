@@ -6,7 +6,7 @@
         xmlns:fa="http://schemas.fontawesome.io/icons/"
         xmlns:local="clr-namespace:MasterScheduler.Views"
         mc:Ignorable="d"
-        Height="450" Width="800">
+        d:DesignHeight="450" d:DesignWidth="800">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

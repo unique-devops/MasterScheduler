@@ -13,32 +13,32 @@ namespace MasterScheduler
     /// </summary>
     public partial class App : Application
     {
-        public static IServiceProvider Services;
+        public static IServiceProvider Services { get; private set; }
 
-        protected override void OnStartup(StartupEventArgs e)
+        public App()
         {
             var services = new ServiceCollection();
 
-            // Core
-            services.AddSingleton<NavigationHost>();
+            // Register services
             services.AddSingleton<INavigationService, NavigationService>();
 
-            // ViewModels
+            // Register viewmodels
             services.AddSingleton<MainViewModel>();
-            services.AddTransient<DashboardViewModel>();
-            //services.AddTransient<JobTypeSelectionViewModel>();
-            //services.AddTransient<AddTaskViewModel>();
+            services.AddTransient<DashboardViewModel>();            
+            services.AddTransient<TaskTypeSelectionViewModel>();            
 
-            var provider = services.BuildServiceProvider();
+            Services = services.BuildServiceProvider();
+        }
 
-            var navigationHost = provider.GetRequiredService<NavigationHost>();
-            var navigationService = provider.GetRequiredService<INavigationService>();
-            navigationService.NavigateTo<DashboardViewModel>(); // Set initial screen
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
 
             var mainWindow = new MainWindow
             {
-                DataContext = provider.GetRequiredService<MainViewModel>()
-            };
+                DataContext = Services.GetRequiredService<MainViewModel>()
+            }
+            ;
             mainWindow.Show();
         }
     }

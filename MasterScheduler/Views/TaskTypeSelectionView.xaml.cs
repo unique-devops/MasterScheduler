@@ -18,9 +18,9 @@ namespace MasterScheduler.Views
     /// <summary>
     /// Interaction logic for TaskSelectionView.xaml
     /// </summary>
-    public partial class TaskSelectionView : UserControl
+    public partial class TaskTypeSelectionView : UserControl
     {
-        public TaskSelectionView()
+        public TaskTypeSelectionView()
         {
             InitializeComponent();
         }

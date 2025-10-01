@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,8 +9,12 @@ namespace MasterScheduler.Interface
 {
     public interface INavigationService
     {
-        void NavigateTo<TViewModel>() where TViewModel : class;
-        void NavigateTo<TViewModel>(object parameter) where TViewModel : class;
+        ObservableObject CurrentViewModel { get; }       
+        void NavigateTo<TViewModel>(bool IsPersistHistory = false) where TViewModel : class;
+        void NavigateTo<TViewModel>(object parameter, bool IsPersistHistory = false) where TViewModel : class;
+
+        void GoBack();
+        bool CanGoBack { get; }
     }
 
 }

@@ -20,10 +20,9 @@ namespace MasterScheduler.Views
     /// </summary>
     public partial class DashboardView : UserControl
     {
-        public DashboardView(DashboardViewModel vm)
+        public DashboardView()
         {
-            InitializeComponent();
-            DataContext = vm;
+            InitializeComponent();            
         }
     }
 }

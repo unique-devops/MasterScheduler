@@ -1,4 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using MasterScheduler.Interface;
 using MasterScheduler.Service;
 using MasterScheduler.Views;
 using System;
@@ -11,16 +13,28 @@ namespace MasterScheduler.ViewModels
 {
     public partial class MainViewModel : ObservableObject
     {
-        private readonly NavigationHost _host;
+        public INavigationService NavigationService { get; }
 
-        public object CurrentView => _host.CurrentViewModel;
-        public MainViewModel(NavigationHost host)
+        [ObservableProperty]
+        private ObservableObject _currentViewModel;
+        public MainViewModel(INavigationService navigationService)
         {
-            _host = host;
-           
+            NavigationService = navigationService;
+
+            // Default page
+            NavigationService.NavigateTo<DashboardViewModel>();
         }
 
-        
+        //[RelayCommand]
+        //private void Navigate(string destination)
+        //{
+        //    switch (destination)
+        //    {
+        //        case "Home": _navigationService.NavigateTo<HomeViewModel>(); break;
+        //        case "Customer": _navigationService.NavigateTo<CustomerViewModel>(); break;
+        //        case "Settings": _navigationService.NavigateTo<SettingsViewModel>(); break;
+        //    }
+        //}
     }
 
 }

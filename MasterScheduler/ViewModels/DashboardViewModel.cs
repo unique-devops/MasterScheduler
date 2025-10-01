@@ -21,7 +21,7 @@ namespace MasterScheduler.ViewModels
         [RelayCommand]
         private void AddJob()
         {
-            //_navigation.NavigateTo<JobTypeSelectionViewModel>();
+           _navigation.NavigateTo<TaskTypeSelectionViewModel>();
         }
     }
 

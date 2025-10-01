@@ -1,4 +1,5 @@
-﻿using MasterScheduler.Interface;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using MasterScheduler.Interface;
 using MasterScheduler.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -9,31 +10,52 @@ using System.Threading.Tasks;
 
 namespace MasterScheduler.Service
 {
-    public class NavigationService : INavigationService
+    public class NavigationService : ObservableObject, INavigationService
     {
         private readonly IServiceProvider _provider;
-        private readonly NavigationHost _host;
 
-        public NavigationService(IServiceProvider provider, NavigationHost host)
+        private readonly Stack<ObservableObject> _history = new();
+
+        private ObservableObject _currentViewModel;
+        public ObservableObject CurrentViewModel
         {
-            _provider = provider;
-            _host = host;
+            get => _currentViewModel;
+            private set => SetProperty(ref _currentViewModel, value);
         }
 
-        public void NavigateTo<TViewModel>() where TViewModel : class
+        public NavigationService(IServiceProvider provider)
         {
+            _provider = provider;          
+        }
+
+        public void NavigateTo<TViewModel>(bool IsPersistHistory = false) where TViewModel : class
+        {
+            if (_currentViewModel != null && IsPersistHistory)
+                _history.Push(_currentViewModel);
+
             var vm = _provider.GetRequiredService<TViewModel>();
-            _host.CurrentViewModel = vm;
+            CurrentViewModel = vm as ObservableObject;
         }
 
-        public void NavigateTo<TViewModel>(object parameter) where TViewModel : class
+        public void NavigateTo<TViewModel>(object parameter, bool IsPersistHistory = false) where TViewModel : class
         {
+            if (_currentViewModel != null && IsPersistHistory)
+                _history.Push(_currentViewModel);
+
             var vm = _provider.GetRequiredService<TViewModel>();
             if (vm is INavigationAware aware)
                 aware.OnNavigatedTo(parameter);
 
-            _host.CurrentViewModel = vm;
+            CurrentViewModel = vm as ObservableObject;
         }
+
+        public void GoBack()
+        {
+            if (_history.Count > 0)
+                CurrentViewModel = _history.Pop();
+        }       
+
+        public bool CanGoBack => _history.Count > 0;
     }
 
 
