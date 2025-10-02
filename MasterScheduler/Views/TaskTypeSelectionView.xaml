@@ -3,20 +3,132 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:fa="http://schemas.fontawesome.io/icons/"
              xmlns:local="clr-namespace:MasterScheduler.Views"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <!-- Card Style for ListBoxItem -->
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Margin" Value="5"/>
+           
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="LightGray"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="Gray" ShadowDepth="2" BlurRadius="5"/>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#FFCCE5FF"/>
+                    <Setter Property="BorderBrush" Value="#FF3399FF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Card Template -->
+        <DataTemplate x:Key="CardTemplate">
+            <Border Padding="10">
+                <StackPanel>
+                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16"/>
+                    <TextBlock Text="{Binding Description}" FontSize="14" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="25"/>
+            <RowDefinition Height="35"/>
+            <RowDefinition Height="45"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Orientation="Horizontal">
-            <Button Content="Back" Command="{Binding GoBackCommand}" Width="100"/>
-            <TextBlock Text="{Binding HeaderTitle}"/>
+        <Grid Grid.Row="0" Background="Black">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Foreground="White" Background="Transparent" Command="{Binding GoBackCommand}" Width="50">
+                <fa:ImageAwesome Icon="ArrowLeft" Foreground="White" VerticalAlignment="Center" Width="16" Height="16" Margin="0,0,5,0"/>
+            </Button>
+            <!-- Centered Title -->
+            <TextBlock Grid.Column="1" Text="Select Job Type" Foreground="White"
+                   FontSize="20" FontWeight="Bold" 
+                   VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <!-- Empty space (right) to balance layout -->
+            <Border Grid.Column="2" Width="40"/>
+        </Grid>
+        <StackPanel Grid.Row="1" Margin="5">
+            <Grid  Width="320">
+                <Border CornerRadius="5"
+                    BorderBrush="#CCC"
+                    BorderThickness="1"
+                    Background="White"
+                    Padding="4">
+                    <DockPanel>
+                        <TextBlock Text="🔍"
+                       FontSize="16"
+                       VerticalAlignment="Center"
+                       Margin="0,0,5,0"
+                       DockPanel.Dock="Left"/>
+                        <TextBox x:Name="SearchBox"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         VerticalAlignment="Center"
+                         FontSize="14"
+                         Padding="2"
+                         TextChanged="SearchBox_TextChanged"/>
+                    </DockPanel>
+                </Border>
+
+                <!-- Placeholder Text -->
+                <TextBlock Text="Search..."
+                   Foreground="Gray"
+                   Margin="35   ,0,0,0"
+                   VerticalAlignment="Center"
+                   IsHitTestVisible="False"
+                   FontSize="14"
+                   x:Name="PlaceholderText"
+                   Visibility="Visible"/>
+            </Grid>
         </StackPanel>
-        <Grid Grid.Row="1">
-            <TextBlock Text="Welcome" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        
+
+        <Grid Grid.Row="2">
+            <!-- Job Cards List Below Header -->
+            <ListBox ItemsSource="{Binding TaskTypeList}" SelectedItem="{Binding SelectedTaskType}"
+                 ItemTemplate="{StaticResource CardTemplate}"
+                 SelectionMode="Single"
+                 Margin="0,0">
+            </ListBox>
+        </Grid>
+        
+       <!--footer-->
+        <Grid Grid.Row="3" Background="Black">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <Border Grid.Column="0" Width="40"/>
+            <!-- Empty space (right) to balance layout -->
+            <Border Grid.Column="1" Width="40"/>
+
+            <Button Grid.Column="2" Background="Black" Margin="5"
+                    Foreground="White" FontWeight="Bold" Cursor="Hand" Command="{Binding NextCommand}" Width="100">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Next" Margin="0,0,7,0" />
+                    <fa:ImageAwesome Icon="ArrowCircleOutlineRight" Foreground="White" VerticalAlignment="Center" Width="16" Height="16" Margin="0,0,5,0"/>
+                </StackPanel>
+            </Button>
         </Grid>
     </Grid>
 </UserControl>

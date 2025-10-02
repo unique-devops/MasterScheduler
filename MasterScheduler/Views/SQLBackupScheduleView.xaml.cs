@@ -16,19 +16,13 @@ using System.Windows.Shapes;
 namespace MasterScheduler.Views
 {
     /// <summary>
-    /// Interaction logic for TaskSelectionView.xaml
+    /// Interaction logic for SQLBackupScheduleView.xaml
     /// </summary>
-    public partial class TaskTypeSelectionView : UserControl
+    public partial class SQLBackupScheduleView : UserControl
     {
-        public TaskTypeSelectionView()
+        public SQLBackupScheduleView()
         {
             InitializeComponent();
-        }
-        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            PlaceholderText.Visibility = string.IsNullOrWhiteSpace(SearchBox.Text)
-                ? Visibility.Visible
-                : Visibility.Collapsed;
         }
     }
 }

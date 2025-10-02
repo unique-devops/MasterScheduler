@@ -16,6 +16,9 @@
             <DataTemplate DataType="{x:Type vm:TaskTypeSelectionViewModel}">
                 <views:TaskTypeSelectionView />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:SQLBackupScheduleViewModel}">
+                <views:SQLBackupScheduleView />
+            </DataTemplate>
         </Grid.Resources>
         <ContentControl Content="{Binding NavigationService.CurrentViewModel}" />
     </Grid>
