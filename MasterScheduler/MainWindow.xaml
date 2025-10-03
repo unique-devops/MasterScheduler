@@ -19,6 +19,11 @@
             <DataTemplate DataType="{x:Type vm:SQLBackupScheduleViewModel}">
                 <views:SQLBackupScheduleView />
             </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vm:MSSQLConnectViewModel}">
+                <views:MSSQLConnectView/>
+            </DataTemplate>
+            
         </Grid.Resources>
         <ContentControl Content="{Binding NavigationService.CurrentViewModel}" />
     </Grid>

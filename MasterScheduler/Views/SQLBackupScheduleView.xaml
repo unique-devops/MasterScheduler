@@ -30,45 +30,133 @@
             <Border Grid.Column="2" Width="40"/>
         </Grid>
         <Grid Grid.Row="1">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="100"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="100"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="45"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition/>
-                        <RowDefinition/>
-                    </Grid.RowDefinitions>
-                    <fa:ImageAwesome Grid.Column="0" Icon="KeyboardOutline" Width="25" Height="25" Foreground="red"/>
-                    <StackPanel Grid.Column="1">
-                        <TextBlock FontWeight="Bold" Text="Connect To SQL Server"/>
-                        <TextBlock  Text="Server Name.."/>
-                    </StackPanel>
-                    <fa:ImageAwesome Grid.Column="2" Icon="Edit" Width="25" Height="25" Foreground="red"/>
+            <ListBox Grid.Row="1" HorizontalContentAlignment="Stretch">
+                <ListBoxItem >
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="40"/>
+                        </Grid.ColumnDefinitions>
+                        <fa:ImageAwesome Grid.Column="0" Icon="Server" Foreground="Black" Width="35" Height="35"/>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock FontWeight="Bold" Text="Connect to the MSSQL Server" Margin="5"/>
+                            <TextBlock Text="default" Margin="5"/>
+                        </StackPanel>
+                        <Button Grid.Column="2" Width="40" Height="40" Background="Transparent" BorderThickness="0" Command="{Binding ConnectServerCommand}" >
+                            <fa:ImageAwesome  Icon="Gear" Foreground="Black" Width="35" Height="35"/>
+                        </Button>
 
+                    </Grid>
+                </ListBoxItem>
 
-                    <fa:ImageAwesome Grid.Column="0" Grid.Row="1" Icon="KeyboardOutline" Width="25" Height="25" Foreground="red"/>
-                    <StackPanel Grid.Column="1" Grid.Row="1">
-                        <TextBlock FontWeight="Bold" Text="Select Database"/>
-                        <ListView ItemsSource="{Binding SelectedDatabases}">
-                            <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding}"/>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
-                    </StackPanel>
-                    <Button Grid.Column="2" Grid.Row="1" Command="{Binding OpenDatabaseSelectionCommand}" Background="Transparent">
-                        <fa:ImageAwesome  Icon="Edit" Width="25" Height="25" Foreground="red"/>
-                    </Button>
-                    
-                </Grid>
-                
-            </ScrollViewer>
+                <ListBoxItem>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="40"/>
+                        </Grid.ColumnDefinitions>
+                        <fa:ImageAwesome Grid.Column="0" Icon="Database" Foreground="Black" Width="35" Height="35"/>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock FontWeight="Bold" Text="Selected Databases" Margin="5"/>
+                            <ItemsControl ItemsSource="{Binding SelectedDatabases}" Margin="10,5" Width="250" HorizontalAlignment="Left">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" Margin="2,0"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                        <Button Grid.Column="2" Width="40" Height="40" Background="Transparent" BorderThickness="0" Command="{Binding OpenDatabaseSelectionCommand}" >
+                            <fa:ImageAwesome  Icon="Gear" Foreground="Black" Width="35" Height="35"/>
+                        </Button>
+
+                    </Grid>
+                </ListBoxItem>
+
+                <ListBoxItem>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="40"/>
+                        </Grid.ColumnDefinitions>
+                        <fa:ImageAwesome Grid.Column="0" Icon="Cloud" Foreground="Black" Width="35" Height="35" VerticalAlignment="Top"/>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock FontWeight="Bold" Text="Set backup destinations" Margin="5"/>
+                            <ListBox ItemsSource="{Binding BackupDestinations}" BorderThickness="1" Margin="10,5" HorizontalAlignment="Left">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <DockPanel Width="400">
+                                            <!-- Folder Icon -->
+                                            <fa:ImageAwesome Icon="{Binding Icon}" HorizontalAlignment="Left" Foreground="Gray" Width="18" Height="18"/>
+
+                                            <!-- Destination Path -->
+                                            <TextBlock Text="{Binding Name}"                                               
+                                               Margin="10,5"/>
+
+                                            <!-- Action Button -->
+                                            <Button Width="24" Height="24" Background="Transparent" BorderThickness="0"
+                                                HorizontalAlignment="Right"                                               
+                                                CommandParameter="{Binding}">
+                                                <fa:ImageAwesome  Icon="EllipsisV" Foreground="Gray" Width="18" Height="18"/>
+                                            </Button>
+                                        </DockPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </StackPanel>
+                        <Button Grid.Column="2" Width="40" Height="40" Background="Transparent" BorderThickness="0"
+                                Command="{Binding BackupDestinationCommand}" VerticalAlignment="Top">
+                            <fa:ImageAwesome  Icon="Gear" Foreground="Black" Width="35" Height="35"/>
+                        </Button>
+
+                    </Grid>
+                </ListBoxItem>
+
+                <ListBoxItem>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="40"/>
+                        </Grid.ColumnDefinitions>
+                        <fa:ImageAwesome Grid.Column="0" Icon="ClockOutline" Foreground="Black" Width="35" Height="35"/>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock FontWeight="Bold" Text="Schedule backups" Margin="5"/>
+                            <TextBlock Text="default" Margin="5"/>
+                        </StackPanel>
+                        <Button Grid.Column="2" Width="40" Height="40" Background="Transparent" BorderThickness="0" >
+                            <fa:ImageAwesome  Icon="Gear" Foreground="Black" Width="35" Height="35"/>
+                        </Button>
+
+                    </Grid>
+                </ListBoxItem>
+
+                <ListBoxItem>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="40"/>
+                        </Grid.ColumnDefinitions>
+                        <fa:ImageAwesome Grid.Column="0" Icon="Wechat" Foreground="Black" Width="35" Height="35"/>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock FontWeight="Bold" Text="Send Confirmation" Margin="5"/>
+                            <TextBlock Text="default" Margin="5"/>
+                        </StackPanel>
+                        <TextBlock Grid.Column="2">
+                        <Hyperlink TextDecorations="None">
+                        <InlineUIContainer>
+                            <fa:ImageAwesome  Icon="Gear" Foreground="Black" Width="35" Height="35"/>
+                        </InlineUIContainer>
+                        </Hyperlink>
+                        </TextBlock>
+
+                    </Grid>
+                </ListBoxItem>
+            </ListBox>
         </Grid>
 
         <!--footer-->

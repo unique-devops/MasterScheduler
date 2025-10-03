@@ -21,12 +21,13 @@ namespace MasterScheduler
 
             // Register services
             services.AddSingleton<INavigationService, NavigationService>();
+            services.AddSingleton<IDialogService, DialogService>();
 
             // Register viewmodels
             services.AddSingleton<MainViewModel>();
             services.AddTransient<DashboardViewModel>();            
             services.AddTransient<TaskTypeSelectionViewModel>();            
-            services.AddTransient<SQLBackupScheduleViewModel>();            
+            services.AddTransient<SQLBackupScheduleViewModel>();                                                                                
 
             Services = services.BuildServiceProvider();
         }

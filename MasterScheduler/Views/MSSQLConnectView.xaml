@@ -1,0 +1,71 @@
+﻿<Window x:Class="MasterScheduler.Views.MSSQLConnectView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:fa="http://schemas.fontawesome.io/icons/"
+             xmlns:local="clr-namespace:MasterScheduler.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="450" Height="300" Width="450" WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="35"/>
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal">
+            <fa:ImageAwesome Icon="Server" Width="40" Foreground="Gray"/>
+            <TextBlock Margin="10,5" Foreground="Gray" FontSize="18" FontWeight="ExtraBold" VerticalAlignment="Center" Text="Microsoft SQL Server"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="120"/>
+                <ColumnDefinition Width="15"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="35"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Server name"/>
+            <TextBlock Grid.Row="0" Grid.Column="1" Text=":"/>
+            <ComboBox Grid.Row="0" Grid.Column="2">
+                <ComboBoxItem>Windows</ComboBoxItem>
+                <ComboBoxItem>SQL Server</ComboBoxItem>
+            </ComboBox>
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Authentication"/>
+            <TextBlock Grid.Row="1" Grid.Column="1" Text=":"/>
+            <ComboBox Grid.Row="1" Grid.Column="2">
+                <ComboBoxItem>Windows</ComboBoxItem>
+                <ComboBoxItem>SQL Server</ComboBoxItem>
+            </ComboBox>
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Login ID"/>
+            <TextBlock Grid.Row="2" Grid.Column="1" Text=":"/>
+            <ComboBox Grid.Row="2" Grid.Column="2">
+                <ComboBoxItem>Server1</ComboBoxItem>
+            </ComboBox>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Password"/>
+            <TextBlock Grid.Row="3" Grid.Column="1" Text=":"/>
+            <ComboBox Grid.Row="3" Grid.Column="2">
+                <ComboBoxItem>Server1</ComboBoxItem>
+            </ComboBox>
+
+            <CheckBox Content="Remember password" Grid.Row="4" Grid.Column="2"/>
+        </Grid>
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="0,1,0,0" />
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button Content="Connect" Margin="2" Width="100"/>
+            <Button Content="Cancel" Margin="2" Width="100" Command="{Binding CancelCommand}"/>
+        </StackPanel>
+    </Grid>
+</Window>
