@@ -6,7 +6,15 @@
              xmlns:local="clr-namespace:MasterScheduler"
              >
     <Application.Resources>
-        <!-- DashboardViewModel ➝ DashboardView -->
-       
+        
+        <DropShadowEffect x:Key="DropShadowEffect"
+                      Color="Black"
+                      Direction="270"
+                      ShadowDepth="5"
+                      BlurRadius="10"
+                      Opacity="0.5"/>
+
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+
     </Application.Resources>
 </Application>

@@ -15,13 +15,15 @@ namespace MasterScheduler.ViewModels
 {
     public partial class SQLBackupScheduleViewModel : ObservableObject
     {
+        private readonly INavigationService _navigationService;
         public ObservableCollection<string> SelectedDatabases { get; set; } = new();
         public ObservableCollection<BackupDestination> BackupDestinations { get; set; } = new();
 
         private readonly IDialogService _dialogService;
-        public SQLBackupScheduleViewModel(IDialogService dialogService)
+        public SQLBackupScheduleViewModel(IDialogService dialogService, INavigationService navigationService)
         {
             _dialogService = dialogService;
+            _navigationService = navigationService;
         }
 
         [RelayCommand]
@@ -63,6 +65,12 @@ namespace MasterScheduler.ViewModels
             {
                 // Access dbSelectorVM.SelectedDatabases here
             }
+        }
+
+        [RelayCommand]
+        public void SchedulerSettings()
+        {
+            _navigationService.NavigateTo<SchedulerSettingsViewModel>();
         }
     }
 }

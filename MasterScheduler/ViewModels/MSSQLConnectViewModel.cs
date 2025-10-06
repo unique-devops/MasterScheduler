@@ -4,6 +4,7 @@ using MasterScheduler.Helper;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -18,7 +19,34 @@ namespace MasterScheduler.ViewModels
         private ObservableCollection<string> servers;
 
         [ObservableProperty]
+        private ObservableCollection<string> authentications = new ObservableCollection<string>
+            {
+                "Windows","SQL Server"
+            };
+
+        [ObservableProperty]
         private string selectedServer;
+
+        [ObservableProperty]
+        private string selectedAuthentication = "Windows";
+
+        [ObservableProperty]
+        private string loginID;
+
+        [ObservableProperty]
+        private string password;
+
+        [ObservableProperty]
+        private bool isRemember;
+
+        [ObservableProperty]
+        private bool shouldClose;
+
+        [ObservableProperty]
+        private bool isConnecting = false;
+
+        
+
         public MSSQLConnectViewModel()
         {
             Servers = new ObservableCollection<string>
@@ -54,7 +82,21 @@ namespace MasterScheduler.ViewModels
            
             if (!Servers.Contains("Browse...")) Servers.Add("Browse...");
         }
-    }
 
-}
+        [RelayCommand]
+        public async Task Connect()
+        {
+            IsConnecting = true;
+            await Task.Delay(5000);
+            ShouldClose = true;
+        }
+
+        [RelayCommand]
+        public void Cancel()
+        {
+            ShouldClose = true;
+        }
+
+       
+    }
 }

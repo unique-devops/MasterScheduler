@@ -28,6 +28,7 @@ namespace MasterScheduler
             services.AddTransient<DashboardViewModel>();            
             services.AddTransient<TaskTypeSelectionViewModel>();            
             services.AddTransient<SQLBackupScheduleViewModel>();                                                                                
+            services.AddTransient<SchedulerSettingsViewModel>();                                                                                
 
             Services = services.BuildServiceProvider();
         }
