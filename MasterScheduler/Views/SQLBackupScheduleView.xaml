@@ -41,7 +41,7 @@
                         <fa:ImageAwesome Grid.Column="0" Icon="Server" Foreground="Black" Width="35" Height="35"/>
                         <StackPanel Grid.Column="1">
                             <TextBlock FontWeight="Bold" Text="Connect to the MSSQL Server" Margin="5"/>
-                            <TextBlock Text="default" Margin="5"/>
+                            <TextBlock Text="{Binding ServerName}" Margin="5"/>
                         </StackPanel>
                         <Button Grid.Column="2" Width="40" Height="40" Background="Transparent" BorderThickness="0" Command="{Binding ConnectServerCommand}" >
                             <fa:ImageAwesome  Icon="Gear" Foreground="Black" Width="35" Height="35"/>
