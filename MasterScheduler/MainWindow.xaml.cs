@@ -19,6 +19,7 @@ namespace MasterScheduler
         public MainWindow()
         {
             InitializeComponent();
+            App.ToastService.Register(GlobalToast);
         }
     }
 }

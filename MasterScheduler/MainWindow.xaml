@@ -30,5 +30,6 @@
 
         </Grid.Resources>
         <ContentControl Content="{Binding NavigationService.CurrentViewModel}" />
+        <views:ToastMessage x:Name="GlobalToast" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
     </Grid>
 </Window>

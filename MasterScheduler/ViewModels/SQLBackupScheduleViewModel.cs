@@ -2,6 +2,8 @@
 using CommunityToolkit.Mvvm.Input;
 using MasterScheduler.Interface;
 using MasterScheduler.Models;
+using MasterScheduler.Service;
+using MasterScheduler.Shared.Enums;
 using MasterScheduler.Views;
 using Microsoft.Data.SqlClient;
 using System;
@@ -22,6 +24,9 @@ namespace MasterScheduler.ViewModels
         [ObservableProperty]
         private string serverName;
 
+        [ObservableProperty]
+        private bool isServerConnected;
+
         private string ConnectionString;
         public ObservableCollection<string> SelectedDatabases { get; set; } = new();
         public ObservableCollection<BackupDestination> BackupDestinations { get; set; } = new();
@@ -39,18 +44,32 @@ namespace MasterScheduler.ViewModels
         {
             var dialog = new MSSQLConnectView();
             dialog.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
-            var result = dialog.ShowDialog();
-
+            var result = dialog.ShowDialog();            
             if (result == true)
             {
                 var vm =(MSSQLConnectViewModel)dialog.DataContext;
-                ServerName=vm.SelectedServer;
-                ConnectionString = $"Server={ServerName};Database=.;Trusted_Connection=True;TrustServerCertificate=True"; ;
+                if (vm.IsConnectedServer)
+                {
+                    ServerName = vm.SelectedServer;
+                    ConnectionString = $"Server={ServerName};Database=master;Trusted_Connection=True;TrustServerCertificate=True"; ;
+                    IsServerConnected = true;
+                }
+                else
+                {
+                    IsServerConnected = false;
+                }
+                
             }
+            
         }
         [RelayCommand]
-        public void OpenDatabaseSelection()
-        {
+        public async Task OpenDatabaseSelection()
+        {            
+            if (IsServerConnected == false)
+            {
+                await App.ToastService.ShowAsync("Server not connected!", ToastType.Error);
+                return;
+            }
             var dialog = new DatabaseSelectionDialog();
             dialog.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x=>x.IsActive);
             // Simulate loading available databases

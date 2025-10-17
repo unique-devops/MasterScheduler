@@ -14,14 +14,14 @@ namespace MasterScheduler
     public partial class App : Application
     {
         public static IServiceProvider Services { get; private set; }
-
+        public static ToastService ToastService { get; } = new ToastService();
         public App()
         {
             var services = new ServiceCollection();
 
             // Register services
             services.AddSingleton<INavigationService, NavigationService>();
-            services.AddSingleton<IDialogService, DialogService>();
+            services.AddSingleton<IDialogService, DialogService>();           
 
             // Register viewmodels
             services.AddSingleton<MainViewModel>();

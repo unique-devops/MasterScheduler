@@ -45,7 +45,8 @@ namespace MasterScheduler.ViewModels
         [ObservableProperty]
         private bool isConnecting = false;
 
-        
+        [ObservableProperty]
+        private bool isConnectedServer = false;
 
         public MSSQLConnectViewModel()
         {
@@ -87,6 +88,7 @@ namespace MasterScheduler.ViewModels
         public async Task Connect()
         {
             IsConnecting = true;
+            isConnectedServer = true;
             await Task.Delay(5000);
             ShouldClose = true;
         }
