@@ -31,5 +31,6 @@
         </Grid.Resources>
         <ContentControl Content="{Binding NavigationService.CurrentViewModel}" />
         <views:ToastMessage x:Name="GlobalToast" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
+        <views:LoaderControl x:Name="GlobalLoader" Panel.ZIndex="999" />
     </Grid>
 </Window>

@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:fa="http://schemas.fontawesome.io/icons/"
              xmlns:local="clr-namespace:MasterScheduler.Views"
-             mc:Ignorable="d" 
+             mc:Ignorable="d" x:Name="RootControl"
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <Grid.RowDefinitions>
@@ -57,7 +57,7 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="40"/>
                         </Grid.ColumnDefinitions>
-                        <fa:ImageAwesome Grid.Column="0" Icon="Database" Foreground="Black" Width="35" Height="35"/>
+                        <fa:ImageAwesome Grid.Column="0" Icon="Database" Foreground="Black" Width="35" Height="35" VerticalAlignment="Top"/>
                         <StackPanel Grid.Column="1">
                             <TextBlock FontWeight="Bold" Text="Selected Databases" Margin="5"/>
                             <ItemsControl ItemsSource="{Binding SelectedDatabases}" Margin="10,5" Width="250" HorizontalAlignment="Left">
@@ -68,7 +68,7 @@
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </StackPanel>
-                        <Button Grid.Column="2" Width="40" Height="40" Background="Transparent" BorderThickness="0" Command="{Binding OpenDatabaseSelectionCommand}" >
+                        <Button Grid.Column="2" Width="40" Height="40" Background="Transparent" BorderThickness="0" Command="{Binding OpenDatabaseSelectionCommand}" VerticalAlignment="Top">
                             <fa:ImageAwesome  Icon="Gear" Foreground="Black" Width="35" Height="35"/>
                         </Button>
 
@@ -97,19 +97,30 @@
                                                Margin="10,5"/>
 
                                             <!-- Action Button -->
-                                            <Button Width="24" Height="24" Background="Transparent" BorderThickness="0"
-                                                HorizontalAlignment="Right"                                               
-                                                CommandParameter="{Binding}">
-                                                <fa:ImageAwesome  Icon="EllipsisV" Foreground="Gray" Width="18" Height="18"/>
-                                            </Button>
+                                            <Menu HorizontalAlignment="Right" >
+                                                <MenuItem>
+                                                    <MenuItem.Header>
+                                                        <fa:ImageAwesome  Icon="EllipsisV" Foreground="Gray" Width="18" Height="18"/>
+                                                    </MenuItem.Header>
+                                                    <MenuItem Header="Edit" Command="{Binding DataContext.EditCommand, ElementName=RootControl}"
+                                                        CommandParameter="{Binding}"/>
+                                                    <MenuItem Header="Delete" Command="{Binding DataContext.DeleteCommand, ElementName=RootControl}"
+                                                        CommandParameter="{Binding}"/>
+                                                </MenuItem>
+                                            </Menu>
                                         </DockPanel>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
                         </StackPanel>
                         <Button Grid.Column="2" Width="40" Height="40" Background="Transparent" BorderThickness="0"
-                                Command="{Binding BackupDestinationCommand}" VerticalAlignment="Top">
+                                x:Name="btnBackupDestiny" Click="btnBackupDestiny_Click" VerticalAlignment="Top">
                             <fa:ImageAwesome  Icon="Gear" Foreground="Black" Width="35" Height="35"/>
+                            <Button.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Local Folder" Click="MenuItem_Click"  />
+                                </ContextMenu>
+                            </Button.ContextMenu>
                         </Button>
 
                     </Grid>

@@ -32,6 +32,7 @@ namespace MasterScheduler.ViewModels
         public ObservableCollection<BackupDestination> BackupDestinations { get; set; } = new();
 
         private readonly IDialogService _dialogService;
+
         public SQLBackupScheduleViewModel(IDialogService dialogService, INavigationService navigationService)
         {
             _dialogService = dialogService;
@@ -64,25 +65,38 @@ namespace MasterScheduler.ViewModels
         }
         [RelayCommand]
         public async Task OpenDatabaseSelection()
-        {            
-            if (IsServerConnected == false)
+        {
+            try
             {
-                await App.ToastService.ShowAsync("Server not connected!", ToastType.Error);
-                return;
-            }
-            var dialog = new DatabaseSelectionDialog();
-            dialog.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x=>x.IsActive);
-            // Simulate loading available databases
-            var databases = LoadDatabases();
-            dialog.AvailableDatabases = new ObservableCollection<DatabaseItem>(databases);
-            if (dialog.ShowDialog() == true)
-            {
-                SelectedDatabases.Clear();
-                foreach (var db in dialog.AvailableDatabases.Where(d => d.IsChecked))
+                LoaderService.ShowLoader();
+                if (IsServerConnected == false)
                 {
-                    SelectedDatabases.Add(db.Name);
+                    await App.ToastService.ShowAsync("Server not connected!", ToastType.Error);
+                    return;
+                }
+                var dialog = new DatabaseSelectionDialog();
+                dialog.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
+                // Simulate loading available databases
+                var databases = LoadDatabases();
+                dialog.AvailableDatabases = new ObservableCollection<DatabaseItem>(databases);
+                if (dialog.ShowDialog() == true)
+                {
+                    SelectedDatabases.Clear();
+                    foreach (var db in dialog.AvailableDatabases.Where(d => d.IsChecked))
+                    {
+                        SelectedDatabases.Add(db.Name);
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                await App.ToastService.ShowAsync(ex.Message, ToastType.Error);
+
+            }
+            finally {
+                LoaderService.HideLoader();
+            }
+            
         }
 
         private IEnumerable<DatabaseItem> LoadDatabases()
@@ -96,7 +110,7 @@ namespace MasterScheduler.ViewModels
 
             while (reader.Read())
             {
-                list.Add(new DatabaseItem { Name = reader.GetString(0) });
+                list.Add(new DatabaseItem { Name = reader.GetString(0), IsChecked = SelectedDatabases.Contains(reader.GetString(0)) });
             }
             return list;
         }
@@ -104,15 +118,39 @@ namespace MasterScheduler.ViewModels
         [RelayCommand]
         public void BackupDestination()
         {           
-            BackupDestinations.Add(new BackupDestination { Name = "DB1", Icon = "Server" });                        
+            BackupDestinations.Add(new BackupDestination { Name = "DB" + new Random().Next(1,10), Icon = "Server" });                        
         }
-
-        
 
         [RelayCommand]
         public void SchedulerSettings()
         {
-            _navigationService.NavigateTo<SchedulerSettingsViewModel>();
+            //_navigationService.NavigateTo<SchedulerSettingsViewModel>();
+            var dialog = new SchedulerSettingsView();
+            dialog.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
+            // Simulate loading available databases
+            
+            if (dialog.ShowDialog() == true)
+            {
+                
+            }
+        }
+
+        [RelayCommand]
+        private void Edit(BackupDestination item)
+        {
+            MessageBox.Show($"Edit: {item.Name}");
+        }
+
+        [RelayCommand]
+        private void Delete(BackupDestination item)
+        {
+            BackupDestinations.Remove(item);
+        }
+
+        [RelayCommand]
+        private void GoBack()
+        {
+            _navigationService.NavigateTo<TaskTypeSelectionViewModel>();
         }
     }
 }

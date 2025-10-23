@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using MasterScheduler.Service;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -20,6 +21,11 @@ namespace MasterScheduler
         {
             InitializeComponent();
             App.ToastService.Register(GlobalToast);
+            // Register show/hide actions
+            LoaderService.Register(
+                () => Dispatcher.Invoke(() => GlobalLoader.Visibility = Visibility.Visible),
+                () => Dispatcher.Invoke(() => GlobalLoader.Visibility = Visibility.Collapsed)
+            );
         }
     }
 }

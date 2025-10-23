@@ -1,5 +1,7 @@
-﻿using System;
+﻿using MasterScheduler.ViewModels;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,11 +20,33 @@ namespace MasterScheduler.Views
     /// <summary>
     /// Interaction logic for SchedulerSettingsView.xaml
     /// </summary>
-    public partial class SchedulerSettingsView : UserControl
+    public partial class SchedulerSettingsView : Window
     {
+        private bool _isClosing =false;
         public SchedulerSettingsView()
         {
             InitializeComponent();
+            var vm  = new SchedulerSettingsViewModel();
+            DataContext = vm;
+            vm.PropertyChanged += Vm_PropertyChanged;
+        }
+
+        private void Vm_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(SchedulerSettingsViewModel.ShouldClose))
+            {
+                var vm = (SchedulerSettingsViewModel)sender;
+                if (vm.ShouldClose && !_isClosing)
+                {
+                    this.DialogResult =true;
+                }
+            }
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            _isClosing = true;
+            base.OnClosing(e);
         }
     }
 }
