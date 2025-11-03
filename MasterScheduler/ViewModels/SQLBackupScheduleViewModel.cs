@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.Input;
 using MasterScheduler.Interface;
 using MasterScheduler.Models;
 using MasterScheduler.Service;
+using MasterScheduler.Shared.Data;
+using MasterScheduler.Shared.DataModels;
 using MasterScheduler.Shared.Enums;
 using MasterScheduler.Views;
 using Microsoft.Data.SqlClient;
@@ -12,6 +14,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -20,7 +23,7 @@ namespace MasterScheduler.ViewModels
     public partial class SQLBackupScheduleViewModel : ObservableObject
     {
         private readonly INavigationService _navigationService;
-
+        private readonly JobRepository _repo = new JobRepository();
         [ObservableProperty]
         private string serverName;
 
@@ -32,6 +35,8 @@ namespace MasterScheduler.ViewModels
         public ObservableCollection<BackupDestination> BackupDestinations { get; set; } = new();
 
         private readonly IDialogService _dialogService;
+
+        private int jobId;
 
         public SQLBackupScheduleViewModel(IDialogService dialogService, INavigationService navigationService)
         {
@@ -147,10 +152,39 @@ namespace MasterScheduler.ViewModels
             BackupDestinations.Remove(item);
         }
 
+
+        [RelayCommand]
+        private void Save()
+        {
+            var job = new JobModel
+            {
+                JobName = "SQL backup",
+                JobType = "SQLBackup",
+                CronExpression = "0 0/5 * * * ?",
+                IsActive = true,                
+            };
+            if (jobId == 0)
+                _repo.Add(job);
+            else
+            {
+                job.Id = jobId;
+                _repo.Update(job);
+            }
+
+            MessageBox.Show("Job saved successfully!");
+            _navigationService.NavigateTo<DashboardViewModel>();
+        }
+
         [RelayCommand]
         private void GoBack()
         {
             _navigationService.NavigateTo<TaskTypeSelectionViewModel>();
+        }
+
+        [RelayCommand]
+        private void Cancel()
+        {
+            _navigationService.NavigateTo<DashboardViewModel>();
         }
     }
 }

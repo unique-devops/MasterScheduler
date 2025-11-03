@@ -1,5 +1,6 @@
 ﻿using MasterScheduler.Interface;
 using MasterScheduler.Service;
+using MasterScheduler.Shared.Data;
 using MasterScheduler.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System.Configuration;
@@ -36,7 +37,7 @@ namespace MasterScheduler
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-
+            DatabaseHelper.Initialize();
             var mainWindow = new MainWindow
             {
                 DataContext = Services.GetRequiredService<MainViewModel>()

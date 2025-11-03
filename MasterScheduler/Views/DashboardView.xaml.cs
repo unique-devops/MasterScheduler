@@ -24,5 +24,11 @@ namespace MasterScheduler.Views
         {
             InitializeComponent();            
         }
+        private void MediaElement_MediaEnded(object sender, RoutedEventArgs e)
+        {
+            var media = sender as MediaElement;
+            media.Position = TimeSpan.Zero;
+            media.Play();
+        }
     }
 }

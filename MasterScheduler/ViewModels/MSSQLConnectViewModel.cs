@@ -20,9 +20,9 @@ namespace MasterScheduler.ViewModels
 
         [ObservableProperty]
         private ObservableCollection<string> authentications = new ObservableCollection<string>
-            {
-                "Windows","SQL Server"
-            };
+        {
+            "Windows","SQL Server"
+        };
 
         [ObservableProperty]
         private string selectedServer;

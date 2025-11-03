@@ -9,10 +9,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Assets\loading.gif" />
+    <None Remove="Assets\spinner-64.gif" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\loading.gif" />
+    <Resource Include="Assets\spinner-64.gif" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="FontAwesome.WPF" Version="4.7.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client.Core" Version="9.0.9" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.1" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.2" />
+    <PackageReference Include="WpfAnimatedGif" Version="2.0.2" />
   </ItemGroup>
 
   <ItemGroup>

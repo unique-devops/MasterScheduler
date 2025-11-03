@@ -5,8 +5,15 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:fa="http://schemas.fontawesome.io/icons/"
         xmlns:local="clr-namespace:MasterScheduler.Views"
+        xmlns:crt="clr-namespace:MasterScheduler.Converter"
+        xmlns:gif="http://wpfanimatedgif.codeplex.com"
         mc:Ignorable="d"
         d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <crt:RunningToVisibilityConverter x:Key="RunningToVisibilityConverter"/>
+        <crt:NotRunningToVisibilityConverter x:Key="NotRunningToVisibilityConverter"/>
+        <crt:StatusToBrushConverter x:Key="StatusToBrushConverter"/>
+    </UserControl.Resources>
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -47,8 +54,9 @@
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
                   RowHeight="40"
-                  HeadersVisibility="Column"
-                  AlternatingRowBackground="#FFF"
+                  HeadersVisibility="Column"                 
+                  SelectionMode="Single"
+                  SelectionUnit="FullRow"
                   GridLinesVisibility="None"
                   Background="White"
                   BorderBrush="#DDD"
@@ -56,24 +64,75 @@
                   Padding="5"
                   HorizontalGridLinesBrush="#EEE"
                   VerticalGridLinesBrush="#EEE">
-
+           
+            <DataGrid.Resources>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Black"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent"/>
+            </DataGrid.Resources>
+           
+            <DataGrid.Style>
+                <Style TargetType="DataGrid">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Jobs.Count}" Value="0">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="DataGrid">
+                                        <Grid Background="White">
+                                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                <TextBlock Text="No job available"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center"
+                                                   FontSize="16"
+                                                   Foreground="Gray"
+                                                   FontWeight="SemiBold"/>
+                                                <Button  Command="{Binding AddJobCommand}">
+                                                    <fa:ImageAwesome Icon="PlusCircle" Width="16" Height="16" Margin="0,0,5,0"/>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.Style>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Job Name" Binding="{Binding JobName}" Width="200"/>
-                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120"/>
-                <DataGridTextColumn Header="Last Run" Binding="{Binding LastRun}" Width="150"/>
-                <DataGridTextColumn Header="Next Run" Binding="{Binding NextRun}" Width="150"/>
+                <DataGridTextColumn Header="Job Name" Binding="{Binding Name}" Width="*"/>
+                <DataGridTextColumn Header="Job Type" Binding="{Binding JobType}" Width="100"/>
+                <!--<DataGridTextColumn Header="Status" Binding="{Binding status}" Width="120"/>-->
+                <DataGridTextColumn Header="Last Run" Binding="{Binding LastRunAt}" Width="150"/>
+                <DataGridTextColumn Header="Next Run" Binding="{Binding NextRunAt}" Width="150"/>
 
-                <!-- Progress Bar Column -->
-                <DataGridTemplateColumn Header="Progress" Width="150">
+               
+                
+
+                <DataGridTemplateColumn Header="Status" Width="150">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <ProgressBar Value="{Binding Progress}" Maximum="100" Height="20" Foreground="Green" Background="#EEE"/>
+                            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <!-- Spinner GIF -->
+                                <!-- Animated GIF -->
+                                <Image gif:ImageBehavior.AnimatedSource="/Assets/loading.gif"
+                                       Width="20" Height="20"
+                                       Visibility="{Binding Status, Converter={StaticResource RunningToVisibilityConverter}}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+
+                                <!-- Text -->
+                                <TextBlock Text="{Binding Status}"
+                                   FontWeight="SemiBold"
+                                   Foreground="{Binding Status, Converter={StaticResource StatusToBrushConverter}}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Visibility="{Binding Status, Converter={StaticResource NotRunningToVisibilityConverter}}"/>
+                            </Grid>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-
+                
                 <!-- Action Buttons Column -->
-                <DataGridTemplateColumn Header="Actions" Width="220">
+                <DataGridTemplateColumn Header="Actions" Width="220" Visibility="Collapsed">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -99,5 +158,6 @@
 
             </DataGrid.Columns>
         </DataGrid>
+        
     </Grid>
 </UserControl>
