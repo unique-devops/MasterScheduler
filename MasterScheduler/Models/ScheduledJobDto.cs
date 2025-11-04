@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MasterScheduler.Models
 {
-    public partial class ScheduledJob : ObservableObject
+    public partial class ScheduledJobDto : ObservableObject
     {
         [ObservableProperty]
         private int id;

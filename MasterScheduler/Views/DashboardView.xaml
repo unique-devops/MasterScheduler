@@ -64,12 +64,46 @@
                   Padding="5"
                   HorizontalGridLinesBrush="#EEE"
                   VerticalGridLinesBrush="#EEE">
-           
+
             <DataGrid.Resources>
-                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Black"/>
+                <Style TargetType="{x:Type DataGridCell}">
+                    <Setter Property="BorderThickness" Value="0" />
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                </Style>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="LightGray"/>
                 <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent"/>
             </DataGrid.Resources>
-           
+            
+            <!--<DataGrid.CellStyle>
+                <Style TargetType="DataGridCell">
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected"
+                        Value="True">
+                            <Setter Property="Background"
+                        Value="White" />
+                            <Setter Property="Foreground"
+                        Value="Black" />
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="BorderBrush" Value="Transparent"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.CellStyle>
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="BorderThickness" Value="1" />
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected"
+                        Value="True">
+                            <Setter Property="BorderBrush"
+                        Value="Blue" />
+                            <Setter Property="BorderThickness"
+                        Value="1" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>-->
+            
             <DataGrid.Style>
                 <Style TargetType="DataGrid">
                     <Style.Triggers>
@@ -132,25 +166,42 @@
                 </DataGridTemplateColumn>
                 
                 <!-- Action Buttons Column -->
-                <DataGridTemplateColumn Header="Actions" Width="220" Visibility="Collapsed">
+                <DataGridTemplateColumn Header="Actions" Width="100">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <Button Width="30" Height="30" ToolTip="Start Job"
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Menu  Visibility="{Binding Status, Converter={StaticResource NotRunningToVisibilityConverter}}">
+                                    <MenuItem Padding="2">
+                                        <MenuItem.Header>
+                                            <fa:ImageAwesome Icon="EllipsisV" Width="14" Height="14"/>
+                                        </MenuItem.Header>
+                                        <MenuItem Header="Run now">
+                                            <MenuItem.Icon>
+                                                <fa:ImageAwesome Icon="Play" Width="14" Height="14"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Config">
+                                            <MenuItem.Icon>
+                                                <fa:ImageAwesome Icon="Cogs" Width="14" Height="14"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                    </MenuItem>
+                                </Menu>
+                                <!--<Button Width="30" Height="30" ToolTip="Start Job"
                                         Command="{Binding DataContext.StartCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         CommandParameter="{Binding}" Margin="2">
                                     <fa:ImageAwesome Icon="Play" Width="14" Height="14"/>
-                                </Button>
-                                <Button Width="30" Height="30" ToolTip="Stop Job"
+                                </Button>-->
+                                <Button Width="30" Height="30"  Padding="2" ToolTip="Stop Job" Visibility="{Binding Status, Converter={StaticResource RunningToVisibilityConverter}}"
                                         Command="{Binding DataContext.StopCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         CommandParameter="{Binding}" Margin="2">
                                     <fa:ImageAwesome Icon="Stop" Width="14" Height="14"/>
                                 </Button>
-                                <Button Width="30" Height="30" ToolTip="Configure Job"
+                                <!--<Button Width="30" Height="30" ToolTip="Configure Job" Visibility="{Binding Status, Converter={StaticResource RunningToVisibilityConverter}}"
                                         Command="{Binding DataContext.ConfigCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         CommandParameter="{Binding}" Margin="2">
                                     <fa:ImageAwesome Icon="Cogs" Width="14" Height="14"/>
-                                </Button>
+                                </Button>-->
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

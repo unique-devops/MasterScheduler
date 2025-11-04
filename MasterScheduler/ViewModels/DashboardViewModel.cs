@@ -20,9 +20,9 @@ namespace MasterScheduler.ViewModels
         private readonly JobRepository _repo = new JobRepository();
 
         [ObservableProperty]
-        private ObservableCollection<ScheduledJob> jobs;
+        private ObservableCollection<ScheduledJobDto> jobs;
 
-        [ObservableProperty] private ScheduledJob? _selectedJob;
+        [ObservableProperty] private ScheduledJobDto? _selectedJob;
         public DashboardViewModel(INavigationService navigation)
         {
             _navigation = navigation;
@@ -35,7 +35,12 @@ namespace MasterScheduler.ViewModels
         {
             Jobs.Clear();
             foreach (var j in _repo.GetAll())
-                Jobs.Add(new ScheduledJob { Id = j.Id, Name = j.JobName, JobType = j.JobType, NextRunAt = j.NextRunTime.ToString(), LastRunAt = j.LastRunTime.ToString() });
+            {
+                string lastRun = j.LastRunTime.ToString() ?? "";
+                string nextRun = j.NextRunTime.ToString() ?? "";
+                Jobs.Add(new ScheduledJobDto { Id = j.Id, Name = j.JobName, JobType = j.JobType, NextRunAt = string.IsNullOrWhiteSpace(nextRun) ? "N/A" : nextRun, LastRunAt = string.IsNullOrWhiteSpace(lastRun) ? "N/A" : lastRun, Status = j.IsActive ? "Active" : "Inactive" });
+            }
+            
         }
 
         [RelayCommand]
