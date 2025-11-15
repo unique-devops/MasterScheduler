@@ -20,10 +20,13 @@ using System.Windows;
 
 namespace MasterScheduler.ViewModels
 {
-    public partial class SQLBackupScheduleViewModel : ObservableObject
+    public partial class SQLBackupScheduleViewModel : ObservableObject, INavigationAware
     {
         private readonly INavigationService _navigationService;
         private readonly JobRepository _repo = new JobRepository();
+        [ObservableProperty]
+        private string _jobAliasName;
+
         [ObservableProperty]
         private string serverName;
 
@@ -36,14 +39,31 @@ namespace MasterScheduler.ViewModels
 
         private readonly IDialogService _dialogService;
 
-        private int jobId;
+        private int editJobId;
 
         public SQLBackupScheduleViewModel(IDialogService dialogService, INavigationService navigationService)
         {
             _dialogService = dialogService;
             _navigationService = navigationService;
+            JobAliasName = "Sql Backup";
         }
 
+        public void OnNavigatedTo(object parameter)
+        {
+            if (parameter is int id)
+            {
+                editJobId = id;
+                var job = _repo.GetById(id);
+                if (job != null)
+                {
+                    JobAliasName = job.JobName;
+                }
+            }
+            else
+            {
+               
+            }
+        }       
 
         [RelayCommand]
         public void ConnectServer()
@@ -158,20 +178,24 @@ namespace MasterScheduler.ViewModels
         {
             var job = new JobModel
             {
-                JobName = "SQL backup",
-                JobType = "SQLBackup",
+                JobName = JobAliasName,
+                JobType = "SqlBackup",                
                 CronExpression = "0 0/5 * * * ?",
                 IsActive = true,                
             };
-            if (jobId == 0)
+            if (editJobId == 0)
                 _repo.Add(job);
             else
             {
-                job.Id = jobId;
-                _repo.Update(job);
+                var existJob = _repo.GetById(editJobId);
+                if (existJob != null)
+                {
+                    existJob.JobName = JobAliasName;
+                    _repo.Update(existJob);
+                }
+                
             }
-
-            MessageBox.Show("Job saved successfully!");
+            MessageBox.Show($"Job {(editJobId == 0 ? "saved" : "updated")} successfully!");
             _navigationService.NavigateTo<DashboardViewModel>();
         }
 

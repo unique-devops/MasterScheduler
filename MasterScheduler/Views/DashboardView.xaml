@@ -8,7 +8,7 @@
         xmlns:crt="clr-namespace:MasterScheduler.Converter"
         xmlns:gif="http://wpfanimatedgif.codeplex.com"
         mc:Ignorable="d"
-        d:DesignHeight="450" d:DesignWidth="800">
+        d:DesignHeight="450" d:DesignWidth="800" Loaded="UserControl_Loaded">
     <UserControl.Resources>
         <crt:RunningToVisibilityConverter x:Key="RunningToVisibilityConverter"/>
         <crt:NotRunningToVisibilityConverter x:Key="NotRunningToVisibilityConverter"/>
@@ -49,11 +49,12 @@
         </StackPanel>
 
         <!-- Job Monitor Grid -->
-        <DataGrid Grid.Row="1" 
+        <DataGrid Grid.Row="1" x:Name="dataGrid"
                   ItemsSource="{Binding Jobs}" 
+                  SelectedItem="{Binding SelectedJob ,Mode=TwoWay}"
                   AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  RowHeight="40"
+                  CanUserDeleteRows="False"
+                  IsReadOnly="True"                 
                   HeadersVisibility="Column"                 
                   SelectionMode="Single"
                   SelectionUnit="FullRow"
@@ -61,16 +62,20 @@
                   Background="White"
                   BorderBrush="#DDD"
                   BorderThickness="1"
-                  Padding="5"
+                  RowHeight="30"
+                  FontSize="16"   
+                  Focusable="True"                  
                   HorizontalGridLinesBrush="#EEE"
-                  VerticalGridLinesBrush="#EEE">
-
+                  VerticalGridLinesBrush="#EEE" PreviewKeyDown="DataGrid_KeyDown">
             <DataGrid.Resources>
                 <Style TargetType="{x:Type DataGridCell}">
                     <Setter Property="BorderThickness" Value="0" />
                     <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                 </Style>
-                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="LightGray"/>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </Style>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Black"/>
                 <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent"/>
             </DataGrid.Resources>
             
@@ -88,21 +93,7 @@
                         </Trigger>
                     </Style.Triggers>
                 </Style>
-            </DataGrid.CellStyle>
-            <DataGrid.RowStyle>
-                <Style TargetType="DataGridRow">
-                    <Setter Property="BorderThickness" Value="1" />
-                    <Style.Triggers>
-                        <Trigger Property="IsSelected"
-                        Value="True">
-                            <Setter Property="BorderBrush"
-                        Value="Blue" />
-                            <Setter Property="BorderThickness"
-                        Value="1" />
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </DataGrid.RowStyle>-->
+            </DataGrid.CellStyle>-->           
             
             <DataGrid.Style>
                 <Style TargetType="DataGrid">
@@ -132,11 +123,44 @@
                 </Style>
             </DataGrid.Style>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Job Name" Binding="{Binding Name}" Width="*"/>
-                <DataGridTextColumn Header="Job Type" Binding="{Binding JobType}" Width="100"/>
+                <DataGridTextColumn Header="Job Id"  Binding="{Binding Id}" Width="50">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Padding" Value="5 0"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Job Name"  Binding="{Binding Name}" Width="*">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Padding" Value="5 0"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Job Type" Binding="{Binding JobType}" Width="100">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
                 <!--<DataGridTextColumn Header="Status" Binding="{Binding status}" Width="120"/>-->
-                <DataGridTextColumn Header="Last Run" Binding="{Binding LastRunAt}" Width="150"/>
-                <DataGridTextColumn Header="Next Run" Binding="{Binding NextRunAt}" Width="150"/>
+                <DataGridTextColumn Header="Last Run" Binding="{Binding LastRunAt}" Width="150">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Next Run" Binding="{Binding NextRunAt}" Width="150">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
 
                
                 
@@ -169,18 +193,23 @@
                 <DataGridTemplateColumn Header="Actions" Width="100">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Menu  Visibility="{Binding Status, Converter={StaticResource NotRunningToVisibilityConverter}}">
+                            <StackPanel  Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Menu Visibility="{Binding Status, Converter={StaticResource NotRunningToVisibilityConverter}}">
                                     <MenuItem Padding="2">
                                         <MenuItem.Header>
                                             <fa:ImageAwesome Icon="EllipsisV" Width="14" Height="14"/>
                                         </MenuItem.Header>
-                                        <MenuItem Header="Run now">
+                                        <MenuItem Header="Run now" Command="{Binding DataContext.RunNowJobCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}">
                                             <MenuItem.Icon>
                                                 <fa:ImageAwesome Icon="Play" Width="14" Height="14"/>
                                             </MenuItem.Icon>
                                         </MenuItem>
-                                        <MenuItem Header="Config">
+                                        <MenuItem Header="Delete" Command="{Binding DataContext.DeleteJobCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}">
+                                            <MenuItem.Icon>
+                                                <fa:ImageAwesome Icon="Remove" Width="14" Height="14"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Config" Command="{Binding DataContext.ConfigJobCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}">
                                             <MenuItem.Icon>
                                                 <fa:ImageAwesome Icon="Cogs" Width="14" Height="14"/>
                                             </MenuItem.Icon>
@@ -193,7 +222,7 @@
                                     <fa:ImageAwesome Icon="Play" Width="14" Height="14"/>
                                 </Button>-->
                                 <Button Width="30" Height="30"  Padding="2" ToolTip="Stop Job" Visibility="{Binding Status, Converter={StaticResource RunningToVisibilityConverter}}"
-                                        Command="{Binding DataContext.StopCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        Command="{Binding DataContext.StopJobCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         CommandParameter="{Binding}" Margin="2">
                                     <fa:ImageAwesome Icon="Stop" Width="14" Height="14"/>
                                 </Button>

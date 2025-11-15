@@ -10,6 +10,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="35"/>
+            <RowDefinition Height="35"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
@@ -29,7 +30,17 @@
             <!-- Empty space (right) to balance layout -->
             <Border Grid.Column="2" Width="40"/>
         </Grid>
-        <Grid Grid.Row="1">
+        <StackPanel Grid.Row="1" Orientation="Horizontal">
+            <TextBlock  Text="Job Name:" Margin="5" Foreground="Black" FontSize="18" VerticalAlignment="Center"/>
+            <TextBox Width="250" Margin="2" Padding="2" Text="{Binding JobAliasName}" FontSize="18" FontWeight="SemiBold" VerticalContentAlignment="Center">
+                <TextBox.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="7"/>
+                    </Style>
+                </TextBox.Resources>
+            </TextBox>
+        </StackPanel>
+        <Grid Grid.Row="2">
             <ListBox Grid.Row="1" HorizontalContentAlignment="Stretch">
                 <ListBoxItem >
                     <Grid>
@@ -171,7 +182,7 @@
         </Grid>
 
         <!--footer-->
-        <Grid Grid.Row="2" Background="Black">
+        <Grid Grid.Row="3" Background="Black">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>

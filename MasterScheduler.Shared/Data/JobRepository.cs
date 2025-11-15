@@ -33,6 +33,53 @@ namespace MasterScheduler.Shared.Data
             return list;
         }
 
+        public List<JobModel> GetOrderById(int LastId = 0)
+        {
+            var list = new List<JobModel>();
+            using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
+            con.Open();
+            using var cmd = new SqliteCommand("SELECT * FROM Jobs WHERE Id > " + LastId + " ORDER BY Id ASC", con);
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                list.Add(new JobModel
+                {
+                    Id = Convert.ToInt32(reader["Id"]),
+                    JobName = reader["JobName"].ToString()!,
+                    JobType = reader["JobType"].ToString()!,
+                    CronExpression = reader["CronExpression"].ToString()!,
+                    IsActive = Convert.ToInt32(reader["IsActive"]) == 1,
+                    LastRunTime = reader["LastRunTime"] != DBNull.Value ? DateTime.Parse(reader["LastRunTime"].ToString()!) : null,
+                    NextRunTime = reader["NextRunTime"] != DBNull.Value ? DateTime.Parse(reader["NextRunTime"].ToString()!) : null
+                });
+            }
+            return list;
+        }
+
+        public JobModel? GetById(int JobId)
+        {
+            JobModel job = null;
+            using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
+            con.Open();
+            using var cmd = new SqliteCommand("SELECT * FROM Jobs where id = @JobId", con);
+            cmd.Parameters.AddWithValue("@JobId", JobId);
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                job = new JobModel
+                {
+                    Id = Convert.ToInt32(reader["Id"]),
+                    JobName = reader["JobName"].ToString()!,
+                    JobType = reader["JobType"].ToString()!,
+                    CronExpression = reader["CronExpression"].ToString()!,
+                    IsActive = Convert.ToInt32(reader["IsActive"]) == 1,
+                    LastRunTime = reader["LastRunTime"] != DBNull.Value ? DateTime.Parse(reader["LastRunTime"].ToString()!) : null,
+                    NextRunTime = reader["NextRunTime"] != DBNull.Value ? DateTime.Parse(reader["NextRunTime"].ToString()!) : null
+                };
+            }
+            return job;
+        }
+
         public void Add(JobModel job)
         {
             using var con = new SqliteConnection(DatabaseHelper.ConnectionString);

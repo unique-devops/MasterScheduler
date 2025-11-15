@@ -19,9 +19,9 @@ namespace MasterScheduler.Worker
 
             Console.WriteLine($"Running {jobData.JobType} job: {jobData.JobName}");
 
-            switch (jobData.JobType)
+            switch (jobData.JobType.ToUpper())
             {
-                case "SQLBackup":
+                case "SQLBACKUP":
                     SqlBackupHelper.RunSqlBackup(jobData);
                     break;
                 // future: add more job types here

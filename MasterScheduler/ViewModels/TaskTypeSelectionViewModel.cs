@@ -28,11 +28,11 @@ namespace MasterScheduler.ViewModels
             _navigationService = navigationService;
             TaskTypeList = new ObservableCollection<TaskType>
             {
-                new TaskType { Name = "SQL Backup", Description = "SQL Database Backup." },
-                new TaskType { Name = "Software Engineer", Description = "Develops software systems." },
-                new TaskType { Name = "Data Analyst", Description = "Analyzes data and trends." },
-                new TaskType { Name = "Project Manager", Description = "Oversees project lifecycle." },
-                new TaskType { Name = "UI/UX Designer", Description = "Designs user interfaces." }
+                new TaskType { Id=1, Name = "SQL Backup", Description = "SQL Database Backup." },
+                new TaskType { Id=2, Name = "Software Engineer", Description = "Develops software systems." },
+                new TaskType { Id=3, Name = "Data Analyst", Description = "Analyzes data and trends." },
+                new TaskType { Id=4, Name = "Project Manager", Description = "Oversees project lifecycle." },
+                new TaskType { Id=4, Name = "UI/UX Designer", Description = "Designs user interfaces." }
             };
 
            
@@ -49,12 +49,12 @@ namespace MasterScheduler.ViewModels
         private void Next()
         {
             if (SelectedTaskType == null) return;
-            switch (SelectedTaskType.Name)
+            switch (SelectedTaskType.Id)
             {
-                case "SQL Backup":
+                case 1:
                     _navigationService.NavigateTo<SQLBackupScheduleViewModel>();
                     break;
-                case "SQLLITE":
+                case 2:
                     break;
             }
             
