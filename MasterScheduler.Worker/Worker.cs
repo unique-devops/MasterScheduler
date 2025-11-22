@@ -8,15 +8,17 @@ namespace MasterScheduler.Worker
     {
         private readonly ILogger<Worker> _logger;
         private readonly JobRepository _repo = new JobRepository();
+        private readonly PipeServer _pipeServer;
         public Worker(ILogger<Worker> logger)
         {
             _logger = logger;
-           
+            _pipeServer = new PipeServer();
+
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var random = new Random();
+            _ = _pipeServer.StartAsync(stoppingToken);  // start pipe server
             while (!stoppingToken.IsCancellationRequested)
             {
                 if (_logger.IsEnabled(LogLevel.Information))

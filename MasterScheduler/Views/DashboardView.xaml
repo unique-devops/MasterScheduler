@@ -216,21 +216,11 @@
                                         </MenuItem>
                                     </MenuItem>
                                 </Menu>
-                                <!--<Button Width="30" Height="30" ToolTip="Start Job"
-                                        Command="{Binding DataContext.StartCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                        CommandParameter="{Binding}" Margin="2">
-                                    <fa:ImageAwesome Icon="Play" Width="14" Height="14"/>
-                                </Button>-->
                                 <Button Width="30" Height="30"  Padding="2" ToolTip="Stop Job" Visibility="{Binding Status, Converter={StaticResource RunningToVisibilityConverter}}"
                                         Command="{Binding DataContext.StopJobCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         CommandParameter="{Binding}" Margin="2">
                                     <fa:ImageAwesome Icon="Stop" Width="14" Height="14"/>
                                 </Button>
-                                <!--<Button Width="30" Height="30" ToolTip="Configure Job" Visibility="{Binding Status, Converter={StaticResource RunningToVisibilityConverter}}"
-                                        Command="{Binding DataContext.ConfigCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                        CommandParameter="{Binding}" Margin="2">
-                                    <fa:ImageAwesome Icon="Cogs" Width="14" Height="14"/>
-                                </Button>-->
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

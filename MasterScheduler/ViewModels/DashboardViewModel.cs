@@ -4,9 +4,12 @@ using MasterScheduler.Interface;
 using MasterScheduler.Models;
 using MasterScheduler.Shared.Data;
 using MasterScheduler.Shared.DataModels;
+using MasterScheduler.Shared.JobHelper;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -27,9 +30,11 @@ namespace MasterScheduler.ViewModels
         [ObservableProperty] private ScheduledJobDto? _selectedJob;       
         public DashboardViewModel(INavigationService navigation)
         {
-            _navigation = navigation;
-            Jobs = new();           
-            LoadNewJobs();
+            _navigation = navigation;            
+            Jobs = new();
+            
+            _ =LoadNewJobs();
+            _=StartAsync(new CancellationToken());
         }
 
         [RelayCommand]
@@ -51,8 +56,8 @@ namespace MasterScheduler.ViewModels
                 {                    
                     string lastRun = j.LastRunTime.ToString() ?? "";
                     string nextRun = j.NextRunTime.ToString() ?? "";
-                    var exit = Jobs.Where(c => c.Id == j.Id).ToList();
-                    if (exit.Count == 0)
+                    var exit = Jobs?.Where(c => c.Id == j.Id).ToList();
+                    if (exit?.Count == 0)
                     {
                         Jobs?.Add(new ScheduledJobDto { Id = j.Id, Name = j.JobName, JobType = j.JobType, NextRunAt = string.IsNullOrWhiteSpace(nextRun) ? "N/A" : nextRun, LastRunAt = string.IsNullOrWhiteSpace(lastRun) ? "N/A" : lastRun, Status = j.IsActive ? "Active" : "Inactive" });
                     }
@@ -81,9 +86,9 @@ namespace MasterScheduler.ViewModels
            _navigation.NavigateTo<TaskTypeSelectionViewModel>();
         }
 
-        private bool CanDelete() => SelectedJob != null;
-        //[RelayCommand]
-        [RelayCommand(CanExecute = nameof(CanDelete))]
+        //private bool CanDelete() => SelectedJob != null;
+        [RelayCommand]
+        //[RelayCommand(CanExecute = nameof(CanDelete))]
         public void DeleteJob()
         {
             if (SelectedJob == null) return ;
@@ -100,7 +105,7 @@ namespace MasterScheduler.ViewModels
         }
 
         [RelayCommand]
-        private void RunNowJob()
+        private async Task RunNowJob()
         {
             if (SelectedJob == null) return;
             //var job = _repo.GetById(SelectedJob.Id);
@@ -110,6 +115,8 @@ namespace MasterScheduler.ViewModels
             //}            
             //LoadJobs();
             Jobs.First(c => c.Id == SelectedJob.Id).Status = "Running";
+            await PipeClient.SendAsync(SelectedJob.Id.ToString());
+            
         }
 
         [RelayCommand]
@@ -138,6 +145,47 @@ namespace MasterScheduler.ViewModels
                     break;
             }
             
+        }
+
+        //------------------Server----------------
+        public async Task StartAsync(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                var server = new NamedPipeServerStream(
+                    "SchedulerUI",
+                    PipeDirection.InOut,
+                    NamedPipeServerStream.MaxAllowedServerInstances,
+                    PipeTransmissionMode.Byte,
+                    PipeOptions.Asynchronous
+                );
+
+                await server.WaitForConnectionAsync(token);
+
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        using var reader = new StreamReader(server);                        
+
+                        string? line = await reader.ReadLineAsync();
+
+                        if (!string.IsNullOrEmpty(line))
+                        {
+                            Jobs.First(c => c.Id == Convert.ToInt32(line)).Status = "completed";
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // log if needed
+                    }
+                    finally
+                    {
+                        server.Dispose();   // IMPORTANT: do NOT use Disconnect() only
+                    }
+
+                }, CancellationToken.None);   // do NOT pass the main cancellation token
+            }
         }
     }
 

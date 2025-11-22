@@ -13,5 +13,30 @@ namespace MasterScheduler.Shared.JobHelper
         {
             // placeholder example for next job type
         }
+
+        public static async Task RunFolderCleaner(string path)
+        {
+            if (!Directory.Exists(path))
+                return;
+
+            await Task.Run(() =>
+            {
+                string[] files = Directory.GetFiles(path, "*.txt");
+
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        File.Delete(file);
+                    }
+                    catch (Exception ex)
+                    {
+                        // optional: log error
+                        Console.WriteLine($"Failed to delete {file}: {ex.Message}");
+                    }
+                }
+            });
+            await Task.Delay(5000);
+        }
     }
 }
