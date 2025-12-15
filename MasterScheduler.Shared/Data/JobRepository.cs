@@ -84,10 +84,11 @@ namespace MasterScheduler.Shared.Data
         {
             using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
             con.Open();
-            var cmd = new SqliteCommand("INSERT INTO Jobs (JobName, JobType, CronExpression, IsActive) VALUES (@name, @type, @cron, @active)", con);
+            var cmd = new SqliteCommand("INSERT INTO Jobs (JobName, JobType, CronExpression, NextRunTime, IsActive) VALUES (@name, @type, @cron, @nextRunTime, @active)", con);
             cmd.Parameters.AddWithValue("@name", job.JobName);
             cmd.Parameters.AddWithValue("@type", job.JobType);
             cmd.Parameters.AddWithValue("@cron", job.CronExpression);
+            cmd.Parameters.AddWithValue("@nextRunTime", job.NextRunTime);
             cmd.Parameters.AddWithValue("@active", job.IsActive ? 1 : 0);
             cmd.ExecuteNonQuery();
         }

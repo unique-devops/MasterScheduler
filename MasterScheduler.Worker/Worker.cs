@@ -25,7 +25,7 @@ namespace MasterScheduler.Worker
                 {
                     _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 }
-                AddNew();
+                //AddNew();
                 await Task.Delay(10000, stoppingToken);
             }
         }

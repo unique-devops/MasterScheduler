@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using MasterScheduler.Interface;
 using MasterScheduler.Models;
 using MasterScheduler.Service;
+using MasterScheduler.Shared;
 using MasterScheduler.Shared.Data;
 using MasterScheduler.Shared.DataModels;
 using MasterScheduler.Shared.Enums;
@@ -180,11 +181,14 @@ namespace MasterScheduler.ViewModels
             {
                 JobName = JobAliasName,
                 JobType = "SqlBackup",                
-                CronExpression = "0 0/5 * * * ?",
+                CronExpression = "0 0/5 * * *",
+                NextRunTime = CronosHelper.GetNextRunTime("0 0/5 * * *"),
                 IsActive = true,                
             };
             if (editJobId == 0)
+            {                
                 _repo.Add(job);
+            }               
             else
             {
                 var existJob = _repo.GetById(editJobId);

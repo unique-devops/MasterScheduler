@@ -3,19 +3,12 @@ using CommunityToolkit.Mvvm.Input;
 using MasterScheduler.Interface;
 using MasterScheduler.Models;
 using MasterScheduler.Shared.Data;
-using MasterScheduler.Shared.DataModels;
-using MasterScheduler.Shared.JobHelper;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Pipes;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
 using System.Windows;
-using System.Windows.Controls;
+using System.Windows.Media.TextFormatting;
 
 namespace MasterScheduler.ViewModels
 {
@@ -114,9 +107,9 @@ namespace MasterScheduler.ViewModels
             //    _repo.Update(job);
             //}            
             //LoadJobs();
+           
             Jobs.First(c => c.Id == SelectedJob.Id).Status = "Running";
-            await PipeClient.SendAsync(SelectedJob.Id.ToString());
-            
+            await PipeClient.SendAsync(SelectedJob.Id.ToString());            
         }
 
         [RelayCommand]
@@ -172,7 +165,16 @@ namespace MasterScheduler.ViewModels
 
                         if (!string.IsNullOrEmpty(line))
                         {
-                            Jobs.First(c => c.Id == Convert.ToInt32(line)).Status = "completed";
+                            var scheduleJob = JsonSerializer.Deserialize<ScheduledJobDto>(line);
+                            if (scheduleJob != null)
+                            {
+                                var exit = Jobs?.Where(c => c.Id == scheduleJob.Id).ToList();
+                                if (exit?.Count != 0)
+                                {
+                                    Jobs?.First(c => c.Id == scheduleJob.Id).Status = scheduleJob.Status.ToString();
+                                }                               
+                            }                            
+                            //Jobs.First(c => c.Id == Convert.ToInt32(line)).Status = "completed";
                         }
                     }
                     catch (Exception ex)

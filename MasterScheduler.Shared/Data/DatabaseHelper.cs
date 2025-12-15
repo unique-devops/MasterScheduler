@@ -30,7 +30,8 @@ namespace MasterScheduler.Shared.Data
                         IsActive INTEGER NOT NULL DEFAULT 1,
                         Parameters TEXT NULL,
                         LastRunTime TEXT NULL,
-                        NextRunTime TEXT NULL
+                        NextRunTime TEXT NULL,
+                        Status TEXT NULL,
                     );";
             using var cmd2 = new SqliteCommand(sql, con);
             cmd2.ExecuteNonQuery();
