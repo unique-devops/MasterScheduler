@@ -17,30 +17,7 @@ namespace MasterScheduler.Worker
             _logger = logger;
             _pipeServer = new PipeServer();
 
-        }
-
-        //protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        //{
-        //    _ = _pipeServer.StartAsync(stoppingToken);  // start pipe server
-        //    while (!stoppingToken.IsCancellationRequested)
-        //    {
-        //        //if (_logger.IsEnabled(LogLevel.Information))
-        //        //{
-        //        //    _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-        //        //}
-        //        var pendingJobs = _repo.GetPendingTask();
-        //        foreach (var job in pendingJobs)
-        //        {
-
-        //            if (TryMarkRunning(job))
-        //            {
-        //                await Task.Run(() => ExecuteJob(job));                                              
-        //            }
-        //        }
-        //        //AddNew();
-        //        await Task.Delay(1000, stoppingToken);
-        //    }
-        //}
+        }        
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _ = _pipeServer.StartAsync(stoppingToken);
@@ -136,8 +113,8 @@ namespace MasterScheduler.Worker
             try
             {
                 job.Status = "running";
-                job.LastRunTime = job.LastRunTime;
-                job.NextRunTime = CronosHelper.GetNextRunTime(job.CronExpression,job.LastRunTime ?? DateTime.Now);
+                job.LastRunTime = DateTime.Now;
+                job.NextRunTime = CronosHelper.GetNextRunTime(job.CronExpression);
                 _repo.Update(job);
                 return true;
             }
@@ -168,32 +145,6 @@ namespace MasterScheduler.Worker
                 _parallelLimit.Release();
             }
         }
-
-        private void RunJob(JobModel job)
-        {
-            Task.Delay(30000);
-            try
-            {
-                job.Status = "completed";                
-                _repo.Update(job);              
-            }
-            catch(Exception ex)
-            {
-                job.Status = ex.Message;
-                _repo.Update(job);
-            }
-
-        }
-        private void AddNew()
-        {
-            var job = new JobModel
-            {
-                JobName = "SQlJOb",
-                JobType = "SqlBackup",
-                CronExpression = "0 0/5 * * * ?",
-                IsActive = true,
-            };          
-            _repo.Add(job);                     
-        }
+               
     }
 }

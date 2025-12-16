@@ -9,7 +9,7 @@ namespace MasterScheduler.Shared
 {
     public static class CronosHelper
     {
-        public static DateTime? GetNextRunTime(string crons, DateTime date)
+        public static DateTime? GetNextRunTime(string crons)
         {
             
             var schedule = CrontabSchedule.Parse(crons);

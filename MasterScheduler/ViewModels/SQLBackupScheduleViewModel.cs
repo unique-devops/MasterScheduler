@@ -185,7 +185,7 @@ namespace MasterScheduler.ViewModels
                 JobName = JobAliasName,
                 JobType = "SqlBackup",                
                 CronExpression = cron,
-                NextRunTime = CronosHelper.GetNextRunTime(cron, DateTime.Now),
+                NextRunTime = CronosHelper.GetNextRunTime(cron),
                 IsActive = true,                
             };
             if (editJobId == 0)
