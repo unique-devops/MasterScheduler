@@ -177,12 +177,15 @@ namespace MasterScheduler.ViewModels
         [RelayCommand]
         private void Save()
         {
+            int hour = DateTime.Now.Hour;
+            int min = DateTime.Now.Minute + 1;
+            string cron = $"{min} {hour} * * *";
             var job = new JobModel
             {
                 JobName = JobAliasName,
                 JobType = "SqlBackup",                
-                CronExpression = "0 0/5 * * *",
-                NextRunTime = CronosHelper.GetNextRunTime("0 0/5 * * *"),
+                CronExpression = cron,
+                NextRunTime = CronosHelper.GetNextRunTime(cron, DateTime.Now),
                 IsActive = true,                
             };
             if (editJobId == 0)

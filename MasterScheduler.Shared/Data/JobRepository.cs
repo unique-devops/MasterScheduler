@@ -10,6 +10,37 @@ namespace MasterScheduler.Shared.Data
 {
     public class JobRepository
     {
+        public List<JobModel> GetPendingTask()
+        {
+            var list = new List<JobModel>();
+            using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
+            con.Open();
+            string sql = @"
+                    SELECT *
+                    FROM Jobs
+                    WHERE IsActive = 1                     
+                      AND NextRunTime IS NOT NULL
+                      AND datetime(NextRunTime) <= datetime('now','localtime')
+                    ORDER BY datetime(NextRunTime) ASC;
+                    ";
+            using var cmd = new SqliteCommand(sql, con);
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                list.Add(new JobModel
+                {
+                    Id = Convert.ToInt32(reader["Id"]),
+                    JobName = reader["JobName"].ToString()!,
+                    JobType = reader["JobType"].ToString()!,
+                    CronExpression = reader["CronExpression"].ToString()!,
+                    IsActive = Convert.ToInt32(reader["IsActive"]) == 1,
+                    Status = reader["Status"].ToString(),
+                    LastRunTime = string.IsNullOrWhiteSpace(reader["LastRunTime"].ToString()) ? null : Convert.ToDateTime(reader["LastRunTime"]),
+                    NextRunTime = string.IsNullOrWhiteSpace(reader["NextRunTime"].ToString()) ? null : Convert.ToDateTime(reader["NextRunTime"])
+                });
+            }
+            return list;
+        }
         public List<JobModel> GetAll()
         {
             var list = new List<JobModel>();
@@ -26,13 +57,13 @@ namespace MasterScheduler.Shared.Data
                     JobType = reader["JobType"].ToString()!,
                     CronExpression = reader["CronExpression"].ToString()!,
                     IsActive = Convert.ToInt32(reader["IsActive"]) == 1,
-                    LastRunTime = reader["LastRunTime"] != DBNull.Value ? DateTime.Parse(reader["LastRunTime"].ToString()!) : null,
-                    NextRunTime = reader["NextRunTime"] != DBNull.Value ? DateTime.Parse(reader["NextRunTime"].ToString()!) : null
+                    Status = reader["Status"].ToString(),
+                    LastRunTime = string.IsNullOrWhiteSpace(reader["LastRunTime"].ToString()) ? null : Convert.ToDateTime(reader["LastRunTime"]),
+                    NextRunTime = string.IsNullOrWhiteSpace(reader["NextRunTime"].ToString()) ? null : Convert.ToDateTime(reader["NextRunTime"])                 
                 });
             }
             return list;
         }
-
         public List<JobModel> GetOrderById(int LastId = 0)
         {
             var list = new List<JobModel>();
@@ -49,8 +80,9 @@ namespace MasterScheduler.Shared.Data
                     JobType = reader["JobType"].ToString()!,
                     CronExpression = reader["CronExpression"].ToString()!,
                     IsActive = Convert.ToInt32(reader["IsActive"]) == 1,
-                    LastRunTime = reader["LastRunTime"] != DBNull.Value ? DateTime.Parse(reader["LastRunTime"].ToString()!) : null,
-                    NextRunTime = reader["NextRunTime"] != DBNull.Value ? DateTime.Parse(reader["NextRunTime"].ToString()!) : null
+                    Status = reader["Status"].ToString()!,
+                    LastRunTime = string.IsNullOrWhiteSpace(reader["LastRunTime"].ToString()) ? null : Convert.ToDateTime(reader["LastRunTime"]),
+                    NextRunTime = string.IsNullOrWhiteSpace(reader["NextRunTime"].ToString()) ? null : Convert.ToDateTime(reader["NextRunTime"])
                 });
             }
             return list;
@@ -73,8 +105,9 @@ namespace MasterScheduler.Shared.Data
                     JobType = reader["JobType"].ToString()!,
                     CronExpression = reader["CronExpression"].ToString()!,
                     IsActive = Convert.ToInt32(reader["IsActive"]) == 1,
-                    LastRunTime = reader["LastRunTime"] != DBNull.Value ? DateTime.Parse(reader["LastRunTime"].ToString()!) : null,
-                    NextRunTime = reader["NextRunTime"] != DBNull.Value ? DateTime.Parse(reader["NextRunTime"].ToString()!) : null
+                    Status = reader["Status"].ToString()!,
+                    LastRunTime = string.IsNullOrWhiteSpace(reader["LastRunTime"].ToString()) ? null : Convert.ToDateTime(reader["LastRunTime"]),
+                    NextRunTime = string.IsNullOrWhiteSpace(reader["NextRunTime"].ToString()) ? null : Convert.ToDateTime(reader["NextRunTime"])
                 };
             }
             return job;
@@ -84,11 +117,14 @@ namespace MasterScheduler.Shared.Data
         {
             using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
             con.Open();
-            var cmd = new SqliteCommand("INSERT INTO Jobs (JobName, JobType, CronExpression, NextRunTime, IsActive) VALUES (@name, @type, @cron, @nextRunTime, @active)", con);
+            var cmd = new SqliteCommand("INSERT INTO Jobs (JobName, JobType, CronExpression, NextRunTime, LastRunTime, Status, IsActive) " +
+                "VALUES (@name, @type, @cron, @nextRun, @lastRun, @status, @active)", con);
             cmd.Parameters.AddWithValue("@name", job.JobName);
             cmd.Parameters.AddWithValue("@type", job.JobType);
             cmd.Parameters.AddWithValue("@cron", job.CronExpression);
-            cmd.Parameters.AddWithValue("@nextRunTime", job.NextRunTime);
+            cmd.Parameters.AddWithValue("@nextRun", job.NextRunTime == null ? "" : job.NextRunTime);
+            cmd.Parameters.AddWithValue("@lastRun", job.LastRunTime == null ? "" : job.LastRunTime);
+            cmd.Parameters.AddWithValue("@status", job.Status == null ? "" : job.Status);
             cmd.Parameters.AddWithValue("@active", job.IsActive ? 1 : 0);
             cmd.ExecuteNonQuery();
         }
@@ -97,11 +133,14 @@ namespace MasterScheduler.Shared.Data
         {
             using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
             con.Open();
-            var cmd = new SqliteCommand(@"UPDATE Jobs 
-                                          SET JobName=@name, CronExpression=@cron, IsActive=@active 
-                                          WHERE Id=@id", con);
+            var cmd = new SqliteCommand(@"UPDATE Jobs SET JobName=@name, CronExpression=@cron,
+                      NextRunTime =@nextRun, LastRunTime =@lastRun, Status =@status,
+                      IsActive=@active WHERE Id=@id", con);
             cmd.Parameters.AddWithValue("@name", job.JobName);
             cmd.Parameters.AddWithValue("@cron", job.CronExpression);
+            cmd.Parameters.AddWithValue("@nextRun", job.NextRunTime == null ? "" : job.NextRunTime);
+            cmd.Parameters.AddWithValue("@lastRun", job.LastRunTime == null ? "" : job.LastRunTime);
+            cmd.Parameters.AddWithValue("@status", job.Status == null ? "" : job.Status);
             cmd.Parameters.AddWithValue("@active", job.IsActive ? 1 : 0);
             cmd.Parameters.AddWithValue("@id", job.Id);
             cmd.ExecuteNonQuery();

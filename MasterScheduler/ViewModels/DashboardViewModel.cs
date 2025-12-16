@@ -29,9 +29,57 @@ namespace MasterScheduler.ViewModels
             _ =LoadNewJobs();
             _=StartAsync(new CancellationToken());
         }
-
         [RelayCommand]
         private async Task LoadNewJobs()
+        {
+            while (true)
+            {
+                var dbJobs = _repo.GetAll().ToList();
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    // 1️⃣ REMOVE jobs that no longer exist in DB
+                    var toRemove = Jobs
+                        .Where(ui => !dbJobs.Any(db => db.Id == ui.Id))
+                        .ToList();
+
+                    foreach (var r in toRemove)
+                        Jobs.Remove(r);
+
+                    // 2️⃣ ADD or UPDATE jobs
+                    foreach (var dbJob in dbJobs)
+                    {
+                        var uiJob = Jobs.FirstOrDefault(x => x.Id == dbJob.Id);                       
+
+                        if (uiJob == null)
+                        {
+                            // ➕ ADD
+                            Jobs.Add(new ScheduledJobDto
+                            {
+                                Id = dbJob.Id,
+                                Name = dbJob.JobName,
+                                JobType = dbJob.JobType,
+                                NextRunAt = dbJob.NextRunTime.ToString(),
+                                LastRunAt = dbJob.LastRunTime.ToString(),
+                                Status = dbJob.Status
+                            });
+                        }
+                        else
+                        {
+                            // 🔄 UPDATE (this was missing in your code)
+                            uiJob.NextRunAt = dbJob.NextRunTime.ToString();
+                            uiJob.LastRunAt = dbJob.LastRunTime.ToString();
+                            uiJob.Status = dbJob.Status;
+                        }
+                    }
+                });
+
+                await Task.Delay(500); // refresh every 1 sec
+            }
+        }
+
+        [RelayCommand]
+        private async Task LoadNewJobsOld()
         {           
             var jobData = _repo.GetAll();
             Application.Current.Dispatcher.Invoke(() =>
@@ -53,6 +101,9 @@ namespace MasterScheduler.ViewModels
                     if (exit?.Count == 0)
                     {
                         Jobs?.Add(new ScheduledJobDto { Id = j.Id, Name = j.JobName, JobType = j.JobType, NextRunAt = string.IsNullOrWhiteSpace(nextRun) ? "N/A" : nextRun, LastRunAt = string.IsNullOrWhiteSpace(lastRun) ? "N/A" : lastRun, Status = j.IsActive ? "Active" : "Inactive" });
+                    }
+                    else {
+                        
                     }
                     
                 }

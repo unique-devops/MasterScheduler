@@ -1,4 +1,4 @@
-﻿using Cronos;
+﻿using NCrontab;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,14 +9,22 @@ namespace MasterScheduler.Shared
 {
     public static class CronosHelper
     {
-        public static DateTime? GetNextRunTime(string crons)
+        public static DateTime? GetNextRunTime(string crons, DateTime date)
         {
-            var cronExp = CronExpression.Parse(crons);
-
-            DateTimeOffset nowUtc = DateTimeOffset.UtcNow;
-
-            var next = cronExp.GetNextOccurrence(DateTime.UtcNow);
-            return next;
+            
+            var schedule = CrontabSchedule.Parse(crons);
+            DateTime startOfToday = DateTime.Now.Date;
+            DateTime scheduledTime = schedule.GetNextOccurrence(startOfToday);
+            DateTime currentTime = DateTime.Now;
+            if (scheduledTime < currentTime)
+            {               
+                return schedule.GetNextOccurrence(scheduledTime.AddSeconds(1));
+            }
+            else
+            {               
+                return scheduledTime;
+            }            
         }
+       
     }
 }
