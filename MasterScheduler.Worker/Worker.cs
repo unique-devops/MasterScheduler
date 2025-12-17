@@ -18,7 +18,7 @@ namespace MasterScheduler.Worker
         public Worker(ILogger<Worker> logger)
         {
             _logger = logger;
-            _pipeServer = new PipeServer();
+            _pipeServer = new PipeServer(id => RequestCancellation(id));
 
         }        
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -127,7 +127,14 @@ namespace MasterScheduler.Worker
             }
 
         }
-
+        private void RequestCancellation(int jobId)
+        {
+            if (_activeJobs.TryGetValue(jobId, out var cts))
+            {
+                _logger.LogWarning("UI requested cancellation for Job {id}", jobId);
+                cts.Cancel();
+            }
+        }
         async Task ExecuteJob(JobModel job, CancellationToken serviceToken)
         {
             var jobCts = new CancellationTokenSource();
@@ -142,7 +149,7 @@ namespace MasterScheduler.Worker
             try
             {
                 _logger.LogInformation("Starting Job {id}", job.Id);
-                await Task.Delay(5000, linkedCts.Token); // simulate work               
+                await Task.Delay(10000, linkedCts.Token); // simulate work               
                 job.Status = "completed";
                 _repo.Update(job);
             }

@@ -19,6 +19,7 @@ namespace MasterScheduler.ViewModels
         private readonly System.Timers.Timer _refreshTimer;
         [ObservableProperty]
         private ObservableCollection<ScheduledJobDto> jobs;
+        private const string PipeName = "JobControlPipe";
 
         [ObservableProperty] private ScheduledJobDto? _selectedJob;       
         public DashboardViewModel(INavigationService navigation)
@@ -164,7 +165,7 @@ namespace MasterScheduler.ViewModels
         }
 
         [RelayCommand]
-        private void StopJob()
+        private async Task StopJob()
         {
             if (SelectedJob == null) return;
             //var job = _repo.GetById(SelectedJob.Id);
@@ -173,7 +174,7 @@ namespace MasterScheduler.ViewModels
             //    _repo.Update(job);
             //}            
             //LoadJobs();
-            Jobs.First(c => c.Id == SelectedJob.Id).Status = "Active";
+            bool sent = await SendCancelRequestAsync(SelectedJob.Id);
         }
 
         [RelayCommand]
@@ -219,10 +220,10 @@ namespace MasterScheduler.ViewModels
                             var scheduleJob = JsonSerializer.Deserialize<ScheduledJobDto>(line);
                             if (scheduleJob != null)
                             {
-                                var exit = Jobs?.Where(c => c.Id == scheduleJob.Id).ToList();
-                                if (exit?.Count != 0)
+                                var exit = Jobs?.First(c => c.Id == scheduleJob.Id);
+                                if (exit != null)
                                 {
-                                    Jobs?.First(c => c.Id == scheduleJob.Id).Status = scheduleJob.Status.ToString();
+                                    exit.Status = scheduleJob.Status.ToString();
                                 }                               
                             }                            
                             //Jobs.First(c => c.Id == Convert.ToInt32(line)).Status = "completed";
@@ -238,6 +239,28 @@ namespace MasterScheduler.ViewModels
                     }
 
                 }, CancellationToken.None);   // do NOT pass the main cancellation token
+            }
+        }
+
+        public static async Task<bool> SendCancelRequestAsync(int jobId)
+        {
+            try
+            {
+                // 1. Connect to the pipe with a 2-second timeout
+                using var client = new NamedPipeClientStream(".", PipeName, PipeDirection.Out);
+                await client.ConnectAsync(2000);
+
+                // 2. Write the command
+                using var writer = new StreamWriter(client);
+                await writer.WriteLineAsync($"CANCEL:{jobId}");
+                await writer.FlushAsync();
+
+                return true;
+            }
+            catch
+            {
+                // Service might be down or pipe is busy
+                return false;
             }
         }
     }

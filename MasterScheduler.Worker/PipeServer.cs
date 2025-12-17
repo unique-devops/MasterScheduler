@@ -10,7 +10,46 @@ namespace MasterScheduler.Worker
 {
     public class PipeServer
     {
-        public async Task StartAsync(CancellationToken token)
+        private readonly Action<int> _onCancelRequested;
+        private const string PipeName = "JobControlPipe";
+
+        public PipeServer(Action<int> onCancelRequested)
+        {
+            _onCancelRequested = onCancelRequested;
+        }
+        public async Task StartAsync(CancellationToken stoppingToken)
+        {
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                try
+                {
+                    // Create a new pipe instance for each connection
+                    using var server = new NamedPipeServerStream(PipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+
+                    // Wait for the UI/Pipeline to connect
+                    await server.WaitForConnectionAsync(stoppingToken);
+
+                    using var reader = new StreamReader(server);
+                    var message = await reader.ReadLineAsync();
+
+                    if (!string.IsNullOrEmpty(message) && message.StartsWith("CANCEL:"))
+                    {
+                        if (int.TryParse(message.Split(':')[1], out int jobId))
+                        {
+                            // Trigger the callback to the Worker
+                            _onCancelRequested?.Invoke(jobId);
+                        }
+                    }
+                }
+                catch (OperationCanceledException) { break; }
+                catch (Exception ex)
+                {
+                    // Log error or ignore transient pipe issues
+                    await Task.Delay(1000, stoppingToken);
+                }
+            }
+        }
+        public async Task StartAsyncOld(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
             {
