@@ -2,16 +2,19 @@ using MasterScheduler.Shared;
 using MasterScheduler.Shared.Data;
 using MasterScheduler.Shared.DataModels;
 using Microsoft.AspNetCore.SignalR;
+using System.Collections.Concurrent;
 using static Quartz.Logging.OperationName;
 
 namespace MasterScheduler.Worker
 {
     public class Worker : BackgroundService
     {
+        private readonly ConcurrentDictionary<int, CancellationTokenSource> _activeJobs = new();
         private readonly ILogger<Worker> _logger;
         private readonly JobRepository _repo = new JobRepository();
         private readonly PipeServer _pipeServer;
         static SemaphoreSlim _parallelLimit = new SemaphoreSlim(15);
+
         public Worker(ILogger<Worker> logger)
         {
             _logger = logger;
@@ -82,7 +85,7 @@ namespace MasterScheduler.Worker
                             if (TryMarkRunning(job))
                             {
                                 // Add the execution task to the list
-                                concurrentTasks.Add(Task.Run(() => ExecuteJob(job)));
+                                concurrentTasks.Add(Task.Run(() => ExecuteJob(job, stoppingToken)));
                             }
                         }
 
@@ -125,26 +128,50 @@ namespace MasterScheduler.Worker
 
         }
 
-        async Task ExecuteJob(JobModel job)
+        async Task ExecuteJob(JobModel job, CancellationToken serviceToken)
         {
-            await _parallelLimit.WaitAsync();
+            var jobCts = new CancellationTokenSource();
+
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(serviceToken, jobCts.Token);
+
+            // 3. Register the job so the UI/PipeServer can find it
+            _activeJobs[job.Id] = jobCts;
+
+            await _parallelLimit.WaitAsync(linkedCts.Token);
 
             try
-            {                
-                await Task.Delay(5000); // simulate work               
+            {
+                _logger.LogInformation("Starting Job {id}", job.Id);
+                await Task.Delay(5000, linkedCts.Token); // simulate work               
                 job.Status = "completed";
+                _repo.Update(job);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Job {id} was cancelled.", job.Id);
+                job.Status = "cancelled";
                 _repo.Update(job);
             }
             catch (Exception ex)
             {
-                job.Status = ex.Message;
+                job.Status = "error: " + ex.Message;
                 _repo.Update(job);
             }
             finally
             {
                 _parallelLimit.Release();
+                _activeJobs.TryRemove(job.Id, out _); // Clean up
+                jobCts.Dispose();
             }
         }
-               
+
+        public void CancelJob(int jobId)
+        {
+            if (_activeJobs.TryGetValue(jobId, out var cts))
+            {
+                cts.Cancel();
+                _logger.LogInformation("Cancellation requested for job {id}", jobId);
+            }
+        }
     }
 }
