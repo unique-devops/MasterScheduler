@@ -161,7 +161,7 @@ namespace MasterScheduler.ViewModels
             //LoadJobs();
            
             Jobs.First(c => c.Id == SelectedJob.Id).Status = "Running";
-            await PipeClient.SendAsync(SelectedJob.Id.ToString());            
+            //await PipeClient.SendAsync(SelectedJob.Id.ToString());            
         }
 
         [RelayCommand]

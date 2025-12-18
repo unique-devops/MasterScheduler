@@ -58,12 +58,12 @@
                   HeadersVisibility="Column"                 
                   SelectionMode="Single"
                   SelectionUnit="FullRow"
-                  GridLinesVisibility="None"
+                  GridLinesVisibility="Vertical"
                   Background="White"
                   BorderBrush="#DDD"
                   BorderThickness="1"
                   RowHeight="30"
-                  FontSize="16"   
+                  FontSize="13"   
                   Focusable="True"                  
                   HorizontalGridLinesBrush="#EEE"
                   VerticalGridLinesBrush="#EEE" PreviewKeyDown="DataGrid_KeyDown">
@@ -75,7 +75,7 @@
                 <Style TargetType="DataGridColumnHeader">
                     <Setter Property="FontWeight" Value="SemiBold"/>
                 </Style>
-                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Black"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#c5dadb"/>
                 <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent"/>
             </DataGrid.Resources>
             
@@ -123,7 +123,7 @@
                 </Style>
             </DataGrid.Style>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Job Id"  Binding="{Binding Id}" Width="50">
+                <DataGridTextColumn Header="ID"  Binding="{Binding Id}" MinWidth="60" Width="80">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="VerticalAlignment" Value="Center"/>
@@ -131,7 +131,7 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTextColumn Header="Job Name"  Binding="{Binding Name}" Width="*">
+                <DataGridTextColumn Header="Name"  Binding="{Binding Name}" MinWidth="100" Width="200">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="VerticalAlignment" Value="Center"/>
@@ -139,10 +139,11 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTextColumn Header="Job Type" Binding="{Binding JobType}" Width="100">
+                <DataGridTextColumn Header="Type" Binding="{Binding JobType}" MinWidth="60" Width="100">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Padding" Value="5 0"/>
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
@@ -151,6 +152,7 @@
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Padding" Value="5 0"/>
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
@@ -158,6 +160,7 @@
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Padding" Value="5 0"/>
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
@@ -165,32 +168,37 @@
                
                 
 
-                <DataGridTemplateColumn Header="Status" Width="150">
+                <DataGridTemplateColumn Header="Status" MinWidth="50" Width="*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Grid HorizontalAlignment="Left" Margin="2,0" VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="50"/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
                                 <!-- Spinner GIF -->
                                 <!-- Animated GIF -->
                                 <Image gif:ImageBehavior.AnimatedSource="/Assets/loading.gif"
-                                       Width="20" Height="20"
+                                       Width="20" Height="20" Grid.Column="0"
                                        Visibility="{Binding Status, Converter={StaticResource RunningToVisibilityConverter}}"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"/>
+                                
+                                
 
                                 <!-- Text -->
-                                <TextBlock Text="{Binding Status}"
+                                <TextBlock Text="{Binding Status}" Grid.Column="1"
                                    FontWeight="SemiBold"
                                    Foreground="{Binding Status, Converter={StaticResource StatusToBrushConverter}}"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"
-                                   Visibility="{Binding Status, Converter={StaticResource NotRunningToVisibilityConverter}}"/>
+                                   HorizontalAlignment="Left"
+                                   VerticalAlignment="Center"/>
                             </Grid>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 
                 <!-- Action Buttons Column -->
-                <DataGridTemplateColumn Header="Actions" Width="100">
+                <DataGridTemplateColumn Visibility="Visible" Header="Action" MinWidth="50" Width="60">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel  Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
