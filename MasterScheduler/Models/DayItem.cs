@@ -17,6 +17,6 @@ namespace MasterScheduler.Models
         public string DayCode { get; }
 
         [ObservableProperty]
-        private bool isSelected;
+        private bool isSelected = true;
     }
 }

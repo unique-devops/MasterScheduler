@@ -10,13 +10,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Assets\error.png" />
+    <None Remove="Assets\inactive.png" />
     <None Remove="Assets\loading.gif" />
+    <None Remove="Assets\pending.png" />
     <None Remove="Assets\spinner-64.gif" />
+    <None Remove="Assets\success.png" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Assets\error.png" />
+    <Resource Include="Assets\inactive.png" />
     <Resource Include="Assets\loading.gif" />
+    <Resource Include="Assets\pending.png" />
     <Resource Include="Assets\spinner-64.gif" />
+    <Resource Include="Assets\success.png" />
   </ItemGroup>
 
   <ItemGroup>

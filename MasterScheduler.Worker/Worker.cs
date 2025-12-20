@@ -151,17 +151,20 @@ namespace MasterScheduler.Worker
                 _logger.LogInformation("Starting Job {id}", job.Id);
                 await Task.Delay(10000, linkedCts.Token); // simulate work               
                 job.Status = "completed";
+                job.Message = "successfully completed";
                 _repo.Update(job);
             }
             catch (OperationCanceledException)
             {
                 _logger.LogWarning("Job {id} was cancelled.", job.Id);
                 job.Status = "cancelled";
+                job.Message = "cancelled";
                 _repo.Update(job);
             }
             catch (Exception ex)
             {
-                job.Status = "error: " + ex.Message;
+                job.Status = "error";
+                job.Message = "error: " + ex.Message;
                 _repo.Update(job);
             }
             finally

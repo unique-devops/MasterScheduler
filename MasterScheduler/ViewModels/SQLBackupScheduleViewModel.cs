@@ -42,6 +42,8 @@ namespace MasterScheduler.ViewModels
 
         private int editJobId;
 
+        public ScheduleTimeModel scheduleTimeModel { get; set; } = new();
+
         public SQLBackupScheduleViewModel(IDialogService dialogService, INavigationService navigationService)
         {
             _dialogService = dialogService;
@@ -151,13 +153,13 @@ namespace MasterScheduler.ViewModels
         public void SchedulerSettings()
         {
             //_navigationService.NavigateTo<SchedulerSettingsViewModel>();
-            var dialog = new SchedulerSettingsView();
+            var dialog = new ScheduleTimeView();
             dialog.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
             // Simulate loading available databases
             
             if (dialog.ShowDialog() == true)
             {
-                
+                scheduleTimeModel = dialog.ScheduleTime;
             }
         }
 
@@ -177,8 +179,10 @@ namespace MasterScheduler.ViewModels
         [RelayCommand]
         private void Save()
         {
-            int hour = DateTime.Now.Hour;
-            int min = DateTime.Now.Minute + 1;
+            ////int hour = DateTime.Now.Hour;
+            ////int min = DateTime.Now.Minute + 1;
+            int hour = scheduleTimeModel.Hour;
+            int min = scheduleTimeModel.Minute;
             string cron = $"{min} {hour} * * *";
             var job = new JobModel
             {
@@ -187,6 +191,8 @@ namespace MasterScheduler.ViewModels
                 CronExpression = cron,
                 NextRunTime = CronosHelper.GetNextRunTime(cron),
                 IsActive = true,                
+                Status = "pending",                
+                Message = "not run yet"             
             };
             if (editJobId == 0)
             {                

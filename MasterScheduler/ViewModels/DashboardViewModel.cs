@@ -62,7 +62,8 @@ namespace MasterScheduler.ViewModels
                                 JobType = dbJob.JobType,
                                 NextRunAt = dbJob.NextRunTime.ToString(),
                                 LastRunAt = dbJob.LastRunTime.ToString(),
-                                Status = dbJob.Status
+                                Status = dbJob.Status,
+                                Message = dbJob.Message
                             });
                         }
                         else
@@ -71,6 +72,7 @@ namespace MasterScheduler.ViewModels
                             uiJob.NextRunAt = dbJob.NextRunTime.ToString();
                             uiJob.LastRunAt = dbJob.LastRunTime.ToString();
                             uiJob.Status = dbJob.Status;
+                            uiJob.Message = dbJob.Message;
                         }
                     }
                 });
@@ -79,39 +81,7 @@ namespace MasterScheduler.ViewModels
             }
         }
 
-        [RelayCommand]
-        private async Task LoadNewJobsOld()
-        {           
-            var jobData = _repo.GetAll();
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                foreach (var jobRow in Jobs)
-                {
-                    var isAvailable = _repo.GetOrderById(jobRow.Id);
-                    if (isAvailable == null)
-                    {
-                        Jobs.Remove(jobRow);
-                    }                   
-                }
-                //Jobs.Clear();
-                foreach (var j in jobData)
-                {                    
-                    string lastRun = j.LastRunTime.ToString() ?? "";
-                    string nextRun = j.NextRunTime.ToString() ?? "";
-                    var exit = Jobs?.Where(c => c.Id == j.Id).ToList();
-                    if (exit?.Count == 0)
-                    {
-                        Jobs?.Add(new ScheduledJobDto { Id = j.Id, Name = j.JobName, JobType = j.JobType, NextRunAt = string.IsNullOrWhiteSpace(nextRun) ? "N/A" : nextRun, LastRunAt = string.IsNullOrWhiteSpace(lastRun) ? "N/A" : lastRun, Status = j.IsActive ? "Active" : "Inactive" });
-                    }
-                    else {
-                        
-                    }
-                    
-                }
-            });
-            await Task.Delay(1000);
-            await LoadNewJobs();
-        }
+        
         [RelayCommand]
         private void LoadJobs()
         {
@@ -120,7 +90,7 @@ namespace MasterScheduler.ViewModels
             {
                 string lastRun = j.LastRunTime.ToString() ?? "";
                 string nextRun = j.NextRunTime.ToString() ?? "";
-                Jobs.Add(new ScheduledJobDto { Id = j.Id, Name = j.JobName, JobType = j.JobType, NextRunAt = string.IsNullOrWhiteSpace(nextRun) ? "N/A" : nextRun, LastRunAt = string.IsNullOrWhiteSpace(lastRun) ? "N/A" : lastRun, Status = j.IsActive ? "Active" : "Inactive" });
+                Jobs.Add(new ScheduledJobDto { Id = j.Id, Name = j.JobName, JobType = j.JobType, NextRunAt = string.IsNullOrWhiteSpace(nextRun) ? "N/A" : nextRun, LastRunAt = string.IsNullOrWhiteSpace(lastRun) ? "N/A" : lastRun, Status = j.Status , Message = j.Message });
             }
 
         }

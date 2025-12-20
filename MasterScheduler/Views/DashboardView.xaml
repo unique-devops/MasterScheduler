@@ -183,11 +183,67 @@
                                        Visibility="{Binding Status, Converter={StaticResource RunningToVisibilityConverter}}"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"/>
-                                
-                                
+
+                                <Image Width="20" Height="20" Grid.Column="0" 
+                                   Visibility="{Binding Status, Converter={StaticResource NotRunningToVisibilityConverter}}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center">
+                                    <Image.Style>
+                                        <Style TargetType="Image">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+
+                                                <!-- SUCCESS -->
+                                                <DataTrigger Binding="{Binding Status}" Value="completed">
+                                                    <Setter Property="gif:ImageBehavior.AnimatedSource" Value="{x:Null}"/>
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                    <Setter Property="Source" Value="/Assets/success.png"/>
+                                                   
+                                                </DataTrigger>
+
+                                                <!-- ERROR -->
+                                                <DataTrigger Binding="{Binding Status}" Value="error">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                    <Setter Property="Source" Value="/Assets/error.png"/>
+                                                    <Setter Property="gif:ImageBehavior.AnimatedSource" Value="{x:Null}"/>
+                                                </DataTrigger>
+
+                                                <!-- ERROR -->
+                                                <DataTrigger Binding="{Binding Status}" Value="failed">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                    <Setter Property="Source" Value="/Assets/error.png"/>
+                                                    <Setter Property="gif:ImageBehavior.AnimatedSource" Value="{x:Null}"/>
+                                                </DataTrigger>
+
+                                                <!-- ERROR -->
+                                                <DataTrigger Binding="{Binding Status}" Value="cancelled">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                    <Setter Property="Source" Value="/Assets/error.png"/>
+                                                    <Setter Property="gif:ImageBehavior.AnimatedSource" Value="{x:Null}"/>
+                                                </DataTrigger>
+
+                                                <!-- PENDING -->
+                                                <DataTrigger Binding="{Binding Status}" Value="pending">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                    <Setter Property="Source" Value="/Assets/pending.png"/>
+                                                    <Setter Property="gif:ImageBehavior.AnimatedSource" Value="{x:Null}"/>
+                                                </DataTrigger>
+
+                                                <!-- INACTIVE -->
+                                                <DataTrigger Binding="{Binding Status}" Value="inactive">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                    <Setter Property="Source" Value="/Assets/inactive.png"/>
+                                                    <Setter Property="gif:ImageBehavior.AnimatedSource" Value="{x:Null}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Image.Style>
+                                </Image>
+
+
 
                                 <!-- Text -->
-                                <TextBlock Text="{Binding Status}" Grid.Column="1"
+                                <TextBlock Text="{Binding Message}" Grid.Column="1"
                                    FontWeight="SemiBold"
                                    Foreground="{Binding Status, Converter={StaticResource StatusToBrushConverter}}"
                                    HorizontalAlignment="Left"

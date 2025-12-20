@@ -14,6 +14,7 @@ namespace MasterScheduler.Shared.DataModels
         public string CronExpression { get; set; } = "";
         public bool IsActive { get; set; }
         public string? Status { get; set; }
+        public string? Message { get; set; }
         public string? Parameters { get; set; } // JSON config
         public DateTime? LastRunTime { get; set; }
         public DateTime? NextRunTime { get; set; }

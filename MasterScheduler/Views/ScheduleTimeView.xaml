@@ -1,0 +1,115 @@
+﻿<Window x:Class="MasterScheduler.Views.ScheduleTimeView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MasterScheduler.Views"
+        mc:Ignorable="d"
+        Title="Schedule Time" Height="350" Width="700"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="#FAFAFA"
+        FontFamily="Segoe UI"
+        >
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="40"/>
+            <RowDefinition/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Border BorderBrush="Gray"
+                 BorderThickness="1"
+                 CornerRadius="6"            
+                 Background="White" Width="Auto">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <!-- Hour -->
+                    <TextBox x:Name="HourTextBox"
+                          BorderBrush="Transparent"
+                          Background="Transparent"
+                          FontSize="24"
+                          Width="40"
+                          TextAlignment="Center"
+                          Text="12" MaxLength="2"  />
+
+                    <!-- Separator -->
+                    <TextBlock Text=":" FontSize="24" FontWeight="Bold" VerticalAlignment="Top" />
+
+                    <!-- Minute -->
+                    <TextBox x:Name="MinuteTextBox"
+                      BorderBrush="Transparent"
+                      Background="Transparent"
+                      FontSize="24"
+                      Width="40"
+                      TextAlignment="Center"
+                      Text="00" MaxLength="2"
+                        />    
+
+                    <!-- AM/PM -->
+                    <ComboBox x:Name="AmPmComboBox" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="55" FontSize="18">
+                        <ComboBoxItem Content="AM"/>
+                        <ComboBoxItem Content="PM"/>
+                    </ComboBox>
+
+                    <!-- Up/Down -->
+                    <StackPanel>
+                        <RepeatButton Content="▲" Width="20" />
+                        <RepeatButton Content="▼" Width="20" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock Text="Every" Margin="10,0" FontSize="18"/>
+            <TextBox Width="50" Foreground="Red" FontSize="18" TextAlignment="Center" VerticalContentAlignment="Center"/>
+            <ComboBox x:Name="EveryTypeComboBox" HorizontalContentAlignment="Center" Width="100" FontSize="16">
+                <ComboBoxItem Content="Minute"/>
+                <ComboBoxItem Content="Hour"/>
+            </ComboBox>
+        </StackPanel>
+        <StackPanel  Grid.Row="2" HorizontalAlignment="Center">
+            <ItemsControl ItemsSource="{Binding Days}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <ToggleButton Content="{Binding DayCode}"
+                  IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                  Width="45"
+                  Height="35"
+                  Margin="2"
+                  FontWeight="SemiBold">
+
+                            <ToggleButton.Style>
+                                <Style TargetType="ToggleButton">
+                                    <Setter Property="Background" Value="#EEE"/>
+                                    <Setter Property="BorderBrush" Value="#CCC"/>
+                                    <Setter Property="BorderThickness" Value="1"/>
+
+                                    <Style.Triggers>
+                                        <Trigger Property="IsChecked" Value="True">
+                                            <Setter Property="Background" Value="#4CAF50"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                            <Setter Property="BorderBrush" Value="#388E3C"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ToggleButton.Style>
+                        </ToggleButton>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
+            <Button Content="Save" Width="100" Margin="2,0"/>
+            <Button Content="Cancel" Width="100"/>
+        </StackPanel>
+    </Grid>
+</Window>

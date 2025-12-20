@@ -20,6 +20,8 @@ namespace MasterScheduler.Models
         [ObservableProperty]
         private string lastRunAt;
         [ObservableProperty]
-        private string nextRunAt;               
+        private string nextRunAt;
+        [ObservableProperty]
+        private string message;
     }
 }
