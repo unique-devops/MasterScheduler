@@ -34,6 +34,11 @@ namespace MasterScheduler.ViewModels
                     new DayItem( "Fri" ),
                     new DayItem( "Sat" )
                 };
+        public ScheduleTimeViewModel()
+        {
+            Hour = DateTime.Now.Hour;
+            Minute = DateTime.Now.Minute;
+        }
 
         [RelayCommand]
         private void Save()

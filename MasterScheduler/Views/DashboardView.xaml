@@ -77,6 +77,7 @@
                 </Style>
                 <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#c5dadb"/>
                 <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="Black"/>
             </DataGrid.Resources>
             
             <!--<DataGrid.CellStyle>
@@ -84,8 +85,6 @@
                     <Style.Triggers>
                         <Trigger Property="IsSelected"
                         Value="True">
-                            <Setter Property="Background"
-                        Value="White" />
                             <Setter Property="Foreground"
                         Value="Black" />
                             <Setter Property="BorderThickness" Value="0"/>
@@ -258,10 +257,12 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel  Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Menu Visibility="{Binding Status, Converter={StaticResource NotRunningToVisibilityConverter}}">
+                                <Menu Background="Transparent" Visibility="{Binding Status, Converter={StaticResource NotRunningToVisibilityConverter}}">
                                     <MenuItem Padding="2">
                                         <MenuItem.Header>
-                                            <fa:ImageAwesome Icon="EllipsisV" Width="14" Height="14"/>
+                                            <Image Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                Source="/Assets/ellipse.png"/>
+                                            <!--<fa:ImageAwesome Icon="EllipsisV" Width="14" Height="14"/>-->
                                         </MenuItem.Header>
                                         <MenuItem Header="Run now" Command="{Binding DataContext.RunNowJobCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}">
                                             <MenuItem.Icon>
@@ -280,10 +281,12 @@
                                         </MenuItem>
                                     </MenuItem>
                                 </Menu>
-                                <Button Width="30" Height="30"  Padding="2" ToolTip="Stop Job" Visibility="{Binding Status, Converter={StaticResource RunningToVisibilityConverter}}"
+                                <Button Background="Transparent" Width="30" Height="30"  Padding="2" ToolTip="Stop Job" Visibility="{Binding Status, Converter={StaticResource RunningToVisibilityConverter}}"
                                         Command="{Binding DataContext.StopJobCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         CommandParameter="{Binding}" Margin="2">
-                                    <fa:ImageAwesome Icon="Stop" Width="14" Height="14"/>
+                                    <!--<fa:ImageAwesome Icon="Stop" Width="14" Height="14"/>-->
+                                    <Image Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Source="/Assets/stop.png"/>
                                 </Button>
                             </StackPanel>
                         </DataTemplate>

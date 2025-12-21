@@ -116,6 +116,7 @@ namespace MasterScheduler.Worker
             try
             {
                 job.Status = "running";
+                job.Message = "running";
                 job.LastRunTime = DateTime.Now;
                 job.NextRunTime = CronosHelper.GetNextRunTime(job.CronExpression);
                 _repo.Update(job);
