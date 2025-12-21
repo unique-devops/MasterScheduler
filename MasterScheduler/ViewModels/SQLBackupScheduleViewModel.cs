@@ -34,9 +34,12 @@ namespace MasterScheduler.ViewModels
         [ObservableProperty]
         private bool isServerConnected;
 
+        [ObservableProperty]
+        private string scheduledTime;
+
         private string ConnectionString;
         public ObservableCollection<string> SelectedDatabases { get; set; } = new();
-        public ObservableCollection<BackupDestination> BackupDestinations { get; set; } = new();
+        public ObservableCollection<SQLBackupDestination> BackupDestinations { get; set; } = new();
 
         private readonly IDialogService _dialogService;
 
@@ -49,6 +52,7 @@ namespace MasterScheduler.ViewModels
             _dialogService = dialogService;
             _navigationService = navigationService;
             JobAliasName = "Sql Backup";
+            ScheduledTime = "not schedule";
         }
 
         public void OnNavigatedTo(object parameter)
@@ -146,7 +150,7 @@ namespace MasterScheduler.ViewModels
         [RelayCommand]
         public void BackupDestination()
         {           
-            BackupDestinations.Add(new BackupDestination { Name = "DB" + new Random().Next(1,10), Icon = "Server" });                        
+            BackupDestinations.Add(new SQLBackupDestination { Name = "DB" + new Random().Next(1,10), Icon = "Server" });                        
         }
 
         [RelayCommand]
@@ -160,17 +164,18 @@ namespace MasterScheduler.ViewModels
             if (dialog.ShowDialog() == true)
             {
                 scheduleTimeModel = dialog.ScheduleTime;
+                ScheduledTime = $"Daily at {scheduleTimeModel.Hour}:{scheduleTimeModel.Minute}";
             }
         }
 
         [RelayCommand]
-        private void Edit(BackupDestination item)
+        private void Edit(SQLBackupDestination item)
         {
             MessageBox.Show($"Edit: {item.Name}");
         }
 
         [RelayCommand]
-        private void Delete(BackupDestination item)
+        private void Delete(SQLBackupDestination item)
         {
             BackupDestinations.Remove(item);
         }
@@ -192,7 +197,7 @@ namespace MasterScheduler.ViewModels
                 NextRunTime = CronosHelper.GetNextRunTime(cron),
                 IsActive = true,                
                 Status = "pending",                
-                Message = "not run yet"             
+                Message = "not run yet" 
             };
             if (editJobId == 0)
             {                

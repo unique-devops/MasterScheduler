@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MasterScheduler.Models
 {
-    public partial class BackupDestination : ObservableObject
+    public partial class SQLBackupDestination : ObservableObject
     {
         [ObservableProperty]
         private string name;

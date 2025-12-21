@@ -147,7 +147,7 @@
                         <fa:ImageAwesome Grid.Column="0" Icon="ClockOutline" Foreground="Black" Width="35" Height="35"/>
                         <StackPanel Grid.Column="1">
                             <TextBlock FontWeight="Bold" Text="Schedule backups" Margin="5"/>
-                            <TextBlock Text="default" Margin="5"/>
+                            <TextBlock Text="{Binding ScheduledTime}" Margin="5"/>
                         </StackPanel>
                         <Button Grid.Column="2" Width="40" Height="40" Background="Transparent" BorderThickness="0" Command="{Binding SchedulerSettingsCommand}" >
                             <fa:ImageAwesome  Icon="Gear" Foreground="Black" Width="35" Height="35"/>

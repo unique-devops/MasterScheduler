@@ -22,41 +22,44 @@
         <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
             <Border BorderBrush="Gray"
                  BorderThickness="1"
-                 CornerRadius="6"            
+                 CornerRadius="4"            
                  Background="White" Width="Auto">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
                     <!-- Hour -->
                     <TextBox x:Name="HourTextBox"
                           BorderBrush="Transparent"
                           Background="Transparent"
+                          BorderThickness="0"
                           FontSize="24"
-                          Width="40"
+                          Width="45"
+                          VerticalContentAlignment="Center"
                           TextAlignment="Center"
-                          Text="{Binding Hour}" MaxLength="2"  />
+                          Text="{Binding Hour}" MaxLength="2"
+                          LostFocus="HourTextBox_LostFocus"
+                          PreviewTextInput="HourTextBox_PreviewTextInput"/>
 
                     <!-- Separator -->
-                    <TextBlock Text=":" FontSize="24" FontWeight="Bold" VerticalAlignment="Top" />
+                    <TextBlock Text=":" Width="15" FontSize="24" FontWeight="Bold" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Top" />
 
                     <!-- Minute -->
                     <TextBox x:Name="MinuteTextBox"
                       BorderBrush="Transparent"
+                             BorderThickness="0"
                       Background="Transparent"
                       FontSize="24"
-                      Width="40"
+                      Width="45"
                       TextAlignment="Center"
+                      VerticalContentAlignment="Center"
                       Text="{Binding Minute}" MaxLength="2"
-                        />    
+                      LostFocus="MinuteTextBox_LostFocus"
+                      PreviewTextInput="MinuteTextBox_PreviewTextInput" />    
 
-                    <!-- AM/PM -->
-                    <ComboBox x:Name="AmPmComboBox" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="55" FontSize="18">
-                        <ComboBoxItem Content="AM"/>
-                        <ComboBoxItem Content="PM"/>
-                    </ComboBox>
+                    
 
                     <!-- Up/Down -->
                     <StackPanel>
-                        <RepeatButton Content="▲" Width="20" />
-                        <RepeatButton Content="▼" Width="20" />
+                        <RepeatButton Content="▲" Width="20"/>
+                        <RepeatButton Content="▼" Width="20"/>
                     </StackPanel>
                 </StackPanel>
             </Border>

@@ -52,5 +52,51 @@ namespace MasterScheduler.Views
             _isClosing = true;
             base.OnClosing(e);
         }
+
+        private void HourTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            var val = HourTextBox.Text;
+            if (string.IsNullOrWhiteSpace(val))
+            {
+                HourTextBox.Text = DateTime.Now.Hour.ToString("D2");
+            }
+            else if (!int.TryParse(val, out int hour) || hour < 1 || hour > 24)
+            {
+                HourTextBox.Text = DateTime.Now.Hour.ToString("D2");
+            }
+        }
+
+        private void MinuteTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            var val = MinuteTextBox.Text;
+            if (string.IsNullOrWhiteSpace(MinuteTextBox.Text))
+            {
+                MinuteTextBox.Text = DateTime.Now.Minute.ToString("D2");
+            }
+            else if (!int.TryParse(val, out int min) || min < 1 || min > 60)
+            {
+                MinuteTextBox.Text = DateTime.Now.Minute.ToString("D2");
+            }
+        }
+
+        private void MinuteTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            if (!int.TryParse(((TextBox)sender).Text + e.Text, out int value))
+            {
+                e.Handled = true;
+                return;
+            }
+            
+        }
+
+        private void HourTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            if (!int.TryParse(((TextBox)sender).Text + e.Text, out int value))
+            {
+                e.Handled = true;
+                return;
+            }
+            
+        }
     }
 }
