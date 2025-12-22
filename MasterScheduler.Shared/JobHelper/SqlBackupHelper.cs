@@ -11,24 +11,24 @@ namespace MasterScheduler.Shared.JobHelper
 {
     public static class SqlBackupHelper
     {
-        public static void RunSqlBackup(JobModel job)
+        public static void RunSqlBackup(JobDetailModel job)
         {
             try
             {
-                var settings = JsonSerializer.Deserialize<SqlBackupSettings>(job.Parameters!);
+                var settings = JsonSerializer.Deserialize<SqlBackupDetails>(job.Details);
                 if (settings == null) return;
 
                 string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                string fileName = $"{settings.DatabaseName}_{timestamp}.bak";
-                string filePath = Path.Combine(settings.BackupFolder, fileName);
+                string fileName = $"{settings.Databases[0]}_{timestamp}.bak";
+                string filePath = Path.Combine(settings.Server, fileName);
 
-                string connectionString = $"Server={settings.ServerName};Database={settings.DatabaseName};Integrated Security=True;";
-                string sql = $"BACKUP DATABASE [{settings.DatabaseName}] TO DISK='{filePath}'";
+                //string connectionString = $"Server={settings.ServerName};Database={settings.DatabaseName};Integrated Security=True;";
+                //string sql = $"BACKUP DATABASE [{settings.DatabaseName}] TO DISK='{filePath}'";
 
-                using var conn = new SqlConnection(connectionString);
-                conn.Open();
-                using var cmd = new SqlCommand(sql, conn);
-                cmd.ExecuteNonQuery();
+                //using var conn = new SqlConnection(connectionString);
+                //conn.Open();
+                //using var cmd = new SqlCommand(sql, conn);
+                //cmd.ExecuteNonQuery();
 
                 Console.WriteLine($"Backup completed: {filePath}");
             }

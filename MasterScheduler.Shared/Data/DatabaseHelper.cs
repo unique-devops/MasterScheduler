@@ -19,7 +19,13 @@ namespace MasterScheduler.Shared.Data
         public static void Initialize()
         {
             Directory.CreateDirectory(Path.GetDirectoryName(_dbPath)!);
-            
+
+            CreateJobsTable();
+            CreateJobSettingsTable();
+        }
+
+        private static void CreateJobsTable()
+        {
             using var con = new SqliteConnection(ConnectionString);
             con.Open();
             var sql = @"CREATE TABLE IF NOT EXISTS Jobs (
@@ -28,11 +34,29 @@ namespace MasterScheduler.Shared.Data
                         JobType TEXT NOT NULL, 
                         CronExpression TEXT NOT NULL,
                         IsActive INTEGER NOT NULL DEFAULT 1,
-                        Parameters TEXT NULL,
+                        RetryCount INTEGER DEFAULT 0,
+                        MaxRetry INTEGER DEFAULT 3,
                         LastRunTime TEXT NULL,
                         NextRunTime TEXT NULL,
                         Status TEXT NULL,
-                        Message TEXT NULL
+                        Message TEXT NULL,
+                        CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+                    );";
+            using var cmd2 = new SqliteCommand(sql, con);
+            cmd2.ExecuteNonQuery();
+        }
+
+        private static void CreateJobSettingsTable()
+        {
+            using var con = new SqliteConnection(ConnectionString);
+            con.Open();
+            var sql = @"CREATE TABLE IF NOT EXISTS JobDetails (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        JobId INTEGER NOT NULL,                                                
+                        Details TEXT NULL    ,
+                        CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
                     );";
             using var cmd2 = new SqliteCommand(sql, con);
             cmd2.ExecuteNonQuery();

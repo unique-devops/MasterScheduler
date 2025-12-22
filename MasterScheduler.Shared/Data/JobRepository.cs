@@ -37,7 +37,9 @@ namespace MasterScheduler.Shared.Data
                     Status = reader["Status"].ToString(),
                     Message = reader["Message"].ToString(),
                     LastRunTime = string.IsNullOrWhiteSpace(reader["LastRunTime"].ToString()) ? null : Convert.ToDateTime(reader["LastRunTime"]),
-                    NextRunTime = string.IsNullOrWhiteSpace(reader["NextRunTime"].ToString()) ? null : Convert.ToDateTime(reader["NextRunTime"])
+                    NextRunTime = string.IsNullOrWhiteSpace(reader["NextRunTime"].ToString()) ? null : Convert.ToDateTime(reader["NextRunTime"]),
+                    CreatedAt = string.IsNullOrWhiteSpace(reader["CreatedAt"].ToString()) ? null : Convert.ToDateTime(reader["CreatedAt"]),
+                    UpdatedAt = string.IsNullOrWhiteSpace(reader["UpdatedAt"].ToString()) ? null : Convert.ToDateTime(reader["UpdatedAt"])
                 });
             }
             return list;
@@ -61,7 +63,9 @@ namespace MasterScheduler.Shared.Data
                     Status = reader["Status"].ToString(),
                     Message = reader["Message"].ToString(),
                     LastRunTime = string.IsNullOrWhiteSpace(reader["LastRunTime"].ToString()) ? null : Convert.ToDateTime(reader["LastRunTime"]),
-                    NextRunTime = string.IsNullOrWhiteSpace(reader["NextRunTime"].ToString()) ? null : Convert.ToDateTime(reader["NextRunTime"])                 
+                    NextRunTime = string.IsNullOrWhiteSpace(reader["NextRunTime"].ToString()) ? null : Convert.ToDateTime(reader["NextRunTime"]),
+                    CreatedAt = string.IsNullOrWhiteSpace(reader["CreatedAt"].ToString()) ? null : Convert.ToDateTime(reader["CreatedAt"]),
+                    UpdatedAt = string.IsNullOrWhiteSpace(reader["UpdatedAt"].ToString()) ? null : Convert.ToDateTime(reader["UpdatedAt"])
                 });
             }
             return list;
@@ -85,7 +89,9 @@ namespace MasterScheduler.Shared.Data
                     Status = reader["Status"].ToString()!,
                     Message = reader["Message"].ToString()!,
                     LastRunTime = string.IsNullOrWhiteSpace(reader["LastRunTime"].ToString()) ? null : Convert.ToDateTime(reader["LastRunTime"]),
-                    NextRunTime = string.IsNullOrWhiteSpace(reader["NextRunTime"].ToString()) ? null : Convert.ToDateTime(reader["NextRunTime"])
+                    NextRunTime = string.IsNullOrWhiteSpace(reader["NextRunTime"].ToString()) ? null : Convert.ToDateTime(reader["NextRunTime"]),
+                    CreatedAt = string.IsNullOrWhiteSpace(reader["CreatedAt"].ToString()) ? null : Convert.ToDateTime(reader["CreatedAt"]),
+                    UpdatedAt = string.IsNullOrWhiteSpace(reader["UpdatedAt"].ToString()) ? null : Convert.ToDateTime(reader["UpdatedAt"])
                 });
             }
             return list;
@@ -111,18 +117,21 @@ namespace MasterScheduler.Shared.Data
                     Status = reader["Status"].ToString()!,
                     Message = reader["Message"].ToString()!,
                     LastRunTime = string.IsNullOrWhiteSpace(reader["LastRunTime"].ToString()) ? null : Convert.ToDateTime(reader["LastRunTime"]),
-                    NextRunTime = string.IsNullOrWhiteSpace(reader["NextRunTime"].ToString()) ? null : Convert.ToDateTime(reader["NextRunTime"])
+                    NextRunTime = string.IsNullOrWhiteSpace(reader["NextRunTime"].ToString()) ? null : Convert.ToDateTime(reader["NextRunTime"]),
+                    CreatedAt = string.IsNullOrWhiteSpace(reader["CreatedAt"].ToString()) ? null : Convert.ToDateTime(reader["CreatedAt"]),
+                    UpdatedAt = string.IsNullOrWhiteSpace(reader["UpdatedAt"].ToString()) ? null : Convert.ToDateTime(reader["UpdatedAt"])
                 };
             }
             return job;
         }
 
-        public void Add(JobModel job)
+        public int Add(JobModel job)
         {
             using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
             con.Open();
             var cmd = new SqliteCommand("INSERT INTO Jobs (JobName, JobType, CronExpression, NextRunTime, LastRunTime, Status, Message, IsActive) " +
-                "VALUES (@name, @type, @cron, @nextRun, @lastRun, @status, @message, @active)", con);
+                " VALUES (@name, @type, @cron, @nextRun, @lastRun, @status, @message, @active);" +
+                " SELECT last_insert_rowid();", con);
             cmd.Parameters.AddWithValue("@name", job.JobName);
             cmd.Parameters.AddWithValue("@type", job.JobType);
             cmd.Parameters.AddWithValue("@cron", job.CronExpression);
@@ -131,7 +140,9 @@ namespace MasterScheduler.Shared.Data
             cmd.Parameters.AddWithValue("@status", job.Status == null ? "" : job.Status);
             cmd.Parameters.AddWithValue("@message", job.Message == null ? "" : job.Message);
             cmd.Parameters.AddWithValue("@active", job.IsActive ? 1 : 0);
-            cmd.ExecuteNonQuery();
+            job.Id = Convert.ToInt32(cmd.ExecuteScalar());
+            //cmd.ExecuteNonQuery();
+            return job.Id;
         }
 
         public void Update(JobModel job)
@@ -160,5 +171,57 @@ namespace MasterScheduler.Shared.Data
             cmd.Parameters.AddWithValue("@id", id);
             cmd.ExecuteNonQuery();
         }
+
+
+        //----------------jobDetail-----------------
+
+        public JobDetailModel? GetDetailById(int JobId)
+        {
+            JobDetailModel jobDetails = null;
+            using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
+            con.Open();
+            using var cmd = new SqliteCommand("SELECT * FROM JobDetails where JobId = @JobId", con);
+            cmd.Parameters.AddWithValue("@JobId", JobId);
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                jobDetails = new JobDetailModel
+                {
+                    Id = Convert.ToInt32(reader["Id"]),
+                    JobId = Convert.ToInt32(reader["JobId"]),
+                    Details = reader["Details"].ToString()!,
+                    CreatedAt = string.IsNullOrWhiteSpace(reader["CreatedAt"].ToString()) ? null : Convert.ToDateTime(reader["CreatedAt"]),
+                    UpdatedAt = string.IsNullOrWhiteSpace(reader["UpdatedAt"].ToString()) ? null : Convert.ToDateTime(reader["UpdatedAt"])
+                };
+            }
+            return jobDetails;
+        }
+
+        public void AddUpdateJobDetail(JobDetailModel jobDetail)
+        {
+            var exist = GetDetailById(jobDetail.Id);
+            if (exist == null)
+            {
+                using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
+                con.Open();
+                var cmd = new SqliteCommand("INSERT INTO JobDetails (JobId, Details) " +
+                    "VALUES (@jobId, @details)", con);
+                cmd.Parameters.AddWithValue("@jobId", jobDetail.JobId);
+                cmd.Parameters.AddWithValue("@details", jobDetail.Details ?? "");
+                cmd.ExecuteNonQuery();
+            }
+            else {
+
+                using var con1 = new SqliteConnection(DatabaseHelper.ConnectionString);
+                con1.Open();
+                var cmd1 = new SqliteCommand(@"UPDATE JobDetails SET Details=@details, UpdatedAt=@updatedAt WHERE JobId=@jobId", con1);
+                cmd1.Parameters.AddWithValue("@details", jobDetail.Details ?? "");
+                cmd1.Parameters.AddWithValue("@updatedAt", DateTime.Now);
+                cmd1.Parameters.AddWithValue("@jobId", jobDetail.JobId);                
+                cmd1.ExecuteNonQuery();
+            }                
+        }
+
+       
     }
 }

@@ -22,7 +22,7 @@ namespace MasterScheduler.Worker
             switch (jobData.JobType.ToUpper())
             {
                 case "SQLBACKUP":
-                    SqlBackupHelper.RunSqlBackup(jobData);
+                    SqlBackupHelper.RunSqlBackup(new JobDetailModel());
                     break;
                 // future: add more job types here
                 case "FileCleanup":

@@ -43,16 +43,30 @@ namespace MasterScheduler.ViewModels
 
         private readonly IDialogService _dialogService;
 
-        private int editJobId;
-
+        private int editJobId =0;        
         public ScheduleTimeModel scheduleTimeModel { get; set; } = new();
 
+        SqlBackupDetails sqlBackupDetails = new SqlBackupDetails();
         public SQLBackupScheduleViewModel(IDialogService dialogService, INavigationService navigationService)
         {
             _dialogService = dialogService;
             _navigationService = navigationService;
             JobAliasName = "Sql Backup";
-            ScheduledTime = "not schedule";
+            ScheduledTime = "not schedule";            
+        }
+
+        private void GetJobDetail()
+        {
+            if (editJobId == 0) return;
+            JobDetailModel? jobDetail =  _repo.GetDetailById(editJobId);
+            if (jobDetail != null && jobDetail?.Details != null)
+            {
+                sqlBackupDetails = JsonSerializer.Deserialize<SqlBackupDetails>(jobDetail.Details);
+                SelectedDatabases = new ObservableCollection<string>(sqlBackupDetails.Databases);
+                ServerName = sqlBackupDetails.Server;               
+                ConnectionString = sqlBackupDetails.ConnectionString;
+                var backupDestinations = sqlBackupDetails.Destinations; 
+            }            
         }
 
         public void OnNavigatedTo(object parameter)
@@ -65,6 +79,7 @@ namespace MasterScheduler.ViewModels
                 {
                     JobAliasName = job.JobName;
                 }
+                GetJobDetail();
             }
             else
             {
@@ -91,7 +106,9 @@ namespace MasterScheduler.ViewModels
                 {
                     IsServerConnected = false;
                 }
-                
+                sqlBackupDetails.Server = ServerName;
+                sqlBackupDetails.AuthType = vm.SelectedAuthentication;
+                sqlBackupDetails.ConnectionString = ConnectionString;
             }
             
         }
@@ -119,6 +136,7 @@ namespace MasterScheduler.ViewModels
                         SelectedDatabases.Add(db.Name);
                     }
                 }
+                sqlBackupDetails.Databases = SelectedDatabases.ToList();
             }
             catch (Exception ex)
             {
@@ -150,7 +168,8 @@ namespace MasterScheduler.ViewModels
         [RelayCommand]
         public void BackupDestination()
         {           
-            BackupDestinations.Add(new SQLBackupDestination { Name = "DB" + new Random().Next(1,10), Icon = "Server" });                        
+            BackupDestinations.Add(new SQLBackupDestination { Name = "DB" + new Random().Next(1,10), Icon = "Server" });
+            sqlBackupDetails.Destinations.Add(new Shared.DataModels.BackupDestination { Type ="Local", Details = new { Path ="" } });
         }
 
         [RelayCommand]
@@ -201,7 +220,8 @@ namespace MasterScheduler.ViewModels
             };
             if (editJobId == 0)
             {                
-                _repo.Add(job);
+                var insertedId = _repo.Add(job);
+                _repo.AddUpdateJobDetail(new JobDetailModel { JobId = insertedId, Details = JsonSerializer.Serialize(sqlBackupDetails) });
             }               
             else
             {
@@ -210,9 +230,10 @@ namespace MasterScheduler.ViewModels
                 {
                     existJob.JobName = JobAliasName;
                     _repo.Update(existJob);
+                    _repo.AddUpdateJobDetail(new JobDetailModel { JobId = editJobId, Details = JsonSerializer.Serialize(sqlBackupDetails) });
                 }
                 
-            }
+            }            
             MessageBox.Show($"Job {(editJobId == 0 ? "saved" : "updated")} successfully!");
             _navigationService.NavigateTo<DashboardViewModel>();
         }
