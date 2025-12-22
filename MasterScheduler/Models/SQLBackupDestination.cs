@@ -10,9 +10,12 @@ namespace MasterScheduler.Models
     public partial class SQLBackupDestination : ObservableObject
     {
         [ObservableProperty]
-        private string name;
+        private string type;
 
         [ObservableProperty]
         private string icon;
+
+        [ObservableProperty]
+        private string detail;
     }
 }

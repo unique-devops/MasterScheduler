@@ -65,7 +65,11 @@ namespace MasterScheduler.ViewModels
                 SelectedDatabases = new ObservableCollection<string>(sqlBackupDetails.Databases);
                 ServerName = sqlBackupDetails.Server;               
                 ConnectionString = sqlBackupDetails.ConnectionString;
-                var backupDestinations = sqlBackupDetails.Destinations; 
+                var backupDestinations = sqlBackupDetails.Destinations;
+                foreach (var backupDestination in backupDestinations) 
+                {
+                    BackupDestinations.Add(new SQLBackupDestination { Type="Local", Detail="Path" });
+                }
             }            
         }
 
@@ -168,8 +172,8 @@ namespace MasterScheduler.ViewModels
         [RelayCommand]
         public void BackupDestination()
         {           
-            BackupDestinations.Add(new SQLBackupDestination { Name = "DB" + new Random().Next(1,10), Icon = "Server" });
-            sqlBackupDetails.Destinations.Add(new Shared.DataModels.BackupDestination { Type ="Local", Details = new { Path ="" } });
+            BackupDestinations.Add(new SQLBackupDestination { Type="Local", Detail = "DB" + new Random().Next(1,10), Icon = "Server" });
+           
         }
 
         [RelayCommand]
@@ -190,7 +194,7 @@ namespace MasterScheduler.ViewModels
         [RelayCommand]
         private void Edit(SQLBackupDestination item)
         {
-            MessageBox.Show($"Edit: {item.Name}");
+            MessageBox.Show($"Edit: {item.Detail}");
         }
 
         [RelayCommand]
