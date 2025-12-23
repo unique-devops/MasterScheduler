@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:fa="http://schemas.fontawesome.io/icons/"
              xmlns:local="clr-namespace:MasterScheduler.Views"
+             xmlns:ctr="clr-namespace:MasterScheduler.Converter"
              mc:Ignorable="d" x:Name="RootControl"
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
@@ -41,7 +42,8 @@
             </TextBox>
         </StackPanel>
         <Grid Grid.Row="2">
-            <ListBox Grid.Row="1" HorizontalContentAlignment="Stretch">
+            <ListBox Grid.Row="1" HorizontalContentAlignment="Stretch" >
+                <!--connect server-->
                 <ListBoxItem >
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -54,13 +56,13 @@
                             <TextBlock FontWeight="Bold" Text="Connect to the MSSQL Server" Margin="5"/>
                             <TextBlock Text="{Binding ServerName}" Margin="5"/>
                         </StackPanel>
-                        <Button Grid.Column="2" Width="40" Height="40" Background="Transparent" BorderThickness="0" Command="{Binding ConnectServerCommand}" >
-                            <fa:ImageAwesome  Icon="Gear" Foreground="Black" Width="35" Height="35"/>
+                        <Button Grid.Column="2" Width="24" Height="24" Background="Transparent" BorderThickness="0" Command="{Binding ConnectServerCommand}" >
+                            <fa:ImageAwesome  Icon="Gear" Foreground="Gray" />
                         </Button>
 
                     </Grid>
                 </ListBoxItem>
-
+                <!--choose database-->
                 <ListBoxItem>
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -79,14 +81,14 @@
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </StackPanel>
-                        <Button Grid.Column="2" Width="40" Height="40" Background="Transparent" BorderThickness="0" Command="{Binding OpenDatabaseSelectionCommand}" VerticalAlignment="Top">
-                            <fa:ImageAwesome  Icon="Gear" Foreground="Black" Width="35" Height="35"/>
+                        <Button Grid.Column="2" Width="22" Height="22" Background="Transparent" BorderThickness="0" Command="{Binding OpenDatabaseSelectionCommand}" VerticalAlignment="Top">
+                            <fa:ImageAwesome  Icon="PlusCircle" Foreground="Gray" />
                         </Button>
 
                     </Grid>
                 </ListBoxItem>
-
-                <ListBoxItem>
+                <!--config destinations-->
+                <ListBoxItem >
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="40"/>
@@ -96,24 +98,27 @@
                         <fa:ImageAwesome Grid.Column="0" Icon="Cloud" Foreground="Black" Width="35" Height="35" VerticalAlignment="Top"/>
                         <StackPanel Grid.Column="1">
                             <TextBlock FontWeight="Bold" Text="Set backup destinations" Margin="5"/>
-                            <ListBox ItemsSource="{Binding BackupDestinations}" BorderThickness="1" Margin="10,5" HorizontalAlignment="Left">
+                            <ListBox ItemsSource="{Binding Destinations}" SelectedItem="{Binding SelectedDestination}"
+                                     BorderThickness="1" Margin="4,2" HorizontalAlignment="Left">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <DockPanel Width="400">
-                                            <!-- Folder Icon -->
-                                            <fa:ImageAwesome Icon="{Binding Icon}" HorizontalAlignment="Left" Foreground="Gray" Width="18" Height="18"/>
+                                        <DockPanel Width="500">
+                                            <!-- Icon -->
+                                            <Image Width="18" Height="18" HorizontalAlignment="Left"  Source="{Binding Type, Converter={StaticResource IconConverter}}"/>
 
-                                            <!-- Destination Path -->
-                                            <TextBlock Text="{Binding Name}"                                               
-                                               Margin="10,5"/>
-
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding DisplayName}" FontWeight="Bold"/>
+                                                <TextBlock Text="{Binding PathOrEndpoint}"
+                                                FontSize="11" Foreground="Gray"
+                                                TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
                                             <!-- Action Button -->
-                                            <Menu HorizontalAlignment="Right" >
-                                                <MenuItem>
+                                            <Menu HorizontalAlignment="Right">
+                                                <MenuItem BorderThickness="0" BorderBrush="Transparent">
                                                     <MenuItem.Header>
-                                                        <fa:ImageAwesome  Icon="EllipsisV" Foreground="Gray" Width="18" Height="18"/>
+                                                        <Image Source="/Assets/ellipse.png" Width="18" Height="18"/>
                                                     </MenuItem.Header>
-                                                    <MenuItem Header="Edit" Command="{Binding DataContext.EditCommand, ElementName=RootControl}"
+                                                    <MenuItem Header="Config" Command="{Binding DataContext.ConfigureDestinationCommand, ElementName=RootControl}"
                                                         CommandParameter="{Binding}"/>
                                                     <MenuItem Header="Delete" Command="{Binding DataContext.DeleteCommand, ElementName=RootControl}"
                                                         CommandParameter="{Binding}"/>
@@ -124,19 +129,26 @@
                                 </ListBox.ItemTemplate>
                             </ListBox>
                         </StackPanel>
-                        <Button Grid.Column="2" Width="40" Height="40" Background="Transparent" BorderThickness="0"
+                        <Button Grid.Column="2" Width="22" Height="22" Background="Transparent" BorderThickness="0"
                                 x:Name="btnBackupDestiny" Click="btnBackupDestiny_Click" VerticalAlignment="Top">
-                            <fa:ImageAwesome  Icon="Gear" Foreground="Black" Width="35" Height="35"/>
+                            <fa:ImageAwesome  Icon="PlusCircle" Foreground="Gray"/>
                             <Button.ContextMenu>
                                 <ContextMenu>
-                                    <MenuItem Header="Local Folder" Click="MenuItem_Click"  />
+                                    <MenuItem x:Name="LocalFolder" Header="Local Folder" Click="MenuItem_Click"  />
+                                    <MenuItem x:Name="GoogleDrive" Header="Google Drive" Click="MenuItem_Click"  />
+                                    <MenuItem x:Name="FTP" Header="FTP" Click="MenuItem_Click"  />
+                                    <MenuItem x:Name="SFTP" Header="SFTP" Click="MenuItem_Click"  />
+                                    <MenuItem x:Name="OneDrive" Header="OneDrive" Click="MenuItem_Click"  />
+                                    <MenuItem x:Name="AmazonS3" Header="Amazon S3" Click="MenuItem_Click"  />
+                                    <MenuItem x:Name="AzureBlob" Header="Azure Blob" Click="MenuItem_Click"  />
+                                    <MenuItem x:Name="NetworkShare" Header="NAS / Network Share" Click="MenuItem_Click"  />
                                 </ContextMenu>
                             </Button.ContextMenu>
                         </Button>
 
                     </Grid>
                 </ListBoxItem>
-
+                <!--schedule Time-->
                 <ListBoxItem>
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -149,13 +161,13 @@
                             <TextBlock FontWeight="Bold" Text="Schedule backups" Margin="5"/>
                             <TextBlock Text="{Binding ScheduledTime}" Margin="5"/>
                         </StackPanel>
-                        <Button Grid.Column="2" Width="40" Height="40" Background="Transparent" BorderThickness="0" Command="{Binding SchedulerSettingsCommand}" >
-                            <fa:ImageAwesome  Icon="Gear" Foreground="Black" Width="35" Height="35"/>
+                        <Button Grid.Column="2" Width="24" Height="24" Background="Transparent" BorderThickness="0" Command="{Binding SchedulerSettingsCommand}" >
+                            <fa:ImageAwesome  Icon="Gear" Foreground="Gray" />
                         </Button>
 
                     </Grid>
                 </ListBoxItem>
-
+                <!--alert notify-->
                 <ListBoxItem>
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -168,12 +180,12 @@
                             <TextBlock FontWeight="Bold" Text="Send Confirmation" Margin="5"/>
                             <TextBlock Text="default" Margin="5"/>
                         </StackPanel>
-                        <TextBlock Grid.Column="2">
-                        <Hyperlink TextDecorations="None">
-                        <InlineUIContainer>
-                            <fa:ImageAwesome  Icon="Gear" Foreground="Black" Width="35" Height="35"/>
-                        </InlineUIContainer>
-                        </Hyperlink>
+                        <TextBlock Grid.Column="2" TextAlignment="Center">
+                            <Hyperlink TextDecorations="None" Background="Transparent">
+                                <InlineUIContainer>
+                                    <fa:ImageAwesome  Icon="Gear" Foreground="Gray" Width="22" Height="22"/>
+                                </InlineUIContainer>
+                            </Hyperlink>
                         </TextBlock>
 
                     </Grid>

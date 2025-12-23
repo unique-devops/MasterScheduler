@@ -4,6 +4,7 @@
              xmlns:views="clr-namespace:MasterScheduler.Views"
              xmlns:vm="clr-namespace:MasterScheduler.ViewModels"
              xmlns:local="clr-namespace:MasterScheduler"
+             xmlns:ctr="clr-namespace:MasterScheduler.Converter"
              >
     <Application.Resources>
         
@@ -15,6 +16,7 @@
                       Opacity="0.5"/>
 
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-
+        <ctr:DestinationIconConverter x:Key="IconConverter"/>
+        
     </Application.Resources>
 </Application>

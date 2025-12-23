@@ -4,18 +4,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static MasterScheduler.Models.Enums;
 
 namespace MasterScheduler.Models
 {
-    public partial class SQLBackupDestination : ObservableObject
+    public partial class DestinationModel : ObservableObject
     {
         [ObservableProperty]
-        private string type;
+        private int id;
 
         [ObservableProperty]
-        private string icon;
+        private DestinationType type;
 
         [ObservableProperty]
-        private string detail;
-    }
+        private string displayName;
+
+        [ObservableProperty]
+        private string pathOrEndpoint;
+
+    }    
 }

@@ -18,6 +18,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using static MasterScheduler.Models.Enums;
 
 namespace MasterScheduler.ViewModels
 {
@@ -39,14 +41,15 @@ namespace MasterScheduler.ViewModels
 
         private string ConnectionString;
         public ObservableCollection<string> SelectedDatabases { get; set; } = new();
-        public ObservableCollection<SQLBackupDestination> BackupDestinations { get; set; } = new();
+        public ObservableCollection<DestinationModel> Destinations { get; set; } = new();
 
         private readonly IDialogService _dialogService;
 
         private int editJobId =0;        
         public ScheduleTimeModel scheduleTimeModel { get; set; } = new();
 
-        SqlBackupDetails sqlBackupDetails = new SqlBackupDetails();
+        SqlBackupDetails sqlBackupDetails = new SqlBackupDetails();       
+
         public SQLBackupScheduleViewModel(IDialogService dialogService, INavigationService navigationService)
         {
             _dialogService = dialogService;
@@ -68,7 +71,7 @@ namespace MasterScheduler.ViewModels
                 var backupDestinations = sqlBackupDetails.Destinations;
                 foreach (var backupDestination in backupDestinations) 
                 {
-                    BackupDestinations.Add(new SQLBackupDestination { Type="Local", Detail="Path" });
+                    Destinations.Add(new DestinationModel { Type = DestinationType.LocalFolder, PathOrEndpoint = "C:Path" });
                 }
             }            
         }
@@ -170,9 +173,39 @@ namespace MasterScheduler.ViewModels
         }
 
         [RelayCommand]
-        public void BackupDestination()
-        {           
-            BackupDestinations.Add(new SQLBackupDestination { Type="Local", Detail = "DB" + new Random().Next(1,10), Icon = "Server" });
+        public void BackupDestination(object sender)
+        {
+            MenuItem menuItem = sender as MenuItem;
+            if (menuItem == null) return;
+            switch (menuItem.Name)
+            {
+                case "LocalFolder":
+                    Destinations.Add(new DestinationModel { Type = DestinationType.LocalFolder, PathOrEndpoint = "DB" });
+                    break;
+                case "GoogleDrive":
+                    Destinations.Add(new DestinationModel { Type = DestinationType.GoogleDrive, PathOrEndpoint = "DB" });
+                    break;
+                case "FTP":
+                    Destinations.Add(new DestinationModel { Type = DestinationType.FTP, PathOrEndpoint = "DB" });
+                    break;
+                case "SFTP":
+                    Destinations.Add(new DestinationModel { Type = DestinationType.SFTP, PathOrEndpoint = "DB" });
+                    break;
+                case "OneDrive":
+                    Destinations.Add(new DestinationModel { Type = DestinationType.OneDrive, PathOrEndpoint = "DB" });
+                    break;
+                case "AmazonS3":
+                    Destinations.Add(new DestinationModel { Type = DestinationType.AmazonS3, PathOrEndpoint = "DB" });
+                    break;
+                case "AzureBlob":
+                    Destinations.Add(new DestinationModel { Type = DestinationType.AzureBlob, PathOrEndpoint = "DB" });
+                    break;
+                case "NetworkShare":
+                    Destinations.Add(new DestinationModel { Type = DestinationType.NetworkShare, PathOrEndpoint = "DB" });
+                    break;
+                default:
+                    break;
+            }            
            
         }
 
@@ -192,15 +225,15 @@ namespace MasterScheduler.ViewModels
         }
 
         [RelayCommand]
-        private void Edit(SQLBackupDestination item)
+        private void ConfigureDestination(DestinationModel item)
         {
-            MessageBox.Show($"Edit: {item.Detail}");
+            MessageBox.Show($"Edit: {item.PathOrEndpoint}");
         }
 
         [RelayCommand]
-        private void Delete(SQLBackupDestination item)
+        private void Delete(DestinationModel item)
         {
-            BackupDestinations.Remove(item);
+            Destinations.Remove(item);
         }
 
 
