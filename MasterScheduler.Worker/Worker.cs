@@ -1,7 +1,10 @@
 using MasterScheduler.Shared;
 using MasterScheduler.Shared.Data;
 using MasterScheduler.Shared.DataModels;
+using MasterScheduler.Shared.Enums;
+using MasterScheduler.Shared.JobHelper;
 using Microsoft.AspNetCore.SignalR;
+using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using static Quartz.Logging.OperationName;
 
@@ -14,12 +17,13 @@ namespace MasterScheduler.Worker
         private readonly JobRepository _repo = new JobRepository();
         private readonly PipeServer _pipeServer;
         static SemaphoreSlim _parallelLimit = new SemaphoreSlim(15);
-
+        
+        private readonly JobStore _jobStore;
         public Worker(ILogger<Worker> logger)
         {
             _logger = logger;
             _pipeServer = new PipeServer(id => RequestCancellation(id));
-
+            _jobStore = new JobStore();
         }        
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -150,7 +154,14 @@ namespace MasterScheduler.Worker
             try
             {
                 _logger.LogInformation("Starting Job {id}", job.Id);
-                await Task.Delay(10000, linkedCts.Token); // simulate work               
+                await Task.Delay(10000, linkedCts.Token); // simulate work
+                switch(job.JobType.ToLower())
+                {
+                    case "sqlbackup":
+                        await SQLBackupJob(job, linkedCts.Token);
+                        break;
+                }
+                
                 job.Status = "completed";
                 job.Message = "successfully completed";
                 _repo.Update(job);
@@ -183,6 +194,60 @@ namespace MasterScheduler.Worker
                 cts.Cancel();
                 _logger.LogInformation("Cancellation requested for job {id}", jobId);
             }
+        }
+
+
+        private async Task SQLBackupJob(JobModel job,CancellationToken token)
+        {
+            var jobDetail = _repo.GetDetailById(job.Id);
+            if (jobDetail == null)
+                return;
+            var sqlBackupDetails = JsonConvert.DeserializeObject<SqlBackupDetails>(jobDetail.Details);
+            foreach (var db in sqlBackupDetails.Databases)
+            {
+                foreach (var destination in sqlBackupDetails.Destinations)
+                {
+                    try
+                    {
+                        if (destination.Type == DestinationType.LocalFolder && destination.Config is LocalFolderConfig localDest)
+                        {
+                           
+                            // 1. Generate local file path
+                            string localPath = Path.Combine(localDest.TargetPath, $"{db}_{DateTime.Now:yyyyMMddHHmm}.bak");
+                            // 2. Execute SQL Backup
+                            await _jobStore.PerformSqlBackupAsync(sqlBackupDetails.ConnectionString, db, localPath, token);
+                            _logger.LogInformation("SQL Backup completed for {id}", job.Id);
+
+                        }
+                        else
+                        {
+                            // 1. Generate local file path
+                            string localPath = Path.Combine(Path.GetTempPath(), $"{db}_{DateTime.Now:yyyyMMddHHmm}.bak");
+                            // 2. Execute SQL Backup
+                            await _jobStore.PerformSqlBackupAsync(sqlBackupDetails.ConnectionString, db, localPath, token);
+                            _logger.LogInformation("SQL Backup completed for {id}", job.Id);
+
+                            if (destination.Type == DestinationType.GoogleDrive && destination.Config is GoogleDriveConfig gdriveDest)
+                            {
+                               
+                                await _jobStore.UploadToGoogleDriveAsync(localPath, gdriveDest, token);
+                                _logger.LogInformation("Google Drive upload completed for {id}", job.Id);
+                            }
+                            // 4. Cleanup local file
+                            if (File.Exists(localPath)) File.Delete(localPath);
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError("Error:" + ex.Message);
+                    }
+                }
+                
+            }
+
+
+           
         }
     }
 }

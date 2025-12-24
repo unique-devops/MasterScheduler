@@ -177,9 +177,9 @@ namespace MasterScheduler.ViewModels
         {
             MenuItem? menuItem = sender as MenuItem;
             if (menuItem == null) return;
-            AddUpdateDestination(menuItem.Name,new BackupDestination());
+            AddUpdateDestination(menuItem.Name);
         }
-        private void AddUpdateDestination(string destinationType,BackupDestination destination)
+        private void AddUpdateDestination(string destinationType,BackupDestination destination = null)
         {
             switch (destinationType)
             {
@@ -193,34 +193,36 @@ namespace MasterScheduler.ViewModels
                         if (exist == null)
                         {
                             //Destinations.Add(new DestinationModel { Id = Guid.NewGuid(),DisplayText= data.Path, Type = DestinationType.LocalFolder});
-                            Destinations.Add(new BackupDestination { Id = Guid.NewGuid(), DisplayText = data.Path, Type = DestinationType.LocalFolder });
+                            Destinations.Add(new BackupDestination { Id = Guid.NewGuid(), DisplayText = data.Path, Type = DestinationType.LocalFolder, Config = new LocalFolderConfig() { TargetPath = data.Path } });
                         }
-                        else { 
+                        else if(exist.Config is LocalFolderConfig localDest)
+                        { 
                             exist.DisplayText = data.Path;
+                            localDest.TargetPath = data.Path;
                         }
                     }
                     break;
-                case "GoogleDrive":
-                    Destinations.Add(new BackupDestination { Type = DestinationType.GoogleDrive, });
-                    break;
-                case "FTP":
-                    Destinations.Add(new BackupDestination { Type = DestinationType.FTP });
-                    break;
-                case "SFTP":
-                    Destinations.Add(new BackupDestination { Type = DestinationType.SFTP });
-                    break;
-                case "OneDrive":
-                    Destinations.Add(new BackupDestination { Type = DestinationType.OneDrive });
-                    break;
-                case "AmazonS3":
-                    Destinations.Add(new BackupDestination { Type = DestinationType.AmazonS3 });
-                    break;
-                case "AzureBlob":
-                    Destinations.Add(new BackupDestination { Type = DestinationType.AzureBlob });
-                    break;
-                case "NetworkShare":
-                    Destinations.Add(new BackupDestination { Type = DestinationType.NetworkShare });
-                    break;
+                //case "GoogleDrive":
+                //    Destinations.Add(new BackupDestination { Type = DestinationType.GoogleDrive, });
+                //    break;
+                //case "FTP":
+                //    Destinations.Add(new BackupDestination { Type = DestinationType.FTP });
+                //    break;
+                //case "SFTP":
+                //    Destinations.Add(new BackupDestination { Type = DestinationType.SFTP });
+                //    break;
+                //case "OneDrive":
+                //    Destinations.Add(new BackupDestination { Type = DestinationType.OneDrive });
+                //    break;
+                //case "AmazonS3":
+                //    Destinations.Add(new BackupDestination { Type = DestinationType.AmazonS3 });
+                //    break;
+                //case "AzureBlob":
+                //    Destinations.Add(new BackupDestination { Type = DestinationType.AzureBlob });
+                //    break;
+                //case "NetworkShare":
+                //    Destinations.Add(new BackupDestination { Type = DestinationType.NetworkShare });
+                //    break;
                 default:
                     break;
             }
