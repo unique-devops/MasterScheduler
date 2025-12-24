@@ -7,8 +7,8 @@
              xmlns:ctr="clr-namespace:MasterScheduler.Converter"
              >
     <Application.Resources>
-        
-        <DropShadowEffect x:Key="DropShadowEffect"
+        <ResourceDictionary>
+            <DropShadowEffect x:Key="DropShadowEffect"
                       Color="Black"
                       Direction="270"
                       ShadowDepth="5"
@@ -17,6 +17,12 @@
 
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <ctr:DestinationIconConverter x:Key="IconConverter"/>
-        
+
+       
+        <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Assets/Icons.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+
     </Application.Resources>
 </Application>

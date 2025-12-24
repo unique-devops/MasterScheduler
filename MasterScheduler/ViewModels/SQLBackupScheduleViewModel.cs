@@ -19,7 +19,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using static MasterScheduler.Models.Enums;
+
 
 namespace MasterScheduler.ViewModels
 {
@@ -37,11 +37,11 @@ namespace MasterScheduler.ViewModels
         private bool isServerConnected;
 
         [ObservableProperty]
-        private string scheduledTime;
+        private string scheduledTime = "not schedule";
 
         private string ConnectionString;
-        public ObservableCollection<string> SelectedDatabases { get; set; } = new();
-        public ObservableCollection<DestinationModel> Destinations { get; set; } = new();
+        public ObservableCollection<string> SelectedDatabases { get; set; } = new();      
+        public ObservableCollection<BackupDestination> Destinations { get; set; } = new();
 
         private readonly IDialogService _dialogService;
 
@@ -54,8 +54,7 @@ namespace MasterScheduler.ViewModels
         {
             _dialogService = dialogService;
             _navigationService = navigationService;
-            JobAliasName = "Sql Backup";
-            ScheduledTime = "not schedule";            
+            JobAliasName = "Sql Backup";            
         }
 
         private void GetJobDetail()
@@ -68,12 +67,13 @@ namespace MasterScheduler.ViewModels
                 SelectedDatabases = new ObservableCollection<string>(sqlBackupDetails.Databases);
                 ServerName = sqlBackupDetails.Server;               
                 ConnectionString = sqlBackupDetails.ConnectionString;
-                var backupDestinations = sqlBackupDetails.Destinations;
-                foreach (var backupDestination in backupDestinations) 
-                {
-                    Destinations.Add(new DestinationModel { Type = DestinationType.LocalFolder, PathOrEndpoint = "C:Path" });
-                }
-            }            
+                Destinations = new ObservableCollection<BackupDestination>(sqlBackupDetails.Destinations);
+                //foreach (var backupDestination in sqlBackupDetails.Destinations) 
+                //{
+                //    Destinations.Add(new DestinationModel { Id = backupDestination.Id, Type = backupDestination.Type,DisplayText = backupDestination.DisplayText, Config = backupDestination.Config });
+                //}
+                
+            }
         }
 
         public void OnNavigatedTo(object parameter)
@@ -175,38 +175,55 @@ namespace MasterScheduler.ViewModels
         [RelayCommand]
         public void BackupDestination(object sender)
         {
-            MenuItem menuItem = sender as MenuItem;
+            MenuItem? menuItem = sender as MenuItem;
             if (menuItem == null) return;
-            switch (menuItem.Name)
+            AddUpdateDestination(menuItem.Name,new BackupDestination());
+        }
+        private void AddUpdateDestination(string destinationType,BackupDestination destination)
+        {
+            switch (destinationType)
             {
                 case "LocalFolder":
-                    Destinations.Add(new DestinationModel { Type = DestinationType.LocalFolder, PathOrEndpoint = "DB" });
+                    var dialog = new LocalPathBackupConfigDialog();
+                    dialog.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
+                    if (dialog.ShowDialog() == true)
+                    {
+                        var data = (LocalPathDestinationModel)dialog.DataContext;
+                        var exist = Destinations.FirstOrDefault(c => c.Id == destination.Id);
+                        if (exist == null)
+                        {
+                            //Destinations.Add(new DestinationModel { Id = Guid.NewGuid(),DisplayText= data.Path, Type = DestinationType.LocalFolder});
+                            Destinations.Add(new BackupDestination { Id = Guid.NewGuid(), DisplayText = data.Path, Type = DestinationType.LocalFolder });
+                        }
+                        else { 
+                            exist.DisplayText = data.Path;
+                        }
+                    }
                     break;
                 case "GoogleDrive":
-                    Destinations.Add(new DestinationModel { Type = DestinationType.GoogleDrive, PathOrEndpoint = "DB" });
+                    Destinations.Add(new BackupDestination { Type = DestinationType.GoogleDrive, });
                     break;
                 case "FTP":
-                    Destinations.Add(new DestinationModel { Type = DestinationType.FTP, PathOrEndpoint = "DB" });
+                    Destinations.Add(new BackupDestination { Type = DestinationType.FTP });
                     break;
                 case "SFTP":
-                    Destinations.Add(new DestinationModel { Type = DestinationType.SFTP, PathOrEndpoint = "DB" });
+                    Destinations.Add(new BackupDestination { Type = DestinationType.SFTP });
                     break;
                 case "OneDrive":
-                    Destinations.Add(new DestinationModel { Type = DestinationType.OneDrive, PathOrEndpoint = "DB" });
+                    Destinations.Add(new BackupDestination { Type = DestinationType.OneDrive });
                     break;
                 case "AmazonS3":
-                    Destinations.Add(new DestinationModel { Type = DestinationType.AmazonS3, PathOrEndpoint = "DB" });
+                    Destinations.Add(new BackupDestination { Type = DestinationType.AmazonS3 });
                     break;
                 case "AzureBlob":
-                    Destinations.Add(new DestinationModel { Type = DestinationType.AzureBlob, PathOrEndpoint = "DB" });
+                    Destinations.Add(new BackupDestination { Type = DestinationType.AzureBlob });
                     break;
                 case "NetworkShare":
-                    Destinations.Add(new DestinationModel { Type = DestinationType.NetworkShare, PathOrEndpoint = "DB" });
+                    Destinations.Add(new BackupDestination { Type = DestinationType.NetworkShare });
                     break;
                 default:
                     break;
-            }            
-           
+            }
         }
 
         [RelayCommand]
@@ -225,13 +242,13 @@ namespace MasterScheduler.ViewModels
         }
 
         [RelayCommand]
-        private void ConfigureDestination(DestinationModel item)
+        private void ConfigureDestination(BackupDestination destination)
         {
-            MessageBox.Show($"Edit: {item.PathOrEndpoint}");
+            AddUpdateDestination(destination.Type.ToString(),destination);
         }
 
         [RelayCommand]
-        private void Delete(DestinationModel item)
+        private void Delete(BackupDestination item)
         {
             Destinations.Remove(item);
         }
@@ -240,8 +257,11 @@ namespace MasterScheduler.ViewModels
         [RelayCommand]
         private void Save()
         {
-            ////int hour = DateTime.Now.Hour;
-            ////int min = DateTime.Now.Minute + 1;
+            if (string.IsNullOrWhiteSpace(ScheduledTime) || ScheduledTime ==  "not schedule")
+            {
+                MessageBox.Show($"ScheduleTime Required!");
+                return;
+            }
             int hour = scheduleTimeModel.Hour;
             int min = scheduleTimeModel.Minute;
             string cron = $"{min} {hour} * * *";
@@ -258,6 +278,7 @@ namespace MasterScheduler.ViewModels
             if (editJobId == 0)
             {                
                 var insertedId = _repo.Add(job);
+                sqlBackupDetails.Destinations  = Destinations.ToList();
                 _repo.AddUpdateJobDetail(new JobDetailModel { JobId = insertedId, Details = JsonSerializer.Serialize(sqlBackupDetails) });
             }               
             else
@@ -267,6 +288,7 @@ namespace MasterScheduler.ViewModels
                 {
                     existJob.JobName = JobAliasName;
                     _repo.Update(existJob);
+                    sqlBackupDetails.Destinations = Destinations.ToList();
                     _repo.AddUpdateJobDetail(new JobDetailModel { JobId = editJobId, Details = JsonSerializer.Serialize(sqlBackupDetails) });
                 }
                 

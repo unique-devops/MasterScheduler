@@ -99,16 +99,16 @@
                         <StackPanel Grid.Column="1">
                             <TextBlock FontWeight="Bold" Text="Set backup destinations" Margin="5"/>
                             <ListBox ItemsSource="{Binding Destinations}" SelectedItem="{Binding SelectedDestination}"
-                                     BorderThickness="1" Margin="4,2" HorizontalAlignment="Left">
+                                     Visibility="{Binding HasDestination,Converter={StaticResource BoolToVisibilityConverter}}" BorderThickness="1" Margin="4,2" HorizontalAlignment="Left">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
                                         <DockPanel Width="500">
                                             <!-- Icon -->
-                                            <Image Width="18" Height="18" HorizontalAlignment="Left"  Source="{Binding Type, Converter={StaticResource IconConverter}}"/>
-
+                                            <Image Width="18" Height="18" Margin="5,0" HorizontalAlignment="Left"  Source="{Binding Type, Converter={StaticResource IconConverter}}"/>
+                                            <!--<fa:ImageAwesome  Width="18" Height="18" Margin="5,0" HorizontalAlignment="Left" Icon="{Binding Type, Converter={StaticResource IconConverter}}" />-->
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="{Binding DisplayName}" FontWeight="Bold"/>
-                                                <TextBlock Text="{Binding PathOrEndpoint}"
+                                                <TextBlock Text="{Binding Type}" FontWeight="Bold"/>
+                                                <TextBlock Text="{Binding DisplayText}"
                                                 FontSize="11" Foreground="Gray"
                                                 TextTrimming="CharacterEllipsis"/>
                                             </StackPanel>

@@ -1,11 +1,12 @@
-﻿using System;
+﻿using FontAwesome.WPF;
+using MasterScheduler.Shared.Enums;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
-using static MasterScheduler.Models.Enums;
 
 namespace MasterScheduler.Converter
 {
@@ -18,14 +19,14 @@ namespace MasterScheduler.Converter
                 return type switch
                 {
                     DestinationType.LocalFolder => "/Assets/folder.png",
-                    DestinationType.GoogleDrive => "/Assets/google-drive.png",
+                    DestinationType.GoogleDrive =>  "/Assets/google-drive.png",
                     DestinationType.FTP => "/Assets/ftp.png",
                     DestinationType.SFTP => "/Assets/sftp.png",
                     DestinationType.OneDrive => "/Assets/onedrive.png",
                     DestinationType.AmazonS3 => "/Assets/s3.png",
                     DestinationType.AzureBlob => "/Assets/azure.png",
-                    DestinationType.NetworkShare => "/Assets/network.png",
-                    _ => "/Assets/default.png"
+                    DestinationType.NetworkShare => "/Assets/local-area-network.png",
+                    _ => "/Assets/error.png"
                 };
             }
             return null;

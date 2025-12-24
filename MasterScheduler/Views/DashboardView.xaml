@@ -262,6 +262,7 @@
                                         <MenuItem.Header>
                                             <Image Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"
                                                 Source="/Assets/ellipse.png"/>
+                              
                                             <!--<fa:ImageAwesome Icon="EllipsisV" Width="14" Height="14"/>-->
                                         </MenuItem.Header>
                                         <MenuItem Header="Run now" Command="{Binding DataContext.RunNowJobCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}">
@@ -281,12 +282,14 @@
                                         </MenuItem>
                                     </MenuItem>
                                 </Menu>
-                                <Button Background="Transparent" Width="30" Height="30"  Padding="2" ToolTip="Stop Job" Visibility="{Binding Status, Converter={StaticResource RunningToVisibilityConverter}}"
+                                <Button Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Width="20" Height="20" ToolTip="Stop Job" Visibility="{Binding Status, Converter={StaticResource RunningToVisibilityConverter}}"
                                         Command="{Binding DataContext.StopJobCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         CommandParameter="{Binding}" Margin="2">
                                     <!--<fa:ImageAwesome Icon="Stop" Width="14" Height="14"/>-->
                                     <Image Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center"
                                            Source="/Assets/stop.png"/>
+                                    
+
                                 </Button>
                             </StackPanel>
                         </DataTemplate>

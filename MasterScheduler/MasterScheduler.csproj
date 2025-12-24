@@ -10,22 +10,38 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Assets\azure.png" />
     <None Remove="Assets\ellipse.png" />
     <None Remove="Assets\error.png" />
+    <None Remove="Assets\folder.png" />
+    <None Remove="Assets\ftp.png" />
+    <None Remove="Assets\google-drive.png" />
     <None Remove="Assets\inactive.png" />
     <None Remove="Assets\loading.gif" />
+    <None Remove="Assets\local-area-network.png" />
+    <None Remove="Assets\onedrive.png" />
     <None Remove="Assets\pending.png" />
+    <None Remove="Assets\s3.png" />
+    <None Remove="Assets\sftp.png" />
     <None Remove="Assets\spinner-64.gif" />
     <None Remove="Assets\stop.png" />
     <None Remove="Assets\success.png" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Assets\azure.png" />
     <Resource Include="Assets\ellipse.png" />
     <Resource Include="Assets\error.png" />
+    <Resource Include="Assets\folder.png" />
+    <Resource Include="Assets\ftp.png" />
+    <Resource Include="Assets\google-drive.png" />
     <Resource Include="Assets\inactive.png" />
     <Resource Include="Assets\loading.gif" />
+    <Resource Include="Assets\local-area-network.png" />
+    <Resource Include="Assets\onedrive.png" />
     <Resource Include="Assets\pending.png" />
+    <Resource Include="Assets\s3.png" />
+    <Resource Include="Assets\sftp.png" />
     <Resource Include="Assets\spinner-64.gif" />
     <Resource Include="Assets\stop.png" />
     <Resource Include="Assets\success.png" />
@@ -34,6 +50,7 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="FontAwesome.WPF" Version="4.7.0.9" />
+    <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client.Core" Version="9.0.9" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.2" />
     <PackageReference Include="WpfAnimatedGif" Version="2.0.2" />

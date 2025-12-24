@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MasterScheduler.Shared.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,9 @@ namespace MasterScheduler.Shared.DataModels
 {
     public class BackupDestination
     {
-        public string Type { get; set; }
-        public object Details { get; set; }
+        public Guid Id { get; set; }
+        public DestinationType Type { get; set; }
+        public string DisplayText { get; set; }
+        public DestinationConfig Config { get; set; }
     }
 }

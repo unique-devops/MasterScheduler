@@ -1,5 +1,10 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using MasterScheduler.Models;
+using Microsoft.VisualBasic.ApplicationServices;
+using Microsoft.WindowsAPICodePack.Dialogs;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,9 +24,44 @@ namespace MasterScheduler.Views
     /// </summary>
     public partial class LocalPathBackupConfigDialog : Window
     {
+        private readonly LocalPathDestinationModel pathDestination = new();
         public LocalPathBackupConfigDialog()
         {
             InitializeComponent();
+            DataContext = pathDestination;
+        }
+
+        private void btnBrowsePath_Click(object sender, RoutedEventArgs e)
+        {
+            using var dialog = new CommonOpenFileDialog
+            {
+                IsFolderPicker = true,
+                Title = "Select Folder"
+            };
+
+            if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                pathDestination.Path = dialog.FileName;
+            }
+        }
+
+        private void btnCancel_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnSave_Click(object sender, RoutedEventArgs e)
+        {
+            if (Directory.Exists(pathDestination.Path))
+            {
+                DialogResult = true;
+                Close();
+            }
+            else
+            {
+                txtPath.Background = Brushes.Red;
+            }
+            
         }
     }
 }
