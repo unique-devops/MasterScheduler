@@ -209,9 +209,9 @@ namespace MasterScheduler.Worker
                 {
                     try
                     {
-                        if (destination.Type == DestinationType.LocalFolder && destination.Config is LocalFolderConfig localDest)
+                        if (destination.Type == DestinationType.LocalFolder )
                         {
-                           
+                            var localDest =JsonConvert.DeserializeObject<LocalFolderConfig>(destination.Config?.ToString());
                             // 1. Generate local file path
                             string localPath = Path.Combine(localDest.TargetPath, $"{db}_{DateTime.Now:yyyyMMddHHmm}.bak");
                             // 2. Execute SQL Backup

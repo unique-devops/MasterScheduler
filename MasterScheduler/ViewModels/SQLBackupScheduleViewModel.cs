@@ -259,44 +259,52 @@ namespace MasterScheduler.ViewModels
         [RelayCommand]
         private void Save()
         {
-            if (string.IsNullOrWhiteSpace(ScheduledTime) || ScheduledTime ==  "not schedule")
+            try
             {
-                MessageBox.Show($"ScheduleTime Required!");
-                return;
-            }
-            int hour = scheduleTimeModel.Hour;
-            int min = scheduleTimeModel.Minute;
-            string cron = $"{min} {hour} * * *";
-            var job = new JobModel
-            {
-                JobName = JobAliasName,
-                JobType = "SqlBackup",                
-                CronExpression = cron,
-                NextRunTime = CronosHelper.GetNextRunTime(cron),
-                IsActive = true,                
-                Status = "pending",                
-                Message = "not run yet" 
-            };
-            if (editJobId == 0)
-            {                
-                var insertedId = _repo.Add(job);
-                sqlBackupDetails.Destinations  = Destinations.ToList();
-                _repo.AddUpdateJobDetail(new JobDetailModel { JobId = insertedId, Details = JsonSerializer.Serialize(sqlBackupDetails) });
-            }               
-            else
-            {
-                var existJob = _repo.GetById(editJobId);
-                if (existJob != null)
+                if (string.IsNullOrWhiteSpace(ScheduledTime) || ScheduledTime == "not schedule")
                 {
-                    existJob.JobName = JobAliasName;
-                    _repo.Update(existJob);
-                    sqlBackupDetails.Destinations = Destinations.ToList();
-                    _repo.AddUpdateJobDetail(new JobDetailModel { JobId = editJobId, Details = JsonSerializer.Serialize(sqlBackupDetails) });
+                    MessageBox.Show($"ScheduleTime Required!");
+                    return;
                 }
-                
-            }            
-            MessageBox.Show($"Job {(editJobId == 0 ? "saved" : "updated")} successfully!");
-            _navigationService.NavigateTo<DashboardViewModel>();
+                int hour = scheduleTimeModel.Hour;
+                int min = scheduleTimeModel.Minute;
+                string cron = $"{min} {hour} * * *";
+                var job = new JobModel
+                {
+                    JobName = JobAliasName,
+                    JobType = "SqlBackup",
+                    CronExpression = cron,
+                    NextRunTime = CronosHelper.GetNextRunTime(cron),
+                    IsActive = true,
+                    Status = "pending",
+                    Message = "not run yet"
+                };
+                if (editJobId == 0)
+                {
+                    var insertedId = _repo.Add(job);
+                    sqlBackupDetails.Destinations = Destinations.ToList();
+                    _repo.AddUpdateJobDetail(new JobDetailModel { JobId = insertedId, Details = JsonSerializer.Serialize(sqlBackupDetails) });
+                }
+                else
+                {
+                    var existJob = _repo.GetById(editJobId);
+                    if (existJob != null)
+                    {
+                        existJob.JobName = JobAliasName;
+                        existJob.NextRunTime = job.NextRunTime;
+                        _repo.Update(existJob);
+                        sqlBackupDetails.Destinations = Destinations.ToList();
+                        _repo.AddUpdateJobDetail(new JobDetailModel { JobId = editJobId, Details = JsonSerializer.Serialize(sqlBackupDetails) });
+                    }
+
+                }
+                //MessageBox.Show($"Job {(editJobId == 0 ? "saved" : "updated")} successfully!");
+                _navigationService.NavigateTo<DashboardViewModel>();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error :{ex.Message}");
+            }
         }
 
         [RelayCommand]

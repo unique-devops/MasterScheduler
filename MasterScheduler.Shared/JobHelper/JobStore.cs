@@ -12,18 +12,26 @@ namespace MasterScheduler.Shared.JobHelper
     {
         public async Task PerformSqlBackupAsync(string connectionString, string dbName, string path, CancellationToken ct)
         {
-            using var conn = new SqlConnection(connectionString);
-            await conn.OpenAsync(ct);
+            try
+            {
+                using var conn = new SqlConnection(connectionString);
+                await conn.OpenAsync(ct);
 
-            var sql = $"BACKUP DATABASE @db TO DISK = @path WITH FORMAT, MEDIANAME = 'SQLBackup', NAME = 'Full Backup of ' + @db";
-            using var cmd = new SqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@db", dbName);
-            cmd.Parameters.AddWithValue("@path", path);
+                var sql = $"BACKUP DATABASE @db TO DISK = @path WITH FORMAT, MEDIANAME = 'SQLBackup', NAME = @name";
+                using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@db", dbName);
+                cmd.Parameters.AddWithValue("@name", "Full Backup of " + dbName);
+                cmd.Parameters.AddWithValue("@path", path);
 
-            // CommandTimeout needs to be high for large backups
-            cmd.CommandTimeout = 0;
+                // CommandTimeout needs to be high for large backups
+                cmd.CommandTimeout = 0;
 
-            await cmd.ExecuteNonQueryAsync(ct);
+                await cmd.ExecuteNonQueryAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                var ss = "Error:" + ex.Message;
+            }
         }
 
         public async Task UploadToGoogleDriveAsync(string filePath, GoogleDriveConfig driveConfig, CancellationToken ct)
