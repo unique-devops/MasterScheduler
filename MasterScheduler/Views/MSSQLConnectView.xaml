@@ -5,13 +5,17 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:fa="http://schemas.fontawesome.io/icons/"
         xmlns:local="clr-namespace:MasterScheduler.Views"
+        xmlns:ctr="clr-namespace:MasterScheduler.Converter"
         mc:Ignorable="d"
         Title="Connect to SQL Server"
-        Height="360" Width="480"
+        Height="380" Width="480"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="#FAFAFA"
         FontFamily="Segoe UI">
+    <Window.Resources>
+        <ctr:AuthTypeToVisibilityConverter x:Key="AuthToVisibilityConverter"/>
+    </Window.Resources>
 
     <Border CornerRadius="8" BorderBrush="#DDD" BorderThickness="1" Padding="10" Background="White">
         
@@ -21,6 +25,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="30"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
@@ -54,15 +59,15 @@
 
                     <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Text="Authentication"/>
                     <ComboBox Grid.Row="1" Grid.Column="2" Margin="0,5" Height="28"
-                  ItemsSource="{Binding Authentications}" SelectedItem="{Binding SelectedAuthentication}"
+                  ItemsSource="{Binding Authentications}" SelectedItem="{Binding SelectedAuthentication,Mode=TwoWay}"
                   Padding="5" BorderBrush="#CCC" BorderThickness="1"/>
 
-                    <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Text="Login ID"/>
-                    <TextBox Grid.Row="2" Grid.Column="2" Margin="0,5" Height="28"
+                    <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Text="Login ID" Visibility="{Binding SelectedAuthentication, Converter={StaticResource AuthToVisibilityConverter}}"/>
+                    <TextBox Grid.Row="2" Grid.Column="2" Margin="0,5" Height="28" Visibility="{Binding SelectedAuthentication, Converter={StaticResource AuthToVisibilityConverter}}"
                  Text="{Binding LoginID}" Padding="5" BorderBrush="#CCC" BorderThickness="1"/>
 
-                    <TextBlock Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Text="Password"/>
-                    <TextBox Grid.Row="3" Grid.Column="2" Margin="0,5" Height="28"
+                    <TextBlock Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Text="Password" Visibility="{Binding SelectedAuthentication, Converter={StaticResource AuthToVisibilityConverter}}"/>
+                    <TextBox Grid.Row="3" Grid.Column="2" Margin="0,5" Height="28" Visibility="{Binding SelectedAuthentication, Converter={StaticResource AuthToVisibilityConverter}}"
                      Text="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      Padding="5" BorderBrush="#CCC" BorderThickness="1"/>
 
@@ -71,10 +76,10 @@
                 </Grid>
 
                 <!-- Separator -->
-                <Separator Grid.Row="2" Margin="10,10,10,5" Background="#DDD"/>
-
+                <Separator Grid.Row="2" Margin="5,2" Background="#DDD"/>
+                <TextBlock Grid.Row="3" Text="{Binding Message}" TextAlignment="Center" HorizontalAlignment="Center"/>
                 <!-- Buttons -->
-                <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
+                <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
                     <Button Content="Connect" Width="100" Height="32" Margin="5,0"
                 Command="{Binding ConnectCommand}" 
                 Background="#4A90E2" Foreground="White" BorderThickness="0"

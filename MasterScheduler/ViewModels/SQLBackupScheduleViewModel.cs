@@ -96,9 +96,11 @@ namespace MasterScheduler.ViewModels
 
         [RelayCommand]
         public void ConnectServer()
-        {
-            var dialog = new MSSQLConnectView();
+        {            
+            var dataContext = new MSSQLConnectViewModel { SelectedServer = sqlBackupDetails.Server, SelectedAuthentication = sqlBackupDetails.AuthType, LoginID = sqlBackupDetails.Username };
+            var dialog = new MSSQLConnectView(dataContext);
             dialog.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
+            dataContext.SetModelData();
             var result = dialog.ShowDialog();            
             if (result == true)
             {
@@ -106,7 +108,7 @@ namespace MasterScheduler.ViewModels
                 if (vm.IsConnectedServer)
                 {
                     ServerName = vm.SelectedServer;
-                    ConnectionString = $"Server={ServerName};Database=master;Trusted_Connection=True;TrustServerCertificate=True"; ;
+                    ConnectionString = vm.ConnectedString;
                     IsServerConnected = true;
                 }
                 else
@@ -114,6 +116,7 @@ namespace MasterScheduler.ViewModels
                     IsServerConnected = false;
                 }
                 sqlBackupDetails.Server = ServerName;
+                sqlBackupDetails.Username = vm.LoginID;                
                 sqlBackupDetails.AuthType = vm.SelectedAuthentication;
                 sqlBackupDetails.ConnectionString = ConnectionString;
             }
