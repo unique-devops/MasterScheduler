@@ -1,4 +1,9 @@
-﻿using MasterScheduler.Shared.DataModels;
+﻿using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Auth.OAuth2.Responses;
+using Google.Apis.Drive.v3;
+using Google.Apis.Services;
+using MasterScheduler.Shared.DataModels;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -36,23 +41,55 @@ namespace MasterScheduler.Shared.JobHelper
 
         public async Task UploadToGoogleDriveAsync(string filePath, GoogleDriveConfig driveConfig, CancellationToken ct)
         {
-            // Assume _driveService is injected/initialized
+            // 1. Decrypt the Refresh Token (using the Cipher helper we created)
+            string decryptedRefreshToken = Cipher.Unprotect(driveConfig.RefreshToken);
+
+            // 2. Setup the Authorization Flow
+            var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+            {
+                ClientSecrets = new ClientSecrets
+                {
+                    ClientId = driveConfig.ClientId,
+                    ClientSecret = driveConfig.ClientSecret
+                }
+            });
+
+            // 3. Create the Credential using the Refresh Token
+            var tokenResponse = new TokenResponse { RefreshToken = decryptedRefreshToken };
+            var credential = new UserCredential(flow, "user", tokenResponse);
+
+
+            // 4. Initialize the Drive Service
+            using var driveService = new DriveService(new BaseClientService.Initializer
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "MasterScheduler"
+            });
+
+            // 5. Prepare File Metadata
             var fileMetadata = new Google.Apis.Drive.v3.Data.File()
             {
                 Name = Path.GetFileName(filePath),
-                Parents = new List<string> { driveConfig.TargetFolderId }
+                Parents = string.IsNullOrEmpty(driveConfig.TargetFolderId) ? null : new List<string> { driveConfig.TargetFolderId }
             };
 
-            using var stream = new FileStream(filePath, FileMode.Open);
-            //var request = _driveService.Files.Create(fileMetadata, stream, "application/octet-stream");
+            // 6. Execute the Upload
+            using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+            var request = driveService.Files.Create(fileMetadata, stream, "application/octet-stream");
 
-            //// This allows the upload to be cancelled mid-stream
-            //var progress = await request.UploadAsync(ct);
-
-            //if (progress.Status == Google.Apis.Upload.UploadStatus.Failed)
+            // Optional: Add a progress tracker for large SQL files
+            //request.ProgressChanged += (progress) =>
             //{
-            //    throw progress.Exception;
-            //}
+            //    Console.WriteLine($"Upload Status: {progress.Status} {progress.BytesSent} bytes sent.");
+            //};
+
+            await request.UploadAsync(ct);
+
+            if (request.ResponseBody == null)
+            {
+                throw new Exception("Upload failed: No response from Google Drive.");
+            }
+
         }
     }
 }

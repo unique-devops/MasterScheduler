@@ -9,7 +9,7 @@ namespace MasterScheduler.Shared.DataModels
     public class SqlBackupDetails
     {
         public string Server { get; set; } = "";
-        public string AuthType { get; set; } = "";
+        public string AuthType { get; set; } = "Windows";
         public string Username { get; set; } = "";
         public string Password { get; set; } = "";
         public string ConnectionString { get; set; } = "";

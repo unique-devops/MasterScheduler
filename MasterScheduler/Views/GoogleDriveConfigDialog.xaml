@@ -1,0 +1,33 @@
+﻿<Window x:Class="MasterScheduler.Views.GoogleDriveConfigDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MasterScheduler.Views"
+        mc:Ignorable="d"
+        Title="Google Drive Authorization" Height="380" Width="400" ResizeMode="NoResize" WindowStartupLocation="CenterOwner">
+    <Grid Margin="20">
+        <StackPanel>
+            <TextBlock Text="Google Drive API Setup" FontSize="18" FontWeight="Bold" Margin="0,0,0,15"/>
+
+            <Label Content="Client ID:"/>
+            <TextBox x:Name="TxtClientId" Margin="0,0,0,10" Padding="3"/>
+
+            <Label Content="Client Secret:"/>
+            <PasswordBox x:Name="TxtClientSecret" Margin="0,0,0,10" Padding="3"/>
+
+            <Label Content="Target Folder ID (Optional):"/>
+            <TextBox x:Name="TxtFolderId" Margin="0,0,0,20" Padding="3"/>
+
+            <TextBlock x:Name="StatusMsg" Margin="0,10,0,0" TextAlignment="Center" Foreground="Gray"/>
+            
+            <Button x:Name="BtnAuthorize" Content="Authorize &amp; Connect" 
+                    Height="25" Background="#4285F4" Foreground="White" FontWeight="Bold"
+                    Click="BtnAuthorize_Click"/>
+            <Button x:Name="btnCancel" Content="Cancel" Margin="0,5"
+                     Background="PaleVioletRed" Foreground="White" FontWeight="Bold"
+                      Height="25" Click="btnCancel_Click"/>
+            
+        </StackPanel>
+    </Grid>
+</Window>

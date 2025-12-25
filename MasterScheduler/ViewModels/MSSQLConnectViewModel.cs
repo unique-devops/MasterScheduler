@@ -19,7 +19,7 @@ namespace MasterScheduler.ViewModels
         [ObservableProperty]
         private ObservableCollection<string> servers = new ObservableCollection<string>
         {
-            ".","Browse..."
+           "Browse..."
         };
 
         [ObservableProperty]
@@ -51,7 +51,10 @@ namespace MasterScheduler.ViewModels
 
         [ObservableProperty]
         private bool isConnectedServer = false;
-        
+
+        [ObservableProperty]
+        private string message = "";
+
         public string ConnectedString = "";
 
         public MSSQLConnectViewModel()
@@ -72,10 +75,10 @@ namespace MasterScheduler.ViewModels
 
         private void BrowseServers()
         {
+            Message = "";
             try
             {
-                var server = SqlInstanceFinder.GetAllLocalSqlInstances();
-                server.Insert(0, ".");
+                var server = SqlInstanceFinder.GetAllLocalSqlInstances();               
                 Servers = new ObservableCollection<string>(server);
                 //foreach (string servername in server)
                 //{                    
@@ -88,10 +91,11 @@ namespace MasterScheduler.ViewModels
             {
                 // In real app -> log it or show message
                 System.Windows.MessageBox.Show("Error fetching SQL Servers: " + ex.Message);
+                Message = "Error fetching SQL Servers: " + ex.Message;
             }
            
             if (!Servers.Contains("Browse...")) Servers.Insert(Servers.Count,"Browse...");
-            SelectedServer = Servers?.FirstOrDefault() ?? ".";
+            SelectedServer = Servers?.FirstOrDefault() ?? "";
         }
 
         [RelayCommand]
@@ -113,6 +117,7 @@ namespace MasterScheduler.ViewModels
 
         public async Task<(bool Success, string Message)> TestAdvancedConnectionAsync(string serverName)
         {
+            Message = "";
             SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder
             {
                 DataSource = serverName,
@@ -141,12 +146,13 @@ namespace MasterScheduler.ViewModels
                 using (SqlConnection connection = new SqlConnection(ConnectedString))
                 {
                     await connection.OpenAsync();
+                    var dd = connection.ServerVersion;                    
                     return (true, "Success!");
                 }
             }
             catch (SqlException ex)
             {
-                MessageBox.Show(ex.Message);
+                Message = ex.Message;
                 return (false, ex.Message);
             }
         }

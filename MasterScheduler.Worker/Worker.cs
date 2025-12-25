@@ -227,9 +227,9 @@ namespace MasterScheduler.Worker
                             await _jobStore.PerformSqlBackupAsync(sqlBackupDetails.ConnectionString, db, localPath, token);
                             _logger.LogInformation("SQL Backup completed for {id}", job.Id);
 
-                            if (destination.Type == DestinationType.GoogleDrive && destination.Config is GoogleDriveConfig gdriveDest)
+                            if (destination.Type == DestinationType.GoogleDrive )
                             {
-                               
+                                var gdriveDest = JsonConvert.DeserializeObject<GoogleDriveConfig>(destination.Config?.ToString());
                                 await _jobStore.UploadToGoogleDriveAsync(localPath, gdriveDest, token);
                                 _logger.LogInformation("Google Drive upload completed for {id}", job.Id);
                             }

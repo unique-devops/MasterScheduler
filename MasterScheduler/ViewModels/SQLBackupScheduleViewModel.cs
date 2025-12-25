@@ -205,9 +205,15 @@ namespace MasterScheduler.ViewModels
                         }
                     }
                     break;
-                //case "GoogleDrive":
-                //    Destinations.Add(new BackupDestination { Type = DestinationType.GoogleDrive, });
-                //    break;
+                case "GoogleDrive":
+                    var googleDrive = new GoogleDriveConfigDialog();
+                    googleDrive.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
+                    if (googleDrive.ShowDialog() == true)
+                    {                        
+                        GoogleDriveConfig gdConfig = googleDrive.ResultConfig;
+                        Destinations.Add(new BackupDestination { Id = Guid.NewGuid(), Type = DestinationType.GoogleDrive,DisplayText = gdConfig.TargetFolderId, Config = gdConfig });
+                    }                    
+                    break;
                 //case "FTP":
                 //    Destinations.Add(new BackupDestination { Type = DestinationType.FTP });
                 //    break;
