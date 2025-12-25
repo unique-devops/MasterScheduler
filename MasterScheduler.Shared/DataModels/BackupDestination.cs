@@ -22,7 +22,7 @@ namespace MasterScheduler.Shared.DataModels
         public Guid Id { get; set; }
         public DestinationType Type { get; set; }
         public string DisplayText { get; set; }
-        public object Config { get; set; }
+        public DestinationConfig Config { get; set; }
     }
 
 }

@@ -154,7 +154,7 @@ namespace MasterScheduler.Worker
             try
             {
                 _logger.LogInformation("Starting Job {id}", job.Id);
-                await Task.Delay(10000, linkedCts.Token); // simulate work
+                //await Task.Delay(10000, linkedCts.Token); // simulate work
                 switch(job.JobType.ToLower())
                 {
                     case "sqlbackup":
@@ -211,7 +211,7 @@ namespace MasterScheduler.Worker
                     {
                         if (destination.Type == DestinationType.LocalFolder )
                         {
-                            var localDest =JsonConvert.DeserializeObject<LocalFolderConfig>(destination.Config?.ToString());
+                            var localDest =(LocalFolderConfig)destination.Config;
                             // 1. Generate local file path
                             string localPath = Path.Combine(localDest.TargetPath, $"{db}_{DateTime.Now:yyyyMMddHHmm}.bak");
                             // 2. Execute SQL Backup
@@ -229,7 +229,7 @@ namespace MasterScheduler.Worker
 
                             if (destination.Type == DestinationType.GoogleDrive )
                             {
-                                var gdriveDest = JsonConvert.DeserializeObject<GoogleDriveConfig>(destination.Config?.ToString());
+                                var gdriveDest = (GoogleDriveConfig)destination.Config;
                                 await _jobStore.UploadToGoogleDriveAsync(localPath, gdriveDest, token);
                                 _logger.LogInformation("Google Drive upload completed for {id}", job.Id);
                             }

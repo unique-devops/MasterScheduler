@@ -40,7 +40,8 @@ namespace MasterScheduler.ViewModels
         private string scheduledTime = "not schedule";
 
         private string ConnectionString;
-        public ObservableCollection<string> SelectedDatabases { get; set; } = new();      
+        public ObservableCollection<string> SelectedDatabases { get; set; } = new();    
+        
         public ObservableCollection<BackupDestination> Destinations { get; set; } = new();
 
         private readonly IDialogService _dialogService;
@@ -61,18 +62,18 @@ namespace MasterScheduler.ViewModels
         {
             if (editJobId == 0) return;
             JobDetailModel? jobDetail =  _repo.GetDetailById(editJobId);
-            if (jobDetail != null && jobDetail?.Details != null)
+            if (jobDetail?.Details != null)
             {
                 sqlBackupDetails = JsonSerializer.Deserialize<SqlBackupDetails>(jobDetail.Details);
-                SelectedDatabases = new ObservableCollection<string>(sqlBackupDetails.Databases);
-                ServerName = sqlBackupDetails.Server;               
+
+                ServerName = sqlBackupDetails.Server;
                 ConnectionString = sqlBackupDetails.ConnectionString;
-                Destinations = new ObservableCollection<BackupDestination>(sqlBackupDetails.Destinations);
-                //foreach (var backupDestination in sqlBackupDetails.Destinations) 
-                //{
-                //    Destinations.Add(new DestinationModel { Id = backupDestination.Id, Type = backupDestination.Type,DisplayText = backupDestination.DisplayText, Config = backupDestination.Config });
-                //}
+
+                SelectedDatabases.Clear();
+                foreach (var db in sqlBackupDetails.Databases) SelectedDatabases.Add(db);
                 
+                Destinations.Clear();
+                foreach (var dest in sqlBackupDetails.Destinations) Destinations.Add(dest);
             }
         }
 
@@ -125,19 +126,20 @@ namespace MasterScheduler.ViewModels
         [RelayCommand]
         public async Task OpenDatabaseSelection()
         {
+            if (IsServerConnected == false)
+            {
+                await App.ToastService.ShowAsync("Server not connected!", ToastType.Error);
+                return;
+            }
             try
             {
                 LoaderService.ShowLoader();
-                if (IsServerConnected == false)
-                {
-                    await App.ToastService.ShowAsync("Server not connected!", ToastType.Error);
-                    return;
-                }
+                var databases = await LoadDatabasesAsync();
+
                 var dialog = new DatabaseSelectionDialog();
-                dialog.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
-                // Simulate loading available databases
-                var databases = LoadDatabases();
+                dialog.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);        
                 dialog.AvailableDatabases = new ObservableCollection<DatabaseItem>(databases);
+                
                 if (dialog.ShowDialog() == true)
                 {
                     SelectedDatabases.Clear();
@@ -150,29 +152,35 @@ namespace MasterScheduler.ViewModels
             }
             catch (Exception ex)
             {
-                await App.ToastService.ShowAsync(ex.Message, ToastType.Error);
+                await App.ToastService.ShowAsync($"Failed to fetch databases: {ex.Message}", ToastType.Error);
 
             }
-            finally {
+            finally 
+            {
                 LoaderService.HideLoader();
             }
             
         }
 
-        private IEnumerable<DatabaseItem> LoadDatabases()
+        private async Task<IEnumerable<DatabaseItem>> LoadDatabasesAsync()
         {
-            var list = new List<DatabaseItem>();
-            using SqlConnection connection = new SqlConnection(ConnectionString);
-            connection.Open();
-
-            var cmd = new SqlCommand("SELECT Name FROM sys.databases WHERE database_id > 4", connection); // exclude system DBs
-            var reader = cmd.ExecuteReader();
-
-            while (reader.Read())
+            return await Task.Run(() =>
             {
-                list.Add(new DatabaseItem { Name = reader.GetString(0), IsChecked = SelectedDatabases.Contains(reader.GetString(0)) });
-            }
-            return list;
+                var list = new List<DatabaseItem>();
+                using SqlConnection connection = new SqlConnection(ConnectionString);
+                connection.Open();
+                var cmd = new SqlCommand("SELECT Name FROM sys.databases WHERE database_id > 4", connection);
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    list.Add(new DatabaseItem
+                    {
+                        Name = reader.GetString(0),
+                        IsChecked = SelectedDatabases.Contains(reader.GetString(0))
+                    });
+                }
+                return list;
+            });
         }
 
         [RelayCommand]
@@ -180,29 +188,21 @@ namespace MasterScheduler.ViewModels
         {
             MenuItem? menuItem = sender as MenuItem;
             if (menuItem == null) return;
-            AddUpdateDestination(menuItem.Name);
+            AddUpdateDestination(menuItem.Name, new BackupDestination());
         }
-        private void AddUpdateDestination(string destinationType,BackupDestination destination = null)
+        private void AddUpdateDestination(string destinationType,BackupDestination destination)
         {
+            var existingItem = Destinations.FirstOrDefault(d => d.Id == destination.Id);
             switch (destinationType)
             {
                 case "LocalFolder":
-                    var dialog = new LocalPathBackupConfigDialog();
-                    dialog.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
-                    if (dialog.ShowDialog() == true)
+                    var localDialog = new LocalPathBackupConfigDialog();
+                    localDialog.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
+                    if (localDialog.ShowDialog() == true)
                     {
-                        var data = (LocalPathDestinationModel)dialog.DataContext;
-                        var exist = Destinations.FirstOrDefault(c => c.Id == destination.Id);
-                        if (exist == null)
-                        {
-                            //Destinations.Add(new DestinationModel { Id = Guid.NewGuid(),DisplayText= data.Path, Type = DestinationType.LocalFolder});
-                            Destinations.Add(new BackupDestination { Id = Guid.NewGuid(), DisplayText = data.Path, Type = DestinationType.LocalFolder, Config = new LocalFolderConfig() { TargetPath = data.Path } });
-                        }
-                        else if(exist.Config is LocalFolderConfig localDest)
-                        { 
-                            exist.DisplayText = data.Path;
-                            localDest.TargetPath = data.Path;
-                        }
+                        var data = (LocalPathDestinationModel)localDialog.DataContext;
+                        var newConfig = new LocalFolderConfig { TargetPath = data.Path };
+                        UpdateOrAddDestination(existingItem, DestinationType.LocalFolder, data.Path, newConfig);
                     }
                     break;
                 case "GoogleDrive":
@@ -211,7 +211,7 @@ namespace MasterScheduler.ViewModels
                     if (googleDrive.ShowDialog() == true)
                     {                        
                         GoogleDriveConfig gdConfig = googleDrive.ResultConfig;
-                        Destinations.Add(new BackupDestination { Id = Guid.NewGuid(), Type = DestinationType.GoogleDrive,DisplayText = gdConfig.TargetFolderId, Config = gdConfig });
+                        UpdateOrAddDestination(existingItem, DestinationType.GoogleDrive, gdConfig.TargetFolderId, gdConfig);
                     }                    
                     break;
                 //case "FTP":
@@ -236,7 +236,34 @@ namespace MasterScheduler.ViewModels
                     break;
             }
         }
+        private void UpdateOrAddDestination(BackupDestination? existing, DestinationType type, string display, DestinationConfig config)
+        {
+            if (existing == null)
+            {
+                // Add new
+                Destinations.Add(new BackupDestination
+                {
+                    Id = Guid.NewGuid(),
+                    Type = type,
+                    DisplayText = display,
+                    Config = config
+                });
+            }
+            else
+            {
+                // Edit existing
+                existing.DisplayText = display;
+                existing.Type = type;
+                existing.Config = config;
 
+                // FORCE UI REFRESH: Replace the item at its index
+                int index = Destinations.IndexOf(existing);
+                Destinations[index] = existing;
+            }
+
+            // Always sync back to the main details object for Saving
+            sqlBackupDetails.Destinations = Destinations.ToList();
+        }
         [RelayCommand]
         public void SchedulerSettings()
         {
@@ -288,11 +315,21 @@ namespace MasterScheduler.ViewModels
                     Status = "pending",
                     Message = "not run yet"
                 };
+                sqlBackupDetails.Destinations = Destinations.ToList();
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                };
+                string sqlJobDetails = JsonSerializer.Serialize(sqlBackupDetails, options);
+                
                 if (editJobId == 0)
                 {
                     var insertedId = _repo.Add(job);
-                    sqlBackupDetails.Destinations = Destinations.ToList();
-                    _repo.AddUpdateJobDetail(new JobDetailModel { JobId = insertedId, Details = JsonSerializer.Serialize(sqlBackupDetails) });
+                    
+                    _repo.AddUpdateJobDetail(new JobDetailModel {
+                        JobId = insertedId,
+                        Details = sqlJobDetails
+                    });
                 }
                 else
                 {
@@ -302,8 +339,11 @@ namespace MasterScheduler.ViewModels
                         existJob.JobName = JobAliasName;
                         existJob.NextRunTime = job.NextRunTime;
                         _repo.Update(existJob);
-                        sqlBackupDetails.Destinations = Destinations.ToList();
-                        _repo.AddUpdateJobDetail(new JobDetailModel { JobId = editJobId, Details = JsonSerializer.Serialize(sqlBackupDetails) });
+                       
+                        _repo.AddUpdateJobDetail(new JobDetailModel {
+                            JobId = editJobId,
+                            Details = sqlJobDetails
+                        });
                     }
 
                 }
