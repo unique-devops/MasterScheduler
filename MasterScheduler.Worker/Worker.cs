@@ -4,9 +4,8 @@ using MasterScheduler.Shared.DataModels;
 using MasterScheduler.Shared.Enums;
 using MasterScheduler.Shared.JobHelper;
 using Microsoft.AspNetCore.SignalR;
-using Newtonsoft.Json;
 using System.Collections.Concurrent;
-using static Quartz.Logging.OperationName;
+using System.Text.Json;
 
 namespace MasterScheduler.Worker
 {
@@ -202,7 +201,8 @@ namespace MasterScheduler.Worker
             var jobDetail = _repo.GetDetailById(job.Id);
             if (jobDetail == null)
                 return;
-            var sqlBackupDetails = JsonConvert.DeserializeObject<SqlBackupDetails>(jobDetail.Details);
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var sqlBackupDetails = JsonSerializer.Deserialize<SqlBackupDetails>(jobDetail?.Details, options);
             foreach (var db in sqlBackupDetails.Databases)
             {
                 foreach (var destination in sqlBackupDetails.Destinations)
