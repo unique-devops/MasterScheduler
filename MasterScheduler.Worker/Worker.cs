@@ -4,6 +4,7 @@ using MasterScheduler.Shared.DataModels;
 using MasterScheduler.Shared.Enums;
 using MasterScheduler.Shared.JobHelper;
 using Microsoft.AspNetCore.SignalR;
+using Serilog.Context;
 using System.Collections.Concurrent;
 using System.Text.Json;
 
@@ -149,41 +150,44 @@ namespace MasterScheduler.Worker
             _activeJobs[job.Id] = jobCts;
 
             await _parallelLimit.WaitAsync(linkedCts.Token);
-
-            try
+            using (LogContext.PushProperty("JobId", job.Id))
             {
-                _logger.LogInformation("Starting Job {id}", job.Id);
-                //await Task.Delay(10000, linkedCts.Token); // simulate work
-                switch(job.JobType.ToLower())
+                try
                 {
-                    case "sqlbackup":
-                        await SQLBackupJob(job, linkedCts.Token);
-                        break;
+                    _logger.LogInformation("Starting Job {id}", job.Id);
+                    //await Task.Delay(10000, linkedCts.Token); // simulate work
+                    switch (job.JobType.ToLower())
+                    {
+                        case "sqlbackup":
+                            await SQLBackupJob(job, linkedCts.Token);
+                            break;
+                    }
+
+                    job.Status = "completed";
+                    job.Message = "successfully completed";
+                    _repo.Update(job);
                 }
-                
-                job.Status = "completed";
-                job.Message = "successfully completed";
-                _repo.Update(job);
+                catch (OperationCanceledException)
+                {
+                    _logger.LogWarning("Job {id} was cancelled.", job.Id);
+                    job.Status = "cancelled";
+                    job.Message = "cancelled";
+                    _repo.Update(job);
+                }
+                catch (Exception ex)
+                {
+                    job.Status = "error";
+                    job.Message = "error: " + ex.Message;
+                    _repo.Update(job);
+                }
+                finally
+                {
+                    _parallelLimit.Release();
+                    _activeJobs.TryRemove(job.Id, out _); // Clean up
+                    jobCts.Dispose();
+                }
             }
-            catch (OperationCanceledException)
-            {
-                _logger.LogWarning("Job {id} was cancelled.", job.Id);
-                job.Status = "cancelled";
-                job.Message = "cancelled";
-                _repo.Update(job);
-            }
-            catch (Exception ex)
-            {
-                job.Status = "error";
-                job.Message = "error: " + ex.Message;
-                _repo.Update(job);
-            }
-            finally
-            {
-                _parallelLimit.Release();
-                _activeJobs.TryRemove(job.Id, out _); // Clean up
-                jobCts.Dispose();
-            }
+            
         }
 
         public void CancelJob(int jobId)
@@ -194,8 +198,6 @@ namespace MasterScheduler.Worker
                 _logger.LogInformation("Cancellation requested for job {id}", jobId);
             }
         }
-
-
         private async Task SQLBackupJob(JobModel job,CancellationToken token)
         {
             var jobDetail = _repo.GetDetailById(job.Id);
@@ -209,34 +211,27 @@ namespace MasterScheduler.Worker
                 {
                     try
                     {
+                        // 1. Generate local file path
+                        string localPath = Path.Combine(Path.GetTempPath(), $"{db}_{DateTime.Now:yyyyMMddHHmm}.bak");
+                        // 2. Execute SQL Backup
+                        await _jobStore.PerformSqlBackupAsync(sqlBackupDetails.ConnectionString, db, localPath, token);
+                        _logger.LogInformation("SQL Backup completed for {id}", job.Id);
+
                         if (destination.Type == DestinationType.LocalFolder )
                         {
                             var localDest =(LocalFolderConfig)destination.Config;
-                            // 1. Generate local file path
-                            string localPath = Path.Combine(localDest.TargetPath, $"{db}_{DateTime.Now:yyyyMMddHHmm}.bak");
-                            // 2. Execute SQL Backup
-                            await _jobStore.PerformSqlBackupAsync(sqlBackupDetails.ConnectionString, db, localPath, token);
-                            _logger.LogInformation("SQL Backup completed for {id}", job.Id);
-
+                            File.Copy(localPath,Path.Combine(localDest.TargetPath,Path.GetFileName(localPath)));
+                            _logger.LogInformation("Move tembackup data to localpath for {id}", job.Id);
                         }
-                        else
+                        else if (destination.Type == DestinationType.GoogleDrive)
                         {
-                            // 1. Generate local file path
-                            string localPath = Path.Combine(Path.GetTempPath(), $"{db}_{DateTime.Now:yyyyMMddHHmm}.bak");
-                            // 2. Execute SQL Backup
-                            await _jobStore.PerformSqlBackupAsync(sqlBackupDetails.ConnectionString, db, localPath, token);
-                            _logger.LogInformation("SQL Backup completed for {id}", job.Id);
-
-                            if (destination.Type == DestinationType.GoogleDrive )
-                            {
-                                var gdriveDest = (GoogleDriveConfig)destination.Config;
-                                await _jobStore.UploadToGoogleDriveAsync(localPath, gdriveDest, token);
-                                _logger.LogInformation("Google Drive upload completed for {id}", job.Id);
-                            }
-                            // 4. Cleanup local file
-                            if (File.Exists(localPath)) File.Delete(localPath);
+                            var gdriveDest = (GoogleDriveConfig)destination.Config;
+                            await _jobStore.UploadToGoogleDriveAsync(localPath, gdriveDest, token);
+                            _logger.LogInformation("Google Drive upload completed for {id}", job.Id);
                         }
-
+                        // 4. Cleanup local file
+                        if (File.Exists(localPath)) File.Delete(localPath);
+                        _logger.LogInformation("Deleted tembackup data for {id}", job.Id);
                     }
                     catch (Exception ex)
                     {

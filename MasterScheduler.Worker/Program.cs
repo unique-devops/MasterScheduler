@@ -1,5 +1,7 @@
 using MasterScheduler.Shared.Data;
+using MasterScheduler.Shared.Logging;
 using MasterScheduler.Worker;
+using Serilog;
 
 //var builder = Host.CreateApplicationBuilder(args);
 //builder.Services.AddHostedService<Worker>();
@@ -9,6 +11,11 @@ using MasterScheduler.Worker;
 
 var builder = Host.CreateApplicationBuilder(args);
 
+Log.Logger = new LoggerConfiguration()
+    .Enrich.FromLogContext()
+    .WriteTo.Sink(new MySqliteSink()) // This is the 'Sink'
+    .CreateLogger();
+builder.Logging.AddSerilog();
 // IMPORTANT: Tell .NET this is a Windows Service
 
 //builder.Services.AddWindowsService(options =>
