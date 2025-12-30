@@ -40,10 +40,10 @@
                     <TextBlock Text="Disable All"/>
                 </StackPanel>
             </Button>
-            <Button Width="120" Margin="5" ToolTip="Open global configuration">
+            <Button Width="120" Margin="5" ToolTip="Clear Genaral Logs" Command="{Binding LogsCommand}">
                 <StackPanel Orientation="Horizontal">
-                    <fa:ImageAwesome Icon="Cogs" Width="16" Height="16" Margin="0,0,5,0"/>
-                    <TextBlock Text="Config"/>
+                    <fa:ImageAwesome Icon="Info" Width="16" Height="16" Margin="0,0,5,0"/>
+                    <TextBlock Text="Logs"/>
                 </StackPanel>
             </Button>
         </StackPanel>

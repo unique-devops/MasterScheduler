@@ -1,15 +1,59 @@
 ﻿using MasterScheduler.Shared.DataModels;
+using MasterScheduler.Shared.Dto;
+using MasterScheduler.Shared.Interface;
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Logging;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MasterScheduler.Shared.Data
 {
-    public class JobRepository
+    public class JobRepository : IJobRepository
     {
+        //private readonly ILogger _logger;
+        //public JobRepository(ILogger logger)
+        //{
+        //    _logger = logger;
+        //}
+
+        public List<LogDto> GetAllLogs()
+        {
+            var logs = new List<LogDto>();
+            using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
+            con.Open();
+            string sql = @"SELECT 
+                            L.Id, 
+                            L.Message, 
+                            L.Level, 
+                            L.Timestamp, 
+                            L.JobId, 
+                            COALESCE(J.Type, 'General') AS JobType
+                        FROM BackupLogs L
+                        LEFT JOIN Jobs J ON L.JobId = J.Id
+                        ORDER BY L.Timestamp DESC 
+                        LIMIT 500;"; 
+            using var cmd = new SqliteCommand(sql, con);
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                logs.Add(new LogDto
+                {
+                    Id = reader.GetInt32(0),
+                    Message = reader.IsDBNull(1) ? "" : reader.GetString(1),
+                    Level = reader.IsDBNull(2) ? "Info" : reader.GetString(2),
+                    Timestamp = DateTime.Parse(reader.GetString(3)),
+                    JobId = reader.IsDBNull(4) ? (int?)null : reader.GetInt32(4),
+                    Type = reader.GetString(5) // Will be 'General' if J.Type is null
+                });
+            }
+            return logs;           
+        }
+        
         public List<JobModel> GetPendingTask()
         {
             var list = new List<JobModel>();
@@ -162,16 +206,67 @@ namespace MasterScheduler.Shared.Data
             cmd.Parameters.AddWithValue("@id", job.Id);
             cmd.ExecuteNonQuery();
         }
-
+       
         public void Delete(int id)
         {
             using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
             con.Open();
-            var cmd = new SqliteCommand("DELETE FROM Jobs WHERE Id=@id", con);
-            cmd.Parameters.AddWithValue("@id", id);
-            cmd.ExecuteNonQuery();
+
+            // Start the transaction
+            using var transaction = con.BeginTransaction();
+
+            try
+            {
+                // 1. Delete Job Details
+                using (var cmd = new SqliteCommand("DELETE FROM JobDetails WHERE JobId=@id", con, transaction))
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 2. Delete Job Logs (if you have a logs table)
+                using (var cmd = new SqliteCommand("DELETE FROM BackUpLogs WHERE JobId=@id", con, transaction))
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 3. Delete the Job itself
+                using (var cmd = new SqliteCommand("DELETE FROM Jobs WHERE Id=@id", con, transaction))
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.ExecuteNonQuery();
+                }
+
+                // Commit all changes if everything succeeded
+                transaction.Commit();
+            }
+            catch (Exception ex)
+            {
+                // If anything fails, undo all deletes
+                transaction.Rollback();
+                throw new Exception($"Failed to delete job {id}. Transaction rolled back.", ex);
+            }
         }
 
+        public void DeleteLogs(int id = 0)
+        {
+            using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
+            con.Open();           
+            try
+            {               
+                // 2. Delete Job Logs (if you have a logs table)
+                using (var cmd = new SqliteCommand("DELETE FROM BackUpLogs @where", con))
+                {
+                    cmd.Parameters.AddWithValue("@where", (id == 0 ? " WHERE 1=1" : $" WHERE Id={id}"));
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (Exception ex)
+            {               
+                throw new Exception($"Failed to delete log {id}.", ex);
+            }
+        }
 
         //----------------jobDetail-----------------
 
@@ -199,7 +294,7 @@ namespace MasterScheduler.Shared.Data
 
         public void AddUpdateJobDetail(JobDetailModel jobDetail)
         {
-            var exist = GetDetailById(jobDetail.Id);
+            var exist = GetDetailById(jobDetail.JobId);
             if (exist == null)
             {
                 using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
@@ -222,6 +317,34 @@ namespace MasterScheduler.Shared.Data
             }                
         }
 
-       
+        public void UpdateJobConfiguration<T>(int jobId, T configuration)
+        {
+            var json = JsonSerializer.Serialize(configuration);
+            using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
+            con.Open();
+            using var cmd = new SqliteCommand("UPDATE JobDetails SET Details = @Details, UpdatedAt = DATETIME('now') WHERE JobId = @JobId", con);
+            cmd.Parameters.AddWithValue("@Details", json);
+            cmd.Parameters.AddWithValue("@JobId", jobId);
+            cmd.ExecuteNonQuery();            
+        }
+
+        public T? GetJobConfiguration<T>(int jobId)
+        {           
+            using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
+            con.Open();
+            using var cmd = new SqliteCommand("SELECT Details FROM JobDetails where JobId = @JobId", con);
+            cmd.Parameters.AddWithValue("@JobId", jobId);
+            var result = cmd.ExecuteScalar(); // Gets the first column of the first row
+
+            //if (result == null || result == DBNull.Value)
+            //    return null;
+
+            string json = result.ToString()!;
+
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            return JsonSerializer.Deserialize<T>(json, options);
+        }
+
+
     }
 }

@@ -22,6 +22,8 @@ namespace MasterScheduler.Shared.DataModels
         public Guid Id { get; set; }
         public DestinationType Type { get; set; }
         public string DisplayText { get; set; }
+        public string Status { get; set; }
+        public string ResumeUri { get; set; }
         public DestinationConfig Config { get; set; }
     }
 

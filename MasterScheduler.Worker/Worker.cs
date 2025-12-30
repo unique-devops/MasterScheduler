@@ -2,8 +2,10 @@ using MasterScheduler.Shared;
 using MasterScheduler.Shared.Data;
 using MasterScheduler.Shared.DataModels;
 using MasterScheduler.Shared.Enums;
-using MasterScheduler.Shared.JobHelper;
+using MasterScheduler.Shared.Interface;
+using MasterScheduler.Shared.Service;
 using Microsoft.AspNetCore.SignalR;
+using Quartz.Spi;
 using Serilog.Context;
 using System.Collections.Concurrent;
 using System.Text.Json;
@@ -14,17 +16,23 @@ namespace MasterScheduler.Worker
     {
         private readonly ConcurrentDictionary<int, CancellationTokenSource> _activeJobs = new();
         private readonly ILogger<Worker> _logger;
-        private readonly JobRepository _repo = new JobRepository();
+        private readonly JobRepository _repo ;
         private readonly PipeServer _pipeServer;
+        private readonly IScheduledJobStore _jobStore;
         static SemaphoreSlim _parallelLimit = new SemaphoreSlim(15);
+
+        // Separate limits to prevent backups from starving small tasks
+        private readonly SemaphoreSlim _generalLimit = new(10);
+        private readonly SemaphoreSlim _backupLimit = new(2);
         
-        private readonly JobStore _jobStore;
-        public Worker(ILogger<Worker> logger)
+        public Worker(ILogger<Worker> logger, IScheduledJobStore jobStore)
         {
             _logger = logger;
-            _pipeServer = new PipeServer(id => RequestCancellation(id));
-            _jobStore = new JobStore();
+            _repo = new JobRepository();
+            _jobStore = jobStore;
+            _pipeServer = new PipeServer(id => RequestCancellation(id));           
         }        
+
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _ = _pipeServer.StartAsync(stoppingToken);
@@ -36,67 +44,46 @@ namespace MasterScheduler.Worker
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
-                {
-                    // 1. Get all pending jobs, including their NextRunTime property
-                    // (Assuming your job object now has a NextRunTime property populated by your scheduler logic)
+                {                    
                     var pendingJobs = _repo.GetPendingTask();
 
-                    if (pendingJobs == null || pendingJobs.Count == 0)
+                    if (pendingJobs == null || !pendingJobs.Any())
                     {
                         // No jobs, just wait and check again
                         await Task.Delay(checkIntervalMs, stoppingToken);
                         continue;
                     }
-
-                    // 2. Group jobs by their precise next run time
-                    // Example: group all jobs scheduled for 2025-12-17 13:27:00
-                    var jobGroups = pendingJobs
+                    
+                    var nextJobGroup = pendingJobs
                         .GroupBy(job => job.NextRunTime)
-                        .OrderBy(group => group.Key); // Execute the earliest group first
-
-                    // 3. Process the next immediate group
-                    var nextJobGroup = jobGroups.FirstOrDefault();
+                        .OrderBy(group => group.Key).FirstOrDefault(); // Execute the earliest group first
+                   
 
                     if (nextJobGroup != null)
                     {
-                        DateTime targetTime = nextJobGroup.Key ?? DateTime.Now;
-
-                        // A. Calculate remaining wait time
+                        DateTime targetTime = nextJobGroup.Key ?? DateTime.Now;                      
                         TimeSpan timeUntilTarget = targetTime - DateTime.Now;
 
                         // B. Wait if the target time is in the future
                         if (timeUntilTarget.TotalMilliseconds > 50) // Use a small buffer (50ms) to avoid over-waiting
                         {
-                            _logger.LogInformation("Waiting {ms}ms until target execution time: {time}",
-                                (int)timeUntilTarget.TotalMilliseconds, targetTime);
-
-                            // Wait until just before the target time
+                            _logger.LogInformation("Waiting {ms}ms until target execution time: {time}",(int)timeUntilTarget.TotalMilliseconds, targetTime);                         
                             await Task.Delay(timeUntilTarget, stoppingToken);
                             // Add a tiny extra check here to avoid over-waiting if Task.Delay returns late.
                         }
-
-                        // C. Dispatch all jobs in the group concurrently
-                        _logger.LogInformation("Starting {count} jobs exactly at: {time}",
-                            nextJobGroup.Count(), DateTimeOffset.Now);
-
-                        // Collect the tasks into a list
-                        var concurrentTasks = new List<Task>();
+                       
+                        _logger.LogInformation("Starting {count} jobs exactly at: {time}",nextJobGroup.Count(), DateTimeOffset.Now);                       
+                        //var concurrentTasks = new List<Task>();
 
                         foreach (var job in nextJobGroup)
-                        {
-                            // Crucial: Use 'TryMarkRunning' and 'Task.Run' inside the Task list construction
-                            // to ensure all checks and starts happen immediately after the wait.
+                        {                                                       
                             if (TryMarkRunning(job))
                             {
-                                // Add the execution task to the list
-                                concurrentTasks.Add(Task.Run(() => ExecuteJob(job, stoppingToken)));
+                                //concurrentTasks.Add(Task.Run(() => ExecuteJob(job, stoppingToken)));
+                                _ = Task.Run(() => ExecuteJobAsync(job, stoppingToken), stoppingToken);
                             }
-                        }
-
-                        // D. Wait for all dispatched tasks to complete (optional, but necessary if you need
-                        // to know when the group is done before moving to the next group or loop iteration)
-                        await Task.WhenAll(concurrentTasks);
-
+                        }                       
+                        //await Task.WhenAll(concurrentTasks);
                         _logger.LogInformation("Completed execution of {count} jobs at: {time}",
                             nextJobGroup.Count(), DateTimeOffset.Now);
                     }
@@ -110,10 +97,62 @@ namespace MasterScheduler.Worker
                 {
                     _logger.LogError(ex, "An error occurred during job scheduling loop.");
                 }
-
                 // Wait for a short interval before checking the repository again
                 await Task.Delay(checkIntervalMs, stoppingToken);
             }
+        }
+        private async Task ExecuteJobAsync(JobModel job, CancellationToken serviceToken)
+        {
+            var jobCts = new CancellationTokenSource();
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(serviceToken, jobCts.Token);
+
+            // 3. Register the job so the UI/PipeServer can find it
+            _activeJobs[job.Id] = jobCts;
+
+            var semaphore = job.JobType.ToLower() == "sqlbackup" ? _backupLimit : _generalLimit;
+
+            await _parallelLimit.WaitAsync(linkedCts.Token);
+            using (LogContext.PushProperty("JobId", job.Id))
+            {
+                try
+                {
+                    _logger.LogInformation("Starting {Type} Job {Id}", job.JobType, job.Id);                   
+                    switch (job.JobType.ToLower())
+                    {
+                        case "sqlbackup":
+                            await _jobStore.RunSqlBackupAsync(job, linkedCts.Token);
+                            break;
+                        default:
+                            _logger.LogWarning("Unknown job type: {Type}", job.JobType);
+                            break;
+                    }
+                    await UpdateJobStatus(job, "completed", "successfully completed");                   
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogWarning("Job {id} was cancelled.", job.Id);
+                    await UpdateJobStatus(job, "cancelled", "cancelled");                    
+                }
+                catch (Exception ex)
+                {                   
+                    await UpdateJobStatus(job, "error", ex.Message);
+                }
+                finally
+                {
+                    semaphore.Release();
+                    _activeJobs.TryRemove(job.Id, out _); // Clean up
+                    jobCts.Dispose();
+                }
+            }
+
+        }
+
+        private async Task UpdateJobStatus(JobModel job, string status, string message)
+        {
+            job.Status = status;
+            job.Message = message;
+            _repo.Update(job);
+            await Task.CompletedTask;
         }
         private bool TryMarkRunning(JobModel job)
         {
@@ -126,8 +165,9 @@ namespace MasterScheduler.Worker
                 _repo.Update(job);
                 return true;
             }
-            catch
+            catch(Exception ex)
             {
+                _logger.LogError(ex, "An error occurred during job marking status.");               
                 return false;
             }
 
@@ -138,111 +178,8 @@ namespace MasterScheduler.Worker
             {
                 _logger.LogWarning("UI requested cancellation for Job {id}", jobId);
                 cts.Cancel();
-            }
-        }
-        async Task ExecuteJob(JobModel job, CancellationToken serviceToken)
-        {
-            var jobCts = new CancellationTokenSource();
-
-            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(serviceToken, jobCts.Token);
-
-            // 3. Register the job so the UI/PipeServer can find it
-            _activeJobs[job.Id] = jobCts;
-
-            await _parallelLimit.WaitAsync(linkedCts.Token);
-            using (LogContext.PushProperty("JobId", job.Id))
-            {
-                try
-                {
-                    _logger.LogInformation("Starting Job {id}", job.Id);
-                    //await Task.Delay(10000, linkedCts.Token); // simulate work
-                    switch (job.JobType.ToLower())
-                    {
-                        case "sqlbackup":
-                            await SQLBackupJob(job, linkedCts.Token);
-                            break;
-                    }
-
-                    job.Status = "completed";
-                    job.Message = "successfully completed";
-                    _repo.Update(job);
-                }
-                catch (OperationCanceledException)
-                {
-                    _logger.LogWarning("Job {id} was cancelled.", job.Id);
-                    job.Status = "cancelled";
-                    job.Message = "cancelled";
-                    _repo.Update(job);
-                }
-                catch (Exception ex)
-                {
-                    job.Status = "error";
-                    job.Message = "error: " + ex.Message;
-                    _repo.Update(job);
-                }
-                finally
-                {
-                    _parallelLimit.Release();
-                    _activeJobs.TryRemove(job.Id, out _); // Clean up
-                    jobCts.Dispose();
-                }
-            }
-            
-        }
-
-        public void CancelJob(int jobId)
-        {
-            if (_activeJobs.TryGetValue(jobId, out var cts))
-            {
-                cts.Cancel();
-                _logger.LogInformation("Cancellation requested for job {id}", jobId);
-            }
-        }
-        private async Task SQLBackupJob(JobModel job,CancellationToken token)
-        {
-            var jobDetail = _repo.GetDetailById(job.Id);
-            if (jobDetail == null)
-                return;
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var sqlBackupDetails = JsonSerializer.Deserialize<SqlBackupDetails>(jobDetail?.Details, options);
-            foreach (var db in sqlBackupDetails.Databases)
-            {
-                foreach (var destination in sqlBackupDetails.Destinations)
-                {
-                    try
-                    {
-                        // 1. Generate local file path
-                        string localPath = Path.Combine(Path.GetTempPath(), $"{db}_{DateTime.Now:yyyyMMddHHmm}.bak");
-                        // 2. Execute SQL Backup
-                        await _jobStore.PerformSqlBackupAsync(sqlBackupDetails.ConnectionString, db, localPath, token);
-                        _logger.LogInformation("SQL Backup completed for {id}", job.Id);
-
-                        if (destination.Type == DestinationType.LocalFolder )
-                        {
-                            var localDest =(LocalFolderConfig)destination.Config;
-                            File.Copy(localPath,Path.Combine(localDest.TargetPath,Path.GetFileName(localPath)));
-                            _logger.LogInformation("Move tembackup data to localpath for {id}", job.Id);
-                        }
-                        else if (destination.Type == DestinationType.GoogleDrive)
-                        {
-                            var gdriveDest = (GoogleDriveConfig)destination.Config;
-                            await _jobStore.UploadToGoogleDriveAsync(localPath, gdriveDest, token);
-                            _logger.LogInformation("Google Drive upload completed for {id}", job.Id);
-                        }
-                        // 4. Cleanup local file
-                        if (File.Exists(localPath)) File.Delete(localPath);
-                        _logger.LogInformation("Deleted tembackup data for {id}", job.Id);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError("Error:" + ex.Message);
-                    }
-                }
-                
-            }
-
-
-           
-        }
+            }            
+        }       
+        
     }
 }

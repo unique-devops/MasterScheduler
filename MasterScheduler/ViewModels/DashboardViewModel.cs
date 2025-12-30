@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using MasterScheduler.Interface;
 using MasterScheduler.Models;
 using MasterScheduler.Shared.Data;
+using MasterScheduler.Views;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Pipes;
@@ -160,6 +161,12 @@ namespace MasterScheduler.ViewModels
                     break;
             }
             
+        }
+
+        [RelayCommand]      
+        public void Logs()
+        {           
+            _navigation.NavigateTo<LogDashboardViewControl>();
         }
 
         //------------------Server----------------

@@ -1,6 +1,9 @@
 using MasterScheduler.Shared.Data;
+using MasterScheduler.Shared.Interface;
 using MasterScheduler.Shared.Logging;
+using MasterScheduler.Shared.Service;
 using MasterScheduler.Worker;
+using Quartz.Spi;
 using Serilog;
 
 //var builder = Host.CreateApplicationBuilder(args);
@@ -22,7 +25,9 @@ builder.Logging.AddSerilog();
 //{
 //    options.ServiceName = "MasterScheduler";
 //});
+builder.Services.AddSingleton<IJobRepository, JobRepository>();
 
+builder.Services.AddSingleton<IScheduledJobStore, ScheduledJobStore>();
 
 
 // Register worker

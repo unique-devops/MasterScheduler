@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using MasterScheduler.Shared.DataModels;
+using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,7 @@ namespace MasterScheduler.Shared.Data
 
             CreateJobsTable();
             CreateJobSettingsTable();
+            UpdateCrashedStatusJOb();
         }
 
         private static void CreateJobsTable()
@@ -60,5 +62,19 @@ namespace MasterScheduler.Shared.Data
             using var cmd2 = new SqliteCommand(sql, con);
             cmd2.ExecuteNonQuery();
         }
+        
+        private static void UpdateCrashedStatusJOb()
+        {
+            using var con = new SqliteConnection(ConnectionString);
+            con.Open();
+            var cmd = new SqliteCommand(@"UPDATE Jobs SET Status =@status,NextRunTime =@nextRun
+                       WHERE IsActive=@active and Status ='running'", con);           
+            cmd.Parameters.AddWithValue("@status", "");
+            cmd.Parameters.AddWithValue("@nextRun", DateTime.Now);
+            cmd.Parameters.AddWithValue("@active", 1);           
+            cmd.ExecuteNonQuery();
+        }
+
+
     }
 }
