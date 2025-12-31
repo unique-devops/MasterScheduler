@@ -7,41 +7,6 @@
              xmlns:local="clr-namespace:MasterScheduler.Views"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <UserControl.Resources>
-        <!-- Card Style for ListBoxItem -->
-        <Style TargetType="ListBoxItem">
-            <Setter Property="Margin" Value="5"/>
-           
-            <Setter Property="Padding" Value="10"/>
-            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="LightGray"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect Color="Gray" ShadowDepth="2" BlurRadius="5"/>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#FFCCE5FF"/>
-                    <Setter Property="BorderBrush" Value="#FF3399FF"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <!-- Card Template -->
-        <DataTemplate x:Key="CardTemplate">
-            <Border Padding="10">
-                <StackPanel>
-                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16"/>
-                    <TextBlock Text="{Binding Description}" FontSize="14" TextWrapping="Wrap"/>
-                </StackPanel>
-            </Border>
-        </DataTemplate>
-    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="35"/>
@@ -55,63 +20,102 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <!--<Button Grid.Column="0" Foreground="White"  Background="Transparent" Command="{Binding GoBackCommand}" Width="50">
-                <fa:ImageAwesome Icon="Tasks" Foreground="White" VerticalAlignment="Center" Width="16" Height="16" Margin="0,0,5,0"/>
-            </Button>-->        
             <fa:ImageAwesome Icon="Tasks" Grid.Column="0" Foreground="White" VerticalAlignment="Center" Width="26" Height="26" Margin="0,0,5,0"/>
             <!-- Centered Title -->
             <TextBlock Grid.Column="1" Text="Select Job Type" Foreground="White"
-                   FontSize="20" FontWeight="Bold" 
-                   VerticalAlignment="Center" HorizontalAlignment="Center"/>
+               FontSize="20" FontWeight="Bold" 
+               VerticalAlignment="Center" HorizontalAlignment="Center"/>
             <!-- Empty space (right) to balance layout -->
             <Border Grid.Column="2" Width="40"/>
         </Grid>
         <StackPanel Grid.Row="1" Margin="5">
             <Grid  Width="320">
                 <Border CornerRadius="5"
-                    BorderBrush="#CCC"
-                    BorderThickness="1"
-                    Background="White"
-                    Padding="4">
+                BorderBrush="#CCC"
+                BorderThickness="1"
+                Background="White"
+                Padding="4">
                     <DockPanel>
                         <TextBlock Text="🔍"
-                       FontSize="16"
-                       VerticalAlignment="Center"
-                       Margin="0,0,5,0"
-                       DockPanel.Dock="Left"/>
+                   FontSize="16"
+                   VerticalAlignment="Center"
+                   Margin="0,0,5,0"
+                   DockPanel.Dock="Left"/>
                         <TextBox x:Name="SearchBox"
-                         BorderThickness="0"
-                         Background="Transparent"
-                         VerticalAlignment="Center"
-                         FontSize="14"
-                         Padding="2"
-                         TextChanged="SearchBox_TextChanged"/>
+                     BorderThickness="0"
+                     Background="Transparent"
+                     VerticalAlignment="Center"
+                     FontSize="14"
+                     Padding="2"
+                     TextChanged="SearchBox_TextChanged"/>
                     </DockPanel>
                 </Border>
 
                 <!-- Placeholder Text -->
                 <TextBlock Text="Search..."
-                   Foreground="Gray"
-                   Margin="35   ,0,0,0"
-                   VerticalAlignment="Center"
-                   IsHitTestVisible="False"
-                   FontSize="14"
-                   x:Name="PlaceholderText"
-                   Visibility="Visible"/>
+               Foreground="Gray"
+               Margin="35   ,0,0,0"
+               VerticalAlignment="Center"
+               IsHitTestVisible="False"
+               FontSize="14"
+               x:Name="PlaceholderText"
+               Visibility="Visible"/>
             </Grid>
         </StackPanel>
-        
 
-        <Grid Grid.Row="2">
-            <!-- Job Cards List Below Header -->
-            <ListBox ItemsSource="{Binding TaskTypeList}" SelectedItem="{Binding SelectedTaskType}"
-                 ItemTemplate="{StaticResource CardTemplate}"
-                 SelectionMode="Single"
-                 Margin="0,0">
-            </ListBox>
-        </Grid>
-        
-       <!--footer-->
+        <ListBox x:Name="JobTypeList" ItemsSource="{Binding TaskTypeList}" Grid.Row="2" 
+                 SelectedItem="{Binding SelectedTaskType}" SelectionMode="Single" BorderThickness="0" Background="Transparent"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <Border x:Name="CardBorder" Margin="10" Width="180" Height="200" 
+                                        Background="White" CornerRadius="15" BorderThickness="2" BorderBrush="Transparent">
+                                    <Border.Effect>
+                                        <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.1"/>
+                                    </Border.Effect>
+
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <Ellipse Width="60" Height="60" Fill="{TemplateBinding Foreground}" Opacity="0.1"/>
+                                        <TextBlock Text="{Binding Name}" Margin="0,15,0,5" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Description}" FontSize="12" Foreground="Gray" TextWrapping="Wrap" TextAlignment="Center" Margin="10,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="CardBorder" Property="BorderBrush" Value="#0984E3" />
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                    </Trigger>
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="IsSelected" Value="True"/>
+                                        </MultiTrigger.Conditions>
+                                        <Setter TargetName="CardBorder" Property="BorderBrush" Value="#0984E3" />
+                                        <Setter TargetName="CardBorder" Property="Background" Value="#E1F5FE" />
+                                        <Setter Property="Foreground" Value="#0984E3"/>
+                                    </MultiTrigger>
+                                    <Trigger Property="IsFocused" Value="True">
+                                        <Setter TargetName="CardBorder" Property="BorderThickness" Value="3" />
+                                        <Setter TargetName="CardBorder" Property="BorderBrush" Value="#74B9FF" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
+        <!--footer-->
         <Grid Grid.Row="3" Background="Black">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
@@ -119,13 +123,13 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            
+
             <Border Grid.Column="0" Width="40"/>
             <!-- Empty space (right) to balance layout -->
             <Border Grid.Column="1" Width="40"/>
-            
+
             <Button Grid.Column="2" Background="Black" Margin="5"
-         Foreground="White" FontWeight="Bold" Cursor="Hand" Command="{Binding NextCommand}" Width="100">
+     Foreground="White" FontWeight="Bold" Cursor="Hand" Command="{Binding NextCommand}" Width="100">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="Next" Margin="0,0,7,0" />
                     <fa:ImageAwesome Icon="ArrowCircleOutlineRight" Foreground="White" VerticalAlignment="Center" Width="16" Height="16" Margin="0,0,5,0"/>
@@ -133,7 +137,7 @@
             </Button>
 
             <Button Grid.Column="3" Background="Black" Margin="5"
-                Foreground="White" FontWeight="Bold" Cursor="Hand" Command="{Binding GoBackCommand}" Width="100">
+            Foreground="White" FontWeight="Bold" Cursor="Hand" Command="{Binding GoBackCommand}" Width="100">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="Cancel" Margin="0,0,7,0" />
                     <fa:ImageAwesome Icon="Remove" Foreground="White" VerticalAlignment="Center" Width="12" Height="12" Margin="0,0,5,0"/>

@@ -23,12 +23,16 @@ namespace MasterScheduler.Views
         public TaskTypeSelectionView()
         {
             InitializeComponent();
+            this.Loaded += (s, e) => {
+                var item = JobTypeList.ItemContainerGenerator.ContainerFromIndex(0) as ListBoxItem;
+                item?.Focus();
+            };
         }
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            PlaceholderText.Visibility = string.IsNullOrWhiteSpace(SearchBox.Text)
-                ? Visibility.Visible
-                : Visibility.Collapsed;
+            //PlaceholderText.Visibility = string.IsNullOrWhiteSpace(SearchBox.Text)
+            //    ? Visibility.Visible
+            //    : Visibility.Collapsed;
         }
     }
 }

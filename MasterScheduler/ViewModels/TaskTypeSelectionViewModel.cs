@@ -27,12 +27,11 @@ namespace MasterScheduler.ViewModels
             HeaderTitle = "Choose task";
             _navigationService = navigationService;
             TaskTypeList = new ObservableCollection<TaskType>
-            {
-                new TaskType { Id=1, Name = "SQL Backup", Description = "SQL Database Backup." },
-                new TaskType { Id=2, Name = "Software Engineer", Description = "Develops software systems." },
-                new TaskType { Id=3, Name = "Data Analyst", Description = "Analyzes data and trends." },
-                new TaskType { Id=4, Name = "Project Manager", Description = "Oversees project lifecycle." },
-                new TaskType { Id=4, Name = "UI/UX Designer", Description = "Designs user interfaces." }
+            {               
+                new TaskType { Id=1, Name = "SQL Backup", Description = "Backup databases to local or cloud.", JobType = "SqlBackup" },
+                new TaskType { Id=2, Name = "File Sync", Description = "Sync folders between locations.", JobType = "FileSync" },
+                new TaskType { Id=3, Name = "Clean Up", Description = "Delete old logs and temp files.", JobType = "Cleanup" },
+                new TaskType { Id=4, Name = "Report", Description = "Generate and email status reports.", JobType = "Report" }
             };
 
            

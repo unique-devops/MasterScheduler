@@ -15,5 +15,7 @@ namespace MasterScheduler.Models
         private string name;
         [ObservableProperty]
         private string description;
+        [ObservableProperty]
+        private string jobType;
     }
 }
