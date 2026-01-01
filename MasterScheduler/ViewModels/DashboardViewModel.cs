@@ -16,8 +16,7 @@ namespace MasterScheduler.ViewModels
     public partial class DashboardViewModel : ObservableObject
     {
         private readonly INavigationService _navigation;
-        private readonly JobRepository _repo = new JobRepository();
-        private readonly System.Timers.Timer _refreshTimer;
+        private readonly JobRepository _repo = new JobRepository();        
         [ObservableProperty]
         private ObservableCollection<ScheduledJobDto> jobs;
         private const string PipeName = "JobControlPipe";

@@ -24,6 +24,7 @@ namespace MasterScheduler.Shared.DataModels
         public string DisplayText { get; set; }
         public string Status { get; set; }
         public string ResumeUri { get; set; }
+        public int DeleteAfterDays { get; set; } = 0;
         public DestinationConfig Config { get; set; }
     }
 

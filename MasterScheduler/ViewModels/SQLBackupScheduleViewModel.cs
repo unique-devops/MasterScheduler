@@ -55,10 +55,10 @@ namespace MasterScheduler.ViewModels
 
         private readonly IDialogService _dialogService;
 
-        private int editJobId =0;        
+        private int editJobId =0;
         public ScheduleTimeModel scheduleTimeModel { get; set; } = new();
 
-        SqlBackupDetails sqlBackupDetails = new SqlBackupDetails();       
+        SqlBackupDetails sqlBackupDetails = new SqlBackupDetails();
 
         public SQLBackupScheduleViewModel(IDialogService dialogService, INavigationService navigationService)
         {
@@ -73,13 +73,15 @@ namespace MasterScheduler.ViewModels
             JobDetailModel? jobDetail =  _repo.GetDetailById(editJobId);
             if (jobDetail?.Details != null)
             {
-                sqlBackupDetails = JsonSerializer.Deserialize<SqlBackupDetails>(jobDetail.Details);
+               
 
-                ServerName = sqlBackupDetails.Server;
-                ConnectionString = sqlBackupDetails.ConnectionString;
+                sqlBackupDetails = JsonSerializer.Deserialize<SqlBackupDetails>(jobDetail.Details);                
+                ServerName = sqlBackupDetails?.Server;
+                ConnectionString = sqlBackupDetails?.ConnectionString;
+                ScheduledTime = sqlBackupDetails?.Schedule.ExecutionTime ?? "00:00";
                 IsServerConnected = true;
                 SelectedDatabases.Clear();
-                foreach (var db in sqlBackupDetails.Databases) SelectedDatabases.Add(db);
+                foreach (var db in sqlBackupDetails?.Databases) SelectedDatabases.Add(db);
                 
                 Destinations.Clear();
                 foreach (var dest in sqlBackupDetails.Destinations) Destinations.Add(dest);
@@ -110,7 +112,7 @@ namespace MasterScheduler.ViewModels
             //var dataContext = new MSSQLConnectViewModel { SelectedServer = sqlBackupDetails.Server, SelectedAuthentication = sqlBackupDetails.AuthType, LoginID = sqlBackupDetails.Username };
             var dialog = new MSSQLConnectView();
             var dataContext = (MSSQLConnectViewModel)dialog.DataContext;
-            dialog.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
+            dialog.Owner = Application.Current.MainWindow;
             dataContext.SetModelData();
             var result = dialog.ShowDialog();            
             if (result == true)
@@ -133,6 +135,7 @@ namespace MasterScheduler.ViewModels
             }
             
         }
+
         [RelayCommand]
         public async Task OpenDatabaseSelection()
         {
@@ -147,7 +150,7 @@ namespace MasterScheduler.ViewModels
                 var databases = await LoadDatabasesAsync();
 
                 var dialog = new DatabaseSelectionDialog();
-                dialog.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);        
+                dialog.Owner = Application.Current.MainWindow;        
                 dialog.AvailableDatabases = new ObservableCollection<DatabaseItem>(databases);
                 
                 if (dialog.ShowDialog() == true)
@@ -171,7 +174,6 @@ namespace MasterScheduler.ViewModels
             }
             
         }
-
         private async Task<IEnumerable<DatabaseItem>> LoadDatabasesAsync()
         {
             return await Task.Run(() =>
@@ -179,7 +181,7 @@ namespace MasterScheduler.ViewModels
                 var list = new List<DatabaseItem>();
                 using SqlConnection connection = new SqlConnection(ConnectionString);
                 connection.Open();
-                var cmd = new SqlCommand("SELECT Name FROM sys.databases WHERE database_id > 4", connection);
+                using var cmd = new SqlCommand("SELECT Name FROM sys.databases WHERE database_id > 4", connection);
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
@@ -274,17 +276,19 @@ namespace MasterScheduler.ViewModels
             // Always sync back to the main details object for Saving
             sqlBackupDetails.Destinations = Destinations.ToList();
         }
+        
         [RelayCommand]
         public void SchedulerSettings()
         {
             //_navigationService.NavigateTo<SchedulerSettingsViewModel>();
             var dialog = new ScheduleTimeView();
-            dialog.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
+            dialog.Owner = Application.Current.MainWindow;
             // Simulate loading available databases            
             if (dialog.ShowDialog() == true)
             {
                 scheduleTimeModel = dialog.ScheduleTime;
                 ScheduledTime = $"Daily at {scheduleTimeModel.Hour}:{scheduleTimeModel.Minute}";
+                sqlBackupDetails.Schedule.ExecutionTime = ScheduledTime;
             }
         }
 
@@ -299,7 +303,6 @@ namespace MasterScheduler.ViewModels
         {
             Destinations.Remove(item);
         }
-
 
         [RelayCommand]
         private void Save()
@@ -323,7 +326,7 @@ namespace MasterScheduler.ViewModels
                     IsActive = true,
                     Status = "pending",
                     Message = "not run yet"
-                };
+                };                
                 sqlBackupDetails.Destinations = Destinations.ToList();
                 var options = new JsonSerializerOptions
                 {
