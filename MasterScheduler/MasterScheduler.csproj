@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <None Remove="Assets\azure.png" />
+    <None Remove="Assets\delete.png" />
     <None Remove="Assets\ellipse.png" />
     <None Remove="Assets\error.png" />
     <None Remove="Assets\folder.png" />
@@ -24,12 +25,16 @@
     <None Remove="Assets\s3.png" />
     <None Remove="Assets\sftp.png" />
     <None Remove="Assets\spinner-64.gif" />
+    <None Remove="Assets\sql-server.png" />
     <None Remove="Assets\stop.png" />
     <None Remove="Assets\success.png" />
+    <None Remove="Assets\sync.png" />
+    <None Remove="Assets\task.png" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Assets\azure.png" />
+    <Resource Include="Assets\delete.png" />
     <Resource Include="Assets\ellipse.png" />
     <Resource Include="Assets\error.png" />
     <Resource Include="Assets\folder.png" />
@@ -43,8 +48,11 @@
     <Resource Include="Assets\s3.png" />
     <Resource Include="Assets\sftp.png" />
     <Resource Include="Assets\spinner-64.gif" />
+    <Resource Include="Assets\sql-server.png" />
     <Resource Include="Assets\stop.png" />
     <Resource Include="Assets\success.png" />
+    <Resource Include="Assets\sync.png" />
+    <Resource Include="Assets\task.png" />
   </ItemGroup>
 
   <ItemGroup>

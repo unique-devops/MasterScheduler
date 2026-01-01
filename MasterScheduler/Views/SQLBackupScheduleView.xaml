@@ -1,226 +1,293 @@
 ﻿<UserControl x:Class="MasterScheduler.Views.SQLBackupScheduleView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:fa="http://schemas.fontawesome.io/icons/"
-             xmlns:local="clr-namespace:MasterScheduler.Views"
-             xmlns:ctr="clr-namespace:MasterScheduler.Converter"
-             mc:Ignorable="d" x:Name="RootControl"
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+             x:Name="RootControl">
+
+    <UserControl.Resources>
+        <Style x:Key="ListItemStyle" TargetType="ListBoxItem">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="ItemBorder" 
+                            Background="White" 
+                            CornerRadius="8" 
+                            BorderThickness="1" 
+                            BorderBrush="#E0E0E0" 
+                            Margin="10,4"
+                            Padding="15,10">
+
+                            <ContentPresenter />
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#0078D7" />
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#FAFAFA" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#F0F7FF" />
+                                <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#0078D7"/>
+                                <Setter TargetName="ItemBorder" Property="BorderThickness" Value="2"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ListItemStyle2" TargetType="ListBoxItem">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="ItemBorder" 
+                    Background="White" 
+                    CornerRadius="4" 
+                    BorderThickness="1" 
+                    BorderBrush="#E0E0E0" 
+                    Margin="5,1"
+                    Padding="0,4">
+
+                            <ContentPresenter />
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#F0F7FF" />
+                                <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#0078D7"/>
+                                <Setter TargetName="ItemBorder" Property="BorderThickness" Value="2"/>
+                            </Trigger>
+                            <Trigger Property="IsFocused" Value="False">
+                                <Setter Property="IsSelected" Value="False" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="IconButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="bg" CornerRadius="12" Background="Transparent" Width="30" Height="30">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bg" Property="Background" Value="#E0E0E0"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="#F5F6F7">
         <Grid.RowDefinitions>
-            <RowDefinition Height="35"/>
-            <RowDefinition Height="35"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="40"/>
+            <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
-        <Grid Grid.Row="0" Background="Black">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" Foreground="White" Background="Transparent" Command="{Binding GoBackCommand}" Width="50">
-                <fa:ImageAwesome Icon="ArrowLeft" Foreground="White" VerticalAlignment="Center" Width="16" Height="16" Margin="0,0,5,0"/>
+
+        <Grid Grid.Row="0" Background="White">
+            <Button HorizontalAlignment="Left" Style="{StaticResource IconButton}" Margin="10,0" Command="{Binding GoBackCommand}">
+                <fa:ImageAwesome Icon="ArrowLeft" Foreground="#333" Width="14"/>
             </Button>
-            <!-- Centered Title -->
-            <TextBlock Grid.Column="1" Text="SQL Backup Schedule" Foreground="White"
-                FontSize="20" FontWeight="Bold" 
-                VerticalAlignment="Center" HorizontalAlignment="Center"/>
-            <!-- Empty space (right) to balance layout -->
-            <Border Grid.Column="2" Width="40"/>
+            <TextBlock Text="SQL Backup Schedule" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <Border BorderThickness="0,0,0,1" BorderBrush="#DDD" VerticalAlignment="Bottom"/>
         </Grid>
-        <StackPanel Grid.Row="1" Orientation="Horizontal">
-            <TextBlock  Text="Job Name:" Margin="5" Foreground="Black" FontSize="18" VerticalAlignment="Center"/>
-            <TextBox Width="250" Margin="2" Padding="2" Text="{Binding JobAliasName}" FontSize="18" FontWeight="SemiBold" VerticalContentAlignment="Center">
-                <TextBox.Resources>
-                    <Style TargetType="Border">
-                        <Setter Property="CornerRadius" Value="7"/>
-                    </Style>
-                </TextBox.Resources>
-            </TextBox>
-        </StackPanel>
-        <Grid Grid.Row="2">
-            <ListBox Grid.Row="1" HorizontalContentAlignment="Stretch" >
-                <!--connect server-->
-                <ListBoxItem >
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="40"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="40"/>
-                        </Grid.ColumnDefinitions>
-                        <fa:ImageAwesome Grid.Column="0" Icon="Server" Foreground="Black" Width="35" Height="35"/>
-                        <StackPanel Grid.Column="1">
-                            <TextBlock FontWeight="Bold" Text="Connect to the MSSQL Server" Margin="5"/>
-                            <TextBlock Text="{Binding ServerName}" Margin="5"/>
-                        </StackPanel>
-                        <Button Grid.Column="2" Width="24" Height="24" Background="Transparent" BorderThickness="0" Command="{Binding ConnectServerCommand}" >
-                            <fa:ImageAwesome  Icon="Gear" Foreground="Gray" />
-                        </Button>
 
-                    </Grid>
-                </ListBoxItem>
-                <!--choose database-->
-                <ListBoxItem>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="40"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="40"/>
-                        </Grid.ColumnDefinitions>
-                        <fa:ImageAwesome Grid.Column="0" Icon="Database" Foreground="Black" Width="35" Height="35" VerticalAlignment="Top"/>
-                        <StackPanel Grid.Column="1">
-                            <TextBlock FontWeight="Bold" Text="Selected Databases" Margin="5"/>
-                            <ItemsControl ItemsSource="{Binding SelectedDatabases}" Margin="10,5" Width="250" HorizontalAlignment="Left">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding}" Margin="2,0"/>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
-                        <Button Grid.Column="2" Width="22" Height="22" Background="Transparent" BorderThickness="0" Command="{Binding OpenDatabaseSelectionCommand}" VerticalAlignment="Top">
-                            <fa:ImageAwesome  Icon="PlusCircle" Foreground="Gray" />
-                        </Button>
+        <Border Grid.Row="1" Background="White" Margin="10,15,10,5" CornerRadius="8" BorderBrush="#DDD" BorderThickness="1">
+            <StackPanel Margin="15,5" Orientation="Horizontal">
+                <TextBlock Text="JOB CONFIGURATION NAME :" FontSize="12" FontWeight="Bold" Foreground="#888" Margin="2,0"/>
+                <TextBox Text="{Binding JobAliasName, UpdateSourceTrigger=PropertyChanged}" 
+                         FontSize="14" BorderThickness="0" Background="Transparent" FontWeight="Medium"/>
+            </StackPanel>
+        </Border>
 
-                    </Grid>
-                </ListBoxItem>
-                <!--config destinations-->
-                <ListBoxItem >
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="40"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="40"/>
-                        </Grid.ColumnDefinitions>
-                        <fa:ImageAwesome Grid.Column="0" Icon="Cloud" Foreground="Black" Width="35" Height="35" VerticalAlignment="Top"/>
-                        <StackPanel Grid.Column="1">
-                            <TextBlock FontWeight="Bold" Text="Set backup destinations" Margin="5"/>
-                            <ListBox ItemsSource="{Binding Destinations}" SelectedItem="{Binding SelectedDestination}"
-                                     Visibility="{Binding HasDestination,Converter={StaticResource BoolToVisibilityConverter}}" BorderThickness="1" Margin="4,2" HorizontalAlignment="Left">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <DockPanel Width="500">
-                                            <!-- Icon -->
-                                            <Image Width="18" Height="18" Margin="5,0" HorizontalAlignment="Left"  Source="{Binding Type, Converter={StaticResource IconConverter}}"/>
-                                            <!--<fa:ImageAwesome  Width="18" Height="18" Margin="5,0" HorizontalAlignment="Left" Icon="{Binding Type, Converter={StaticResource IconConverter}}" />-->
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="{Binding Type}" FontWeight="Bold"/>
-                                                <TextBlock Text="{Binding DisplayText}"
-                                                FontSize="11" Foreground="Gray"
+        <ListBox Grid.Row="2" Background="Transparent" BorderThickness="0" SelectionMode="Single">
+
+            <ListBoxItem Style="{StaticResource ListItemStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="50"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Background="#E3F2FD" CornerRadius="20" Width="40" Height="40">
+                        <fa:ImageAwesome Icon="Server" Foreground="#1976D2" Width="18"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0">
+                        <TextBlock Text="SQL Server Instance" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding ServerName, TargetNullValue='Not Connected'}" Foreground="Gray" FontSize="12"/>
+                    </StackPanel>
+                    <Button Grid.Column="2" Style="{StaticResource IconButton}" Command="{Binding ConnectServerCommand}">
+                        <fa:ImageAwesome Icon="Gear" Foreground="#777" Width="16"/>
+                    </Button>
+                </Grid>
+            </ListBoxItem>
+
+            <ListBoxItem Style="{StaticResource ListItemStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="50"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Background="#E8F5E9" CornerRadius="20" Width="40" Height="40">
+                        <fa:ImageAwesome Icon="Database" Foreground="#388E3C" Width="18"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0">
+                        <TextBlock Text="Databases" FontWeight="Bold"/>
+                        <TextBlock Text="Click plus to select databases" Foreground="Gray" FontSize="12"/>
+                        <ItemsControl ItemsSource="{Binding SelectedDatabases}" Margin="10,5" Width="250" HorizontalAlignment="Left">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" Margin="2,0"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                    <Button Grid.Column="2" Style="{StaticResource IconButton}" Command="{Binding OpenDatabaseSelectionCommand}">
+                        <fa:ImageAwesome Icon="PlusCircle" Foreground="#777" Width="16"/>
+                    </Button>
+                </Grid>
+            </ListBoxItem>
+
+            <ListBoxItem Style="{StaticResource ListItemStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="50"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Background="LightSkyBlue" Grid.Column="0" CornerRadius="20" Width="40" Height="40">
+                        <fa:ImageAwesome Icon="CloudUpload" Foreground="White" Width="18"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0">
+                        <TextBlock FontWeight="Bold" Text="Set backup destinations"/>
+                        <ListBox ItemsSource="{Binding Destinations}"
+                                 SelectedItem="{Binding SelectedDestination}"
+                                 Visibility="{Binding HasDestination,Converter={StaticResource BoolToVisibilityConverter}}" Background="Transparent" BorderThickness="0" SelectionMode="Single" HorizontalAlignment="Left">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem" BasedOn="{StaticResource ListItemStyle2}">
+                                    <Setter Property="Focusable" Value="False"/>
+                                    <Setter Property="Margin" Value="0,2"/>
+                                    <Setter Property="Padding" Value="5"/>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <DockPanel Width="500">
+                                        <!-- Icon -->
+                                        <Image Width="18" Height="18" Margin="5,0" HorizontalAlignment="Left"  Source="{Binding Type, Converter={StaticResource IconConverter}}"/>
+                                        <!--<fa:ImageAwesome  Width="18" Height="18" Margin="5,0" HorizontalAlignment="Left" Icon="{Binding Type, Converter={StaticResource IconConverter}}" />-->
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Type}" FontWeight="Bold" Margin="5,0"/>
+                                            <TextBlock Text="{Binding DisplayText}"
+                                                FontSize="12" Foreground="Gray"
                                                 TextTrimming="CharacterEllipsis"/>
-                                            </StackPanel>
-                                            <!-- Action Button -->
-                                            <Menu HorizontalAlignment="Right">
-                                                <MenuItem BorderThickness="0" BorderBrush="Transparent">
-                                                    <MenuItem.Header>
-                                                        <Image Source="/Assets/ellipse.png" Width="18" Height="18"/>
-                                                    </MenuItem.Header>
-                                                    <MenuItem Header="Config" Command="{Binding DataContext.ConfigureDestinationCommand, ElementName=RootControl}"
+                                        </StackPanel>
+                                        <!-- Action Button -->
+                                        <Menu HorizontalAlignment="Right">
+                                            <MenuItem BorderThickness="0" Background="White" BorderBrush="Transparent">
+                                                <MenuItem.Header>
+                                                    <Image Source="/Assets/ellipse.png" Width="18"/>
+                                                </MenuItem.Header>
+                                                <MenuItem Header="Config" Command="{Binding DataContext.ConfigureDestinationCommand, ElementName=RootControl}"
                                                         CommandParameter="{Binding}"/>
-                                                    <MenuItem Header="Delete" Command="{Binding DataContext.DeleteCommand, ElementName=RootControl}"
+                                                <MenuItem Header="Delete" Command="{Binding DataContext.DeleteCommand, ElementName=RootControl}"
                                                         CommandParameter="{Binding}"/>
-                                                </MenuItem>
-                                            </Menu>
-                                        </DockPanel>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </StackPanel>
-                        <Button Grid.Column="2" Width="22" Height="22" Background="Transparent" BorderThickness="0"
-                                x:Name="btnBackupDestiny" Click="btnBackupDestiny_Click" VerticalAlignment="Top">
-                            <fa:ImageAwesome  Icon="PlusCircle" Foreground="Gray"/>
-                            <Button.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem x:Name="LocalFolder" Header="Local Folder" Click="MenuItem_Click"  />
-                                    <MenuItem x:Name="GoogleDrive" Header="Google Drive" Click="MenuItem_Click"  />
-                                    <MenuItem x:Name="FTP" Header="FTP" Click="MenuItem_Click"  />
-                                    <MenuItem x:Name="SFTP" Header="SFTP" Click="MenuItem_Click"  />
-                                    <MenuItem x:Name="OneDrive" Header="OneDrive" Click="MenuItem_Click"  />
-                                    <MenuItem x:Name="AmazonS3" Header="Amazon S3" Click="MenuItem_Click"  />
-                                    <MenuItem x:Name="AzureBlob" Header="Azure Blob" Click="MenuItem_Click"  />
-                                    <MenuItem x:Name="NetworkShare" Header="NAS / Network Share" Click="MenuItem_Click"  />
-                                </ContextMenu>
-                            </Button.ContextMenu>
-                        </Button>
+                                            </MenuItem>
+                                        </Menu>
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
+                    <Button Grid.Column="2" Style="{StaticResource IconButton}"
+                            x:Name="btnBackupDestiny"
+                            Click="btnBackupDestiny_Click">
+                        <fa:ImageAwesome  Icon="PlusCircle" Foreground="#777" Width="16"/>
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem x:Name="LocalFolder" Header="Local Folder" Click="MenuItem_Click"  />
+                                <MenuItem x:Name="GoogleDrive" Header="Google Drive" Click="MenuItem_Click"  />
+                                <MenuItem x:Name="FTP" Header="FTP" Click="MenuItem_Click"  />
+                                <MenuItem x:Name="SFTP" Header="SFTP" Click="MenuItem_Click"  />
+                                <MenuItem x:Name="OneDrive" Header="OneDrive" Click="MenuItem_Click"  />
+                                <MenuItem x:Name="AmazonS3" Header="Amazon S3" Click="MenuItem_Click"  />
+                                <MenuItem x:Name="AzureBlob" Header="Azure Blob" Click="MenuItem_Click"  />
+                                <MenuItem x:Name="NetworkShare" Header="NAS / Network Share" Click="MenuItem_Click"  />
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
 
-                    </Grid>
-                </ListBoxItem>
-                <!--schedule Time-->
-                <ListBoxItem>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="40"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="40"/>
-                        </Grid.ColumnDefinitions>
-                        <fa:ImageAwesome Grid.Column="0" Icon="ClockOutline" Foreground="Black" Width="35" Height="35"/>
-                        <StackPanel Grid.Column="1">
-                            <TextBlock FontWeight="Bold" Text="Schedule backups" Margin="5"/>
-                            <TextBlock Text="{Binding ScheduledTime}" Margin="5"/>
-                        </StackPanel>
-                        <Button Grid.Column="2" Width="24" Height="24" Background="Transparent" BorderThickness="0" Command="{Binding SchedulerSettingsCommand}" >
-                            <fa:ImageAwesome  Icon="Gear" Foreground="Gray" />
-                        </Button>
+                </Grid>
+            </ListBoxItem>
 
-                    </Grid>
-                </ListBoxItem>
-                <!--alert notify-->
-                <ListBoxItem>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="40"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="40"/>
-                        </Grid.ColumnDefinitions>
-                        <fa:ImageAwesome Grid.Column="0" Icon="Wechat" Foreground="Black" Width="35" Height="35"/>
-                        <StackPanel Grid.Column="1">
-                            <TextBlock FontWeight="Bold" Text="Send Confirmation" Margin="5"/>
-                            <TextBlock Text="default" Margin="5"/>
-                        </StackPanel>
-                        <TextBlock Grid.Column="2" TextAlignment="Center">
-                            <Hyperlink TextDecorations="None" Background="Transparent">
-                                <InlineUIContainer>
-                                    <fa:ImageAwesome  Icon="Gear" Foreground="Gray" Width="22" Height="22"/>
-                                </InlineUIContainer>
-                            </Hyperlink>
-                        </TextBlock>
+            <ListBoxItem Style="{StaticResource ListItemStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="50"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Background="#FFF3E0" CornerRadius="20" Width="40" Height="40">
+                        <fa:ImageAwesome Icon="ClockOutline" Foreground="#F57C00" Width="18"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0">
+                        <TextBlock Text="Execution Schedule" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding ScheduledTime, FallbackValue='Every Day at 12:00 AM'}" Foreground="Gray" FontSize="12"/>
+                    </StackPanel>
+                    <Button Grid.Column="2" Style="{StaticResource IconButton}" Command="{Binding SchedulerSettingsCommand}">
+                        <fa:ImageAwesome Icon="Gear" Foreground="#777" Width="16"/>
+                    </Button>
+                </Grid>
+            </ListBoxItem>
+            
+            <ListBoxItem Style="{StaticResource ListItemStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="50"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Background="#FFF3E0" CornerRadius="20" Width="40" Height="40">
+                        <fa:ImageAwesome Icon="EnvelopeOutline" Foreground="#F57C00" Width="18"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0">
+                        <TextBlock Text="Send Confirmation Mail" FontWeight="Bold"/>
+                        <TextBox Text="{Binding SendConfirmationMail}" FontSize="14" Foreground="Gray" BorderThickness="0" Background="Transparent" FontWeight="Medium"/>
+                    </StackPanel>
+                    <!--<Button Grid.Column="2" Style="{StaticResource IconButton}" Command="{Binding SchedulerSettingsCommand}">
+                        <fa:ImageAwesome Icon="Plus" Foreground="#777" Width="16"/>
+                    </Button>-->
+                </Grid>
+            </ListBoxItem>
+        </ListBox>
 
-                    </Grid>
-                </ListBoxItem>
-            </ListBox>
-        </Grid>
-
-        <!--footer-->
-        <Grid Grid.Row="3" Background="Black">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-
-            <Border Grid.Column="0" Width="40"/>
-            <!-- Empty space (right) to balance layout -->
-            <Border Grid.Column="1" Width="40"/>
-
-            <Button Grid.Column="2" Background="Black" Margin="5"
-                 Foreground="White" FontWeight="Bold" Cursor="Hand" Command="{Binding SaveCommand}" Width="100">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="Save" Margin="0,0,7,0" />
-                    <fa:ImageAwesome Icon="Save" Foreground="White" VerticalAlignment="Center" Width="16" Height="16" Margin="0,0,5,0"/>
-                </StackPanel>
-            </Button>
-
-            <Button Grid.Column="3" Background="Black" Margin="5"
-            Foreground="White" FontWeight="Bold" Cursor="Hand" Command="{Binding CancelCommand}" Width="100">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="Cancel" Margin="0,0,7,0" />
-                    <fa:ImageAwesome Icon="Remove" Foreground="White" VerticalAlignment="Center" Width="16" Height="16" Margin="0,0,5,0"/>
-                </StackPanel>
-            </Button>
+        <Grid Grid.Row="3" Background="White">
+            <!--<Border BorderThickness="0,1,0,0" BorderBrush="#DDD" VerticalAlignment="Top"/>-->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="2">
+                <Button Content="Cancel" Command="{Binding CancelCommand}" Width="100" Margin="5" 
+                        Background="#F5F5F5" BorderBrush="#DDD" Height="35"/>
+                <Button Content="Save Job" Command="{Binding SaveCommand}" Width="120" Margin="5" 
+                        Background="#0078D7" Foreground="White" BorderThickness="0" Height="35" FontWeight="Bold"/>
+            </StackPanel>
         </Grid>
     </Grid>
 </UserControl>

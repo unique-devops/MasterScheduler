@@ -12,6 +12,7 @@ using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -23,15 +24,18 @@ using System.Windows.Controls;
 
 namespace MasterScheduler.ViewModels
 {
-    public partial class SQLBackupScheduleViewModel : ObservableObject, INavigationAware
+    public partial class SQLBackupScheduleViewModel : ObservableValidator, INavigationAware
     {
         private readonly INavigationService _navigationService;
         private readonly JobRepository _repo = new JobRepository();
+
+        private const string EmailRegexPattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+
         [ObservableProperty]
         private string _jobAliasName;
 
         [ObservableProperty]
-        private string serverName;
+        private string? serverName;
 
         [ObservableProperty]
         private bool isServerConnected;
@@ -39,7 +43,12 @@ namespace MasterScheduler.ViewModels
         [ObservableProperty]
         private string scheduledTime = "not schedule";
 
-        private string ConnectionString;
+        [ObservableProperty]
+        [RegularExpression(EmailRegexPattern)]
+        [NotifyDataErrorInfo]
+        private string? sendConfirmationMail;
+
+        private string? ConnectionString;
         public ObservableCollection<string> SelectedDatabases { get; set; } = new();    
         
         public ObservableCollection<BackupDestination> Destinations { get; set; } = new();
@@ -68,7 +77,7 @@ namespace MasterScheduler.ViewModels
 
                 ServerName = sqlBackupDetails.Server;
                 ConnectionString = sqlBackupDetails.ConnectionString;
-
+                IsServerConnected = true;
                 SelectedDatabases.Clear();
                 foreach (var db in sqlBackupDetails.Databases) SelectedDatabases.Add(db);
                 
@@ -98,8 +107,9 @@ namespace MasterScheduler.ViewModels
         [RelayCommand]
         public void ConnectServer()
         {            
-            var dataContext = new MSSQLConnectViewModel { SelectedServer = sqlBackupDetails.Server, SelectedAuthentication = sqlBackupDetails.AuthType, LoginID = sqlBackupDetails.Username };
-            var dialog = new MSSQLConnectView(dataContext);
+            //var dataContext = new MSSQLConnectViewModel { SelectedServer = sqlBackupDetails.Server, SelectedAuthentication = sqlBackupDetails.AuthType, LoginID = sqlBackupDetails.Username };
+            var dialog = new MSSQLConnectView();
+            var dataContext = (MSSQLConnectViewModel)dialog.DataContext;
             dialog.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
             dataContext.SetModelData();
             var result = dialog.ShowDialog();            
@@ -116,10 +126,10 @@ namespace MasterScheduler.ViewModels
                 {
                     IsServerConnected = false;
                 }
-                sqlBackupDetails.Server = ServerName;
+                sqlBackupDetails.Server = ServerName ?? "";
                 sqlBackupDetails.Username = vm.LoginID;                
                 sqlBackupDetails.AuthType = vm.SelectedAuthentication;
-                sqlBackupDetails.ConnectionString = ConnectionString;
+                sqlBackupDetails.ConnectionString = ConnectionString ?? "";
             }
             
         }
@@ -270,8 +280,7 @@ namespace MasterScheduler.ViewModels
             //_navigationService.NavigateTo<SchedulerSettingsViewModel>();
             var dialog = new ScheduleTimeView();
             dialog.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
-            // Simulate loading available databases
-            
+            // Simulate loading available databases            
             if (dialog.ShowDialog() == true)
             {
                 scheduleTimeModel = dialog.ScheduleTime;

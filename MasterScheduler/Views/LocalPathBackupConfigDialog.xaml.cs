@@ -47,7 +47,8 @@ namespace MasterScheduler.Views
 
         private void btnCancel_Click(object sender, RoutedEventArgs e)
         {
-
+            DialogResult = false;
+            Close();
         }
 
         private void btnSave_Click(object sender, RoutedEventArgs e)

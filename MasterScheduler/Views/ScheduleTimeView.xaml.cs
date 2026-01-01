@@ -7,9 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -22,36 +22,16 @@ namespace MasterScheduler.Views
     /// </summary>
     public partial class ScheduleTimeView : Window
     {
-        private bool _isClosing = false;
+     
         public ScheduleTimeModel ScheduleTime= new ScheduleTimeModel();
+
+        ScheduleTimeViewModel vm = new ScheduleTimeViewModel();
         public ScheduleTimeView()
         {
-            InitializeComponent();
-            var vm = new ScheduleTimeViewModel();
-            this.DataContext = vm;
-            vm.PropertyChanged += Vm_PropertyChanged;
+            InitializeComponent();            
+            this.DataContext = vm;            
         }
-        private void Vm_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(ScheduleTimeViewModel.ShouldClose))
-            {
-                var vm = (ScheduleTimeViewModel)sender;
-                if (vm.ShouldClose && !_isClosing)
-                {
-                    ScheduleTime.Hour = vm.Hour;
-                    ScheduleTime.Minute = vm.Minute;
-                    ScheduleTime.EveryType = "minute";
-                    ScheduleTime.EveryTime = 1;                    
-                    this.DialogResult = true;
-                }
-            }
-        }
-
-        protected override void OnClosing(CancelEventArgs e)
-        {
-            _isClosing = true;
-            base.OnClosing(e);
-        }
+        
 
         private void HourTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
@@ -97,6 +77,22 @@ namespace MasterScheduler.Views
                 return;
             }
             
+        }
+
+        private void btnCancel_Click(object sender, RoutedEventArgs e)
+        {
+            this.DialogResult = false;
+            Close();
+        }
+
+        private void btnSave_Click(object sender, RoutedEventArgs e)
+        {
+            ScheduleTime.Hour = vm.Hour;
+            ScheduleTime.Minute = vm.Minute;
+            ScheduleTime.EveryType = "minute";
+            ScheduleTime.EveryTime = 1;
+            this.DialogResult = true;
+            Close();
         }
     }
 }

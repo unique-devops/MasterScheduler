@@ -75,6 +75,7 @@
 
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="ListBoxItem">
@@ -85,7 +86,14 @@
                                     </Border.Effect>
 
                                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                        <Ellipse Width="60" Height="60" Fill="{TemplateBinding Foreground}" Opacity="0.1"/>
+                                        <Grid Width="80" Height="80">
+                                            <Ellipse Fill="#F1F2F6"/>
+
+                                            <Image Width="45" Height="45" 
+                                           Source="{Binding JobType, Converter={StaticResource JobTypeIconConverter}}"
+                                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                                        </Grid>
+                                        <!--<Ellipse Width="60" Height="60" Fill="{TemplateBinding Foreground}" Opacity="0.1"/>-->
                                         <TextBlock Text="{Binding Name}" Margin="0,15,0,5" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center"/>
                                         <TextBlock Text="{Binding Description}" FontSize="12" Foreground="Gray" TextWrapping="Wrap" TextAlignment="Center" Margin="10,0"/>
                                     </StackPanel>
@@ -108,6 +116,7 @@
                                         <Setter TargetName="CardBorder" Property="BorderThickness" Value="3" />
                                         <Setter TargetName="CardBorder" Property="BorderBrush" Value="#74B9FF" />
                                     </Trigger>
+                                    
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
                         </Setter.Value>

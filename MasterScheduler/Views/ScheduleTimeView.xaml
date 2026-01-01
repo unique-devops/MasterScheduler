@@ -111,8 +111,8 @@
         </StackPanel>
 
         <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
-            <Button Content="Save" Command="{Binding SaveCommand}" Width="100" Margin="2,0"/>
-            <Button Content="Cancel" Command="{Binding CancelCommand}" Width="100"/>
+            <Button Content="OK" x:Name="btnSave" Click="btnSave_Click" Width="100" Margin="2,0"/>
+            <Button Content="Cancel" x:Name="btnCancel" Click="btnCancel_Click" Width="100"/>
         </StackPanel>
     </Grid>
 </Window>

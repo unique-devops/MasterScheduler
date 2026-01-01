@@ -17,6 +17,7 @@
 
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <ctr:DestinationIconConverter x:Key="IconConverter"/>
+        <ctr:JobTypeToImageConverter x:Key="JobTypeIconConverter"/>
 
        
         <ResourceDictionary.MergedDictionaries>

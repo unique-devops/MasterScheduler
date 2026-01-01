@@ -21,7 +21,7 @@ namespace MasterScheduler.ViewModels
         private readonly INavigationService _navigationService;
 
         [ObservableProperty]
-        private TaskType selectedTaskType;
+        private TaskType? selectedTaskType;
         public TaskTypeSelectionViewModel(INavigationService navigationService)
         {
             HeaderTitle = "Choose task";

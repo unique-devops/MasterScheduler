@@ -53,7 +53,7 @@
 
                     <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="Server name"/>
                     <ComboBox Grid.Row="0" Grid.Column="2" Margin="0,5" Height="28"
-                  ItemsSource="{Binding Servers}" SelectedItem="{Binding SelectedServer}"
+                  ItemsSource="{Binding Servers}" Text="{Binding SelectedServer}"
                   IsEditable="True" IsTextSearchEnabled="True"
                   Padding="5" BorderBrush="#CCC" BorderThickness="1" />
 

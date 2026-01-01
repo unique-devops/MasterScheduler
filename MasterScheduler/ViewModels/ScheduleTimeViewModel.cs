@@ -20,9 +20,7 @@ namespace MasterScheduler.ViewModels
 
         [ObservableProperty]
         private bool isDaily;
-
-        [ObservableProperty]
-        private bool shouldClose;
+      
         public ObservableCollection<DayItem> Days { get; } =
                 new ObservableCollection<DayItem>
                 {
@@ -39,17 +37,6 @@ namespace MasterScheduler.ViewModels
             Hour = DateTime.Now.Hour;
             Minute = DateTime.Now.Minute;
         }
-
-        [RelayCommand]
-        private void Save()
-        {
-            ShouldClose = true;
-        }
-
-        [RelayCommand]
-        private void Cancel()
-        {
-            ShouldClose = true;
-        }
+        
     }
 }

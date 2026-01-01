@@ -29,7 +29,7 @@ namespace MasterScheduler.ViewModels
         };
 
         [ObservableProperty]
-        private string selectedServer;
+        private string? selectedServer;
 
         [ObservableProperty]
         private string selectedAuthentication = "Windows";
@@ -59,13 +59,13 @@ namespace MasterScheduler.ViewModels
 
         public MSSQLConnectViewModel()
         {
-            
+            BrowseServers();
         }
         public void SetModelData()
         {
-            if (!Servers.Contains(SelectedServer)) Servers.Insert(0, SelectedServer);
+            if (!Servers.Contains(SelectedServer ?? "")) Servers.Insert(0, SelectedServer);
         }
-        partial void OnSelectedServerChanged(string value)
+        partial void OnSelectedServerChanged(string? value)
         {
             if (value == "Browse...")
             {
@@ -78,6 +78,7 @@ namespace MasterScheduler.ViewModels
             Message = "";
             try
             {
+                Servers.Clear();
                 var server = SqlInstanceFinder.GetAllLocalSqlInstances();               
                 Servers = new ObservableCollection<string>(server);
                 //foreach (string servername in server)
@@ -90,7 +91,7 @@ namespace MasterScheduler.ViewModels
             catch (Exception ex)
             {
                 // In real app -> log it or show message
-                System.Windows.MessageBox.Show("Error fetching SQL Servers: " + ex.Message);
+                //System.Windows.MessageBox.Show("Error fetching SQL Servers: " + ex.Message);
                 Message = "Error fetching SQL Servers: " + ex.Message;
             }
            
@@ -102,7 +103,7 @@ namespace MasterScheduler.ViewModels
         public async Task Connect()
         {
             IsConnecting = true;
-            var result = await TestAdvancedConnectionAsync(SelectedServer);
+            var result = await TestAdvancedConnectionAsync(SelectedServer ?? "");
             IsConnectedServer = result.Success;            
             ShouldClose = result.Success;
             IsConnecting = false;

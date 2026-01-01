@@ -22,9 +22,10 @@ namespace MasterScheduler.Views
     /// </summary>
     public partial class MSSQLConnectView : Window
     {
-        public MSSQLConnectView(MSSQLConnectViewModel vm)
+        public MSSQLConnectView()
         {
-            InitializeComponent();            
+            InitializeComponent();
+            MSSQLConnectViewModel vm = new MSSQLConnectViewModel();
             DataContext = vm;
 
             vm.PropertyChanged += Vm_PropertyChanged;
