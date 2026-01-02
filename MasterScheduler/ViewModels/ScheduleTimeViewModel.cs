@@ -20,7 +20,8 @@ namespace MasterScheduler.ViewModels
 
         [ObservableProperty]
         private bool isDaily;
-      
+        
+
         public ObservableCollection<DayItem> Days { get; } =
                 new ObservableCollection<DayItem>
                 {
@@ -37,6 +38,8 @@ namespace MasterScheduler.ViewModels
             Hour = DateTime.Now.Hour;
             Minute = DateTime.Now.Minute;
         }
+
         
+
     }
 }

@@ -35,6 +35,7 @@
                           VerticalContentAlignment="Center"
                           TextAlignment="Center"
                           Text="{Binding Hour}" MaxLength="2"
+                          GotFocus ="HourTextBox_GotFocus"
                           LostFocus="HourTextBox_LostFocus"
                           PreviewTextInput="HourTextBox_PreviewTextInput"/>
 
@@ -43,23 +44,24 @@
 
                     <!-- Minute -->
                     <TextBox x:Name="MinuteTextBox"
-                      BorderBrush="Transparent"
-                             BorderThickness="0"
-                      Background="Transparent"
-                      FontSize="24"
-                      Width="45"
-                      TextAlignment="Center"
-                      VerticalContentAlignment="Center"
-                      Text="{Binding Minute}" MaxLength="2"
-                      LostFocus="MinuteTextBox_LostFocus"
-                      PreviewTextInput="MinuteTextBox_PreviewTextInput" />    
+                        BorderBrush="Transparent"
+                                BorderThickness="0"
+                        Background="Transparent"
+                        FontSize="24"
+                        Width="45"
+                        TextAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        Text="{Binding Minute}" MaxLength="2"
+                        Focusable ="True"
+                        LostFocus="MinuteTextBox_LostFocus"
+                        PreviewTextInput="MinuteTextBox_PreviewTextInput" />    
 
                     
 
                     <!-- Up/Down -->
                     <StackPanel>
-                        <RepeatButton Content="▲" Width="20"/>
-                        <RepeatButton Content="▼" Width="20"/>
+                        <RepeatButton Content="▲" Width="20" Click="TimerCounterPlus_Click"/>
+                        <RepeatButton Content="▼" Width="20" Click="TimerCounterMinus_Click"/>
                     </StackPanel>
                 </StackPanel>
             </Border>

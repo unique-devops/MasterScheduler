@@ -1,4 +1,5 @@
-﻿using MasterScheduler.Models;
+﻿using CommunityToolkit.Mvvm.Input;
+using MasterScheduler.Models;
 using MasterScheduler.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -26,6 +27,7 @@ namespace MasterScheduler.Views
         public ScheduleTimeModel ScheduleTime= new ScheduleTimeModel();
 
         ScheduleTimeViewModel vm = new ScheduleTimeViewModel();
+        bool isHourBoxFocus =false;
         public ScheduleTimeView()
         {
             InitializeComponent();            
@@ -44,8 +46,12 @@ namespace MasterScheduler.Views
             {
                 HourTextBox.Text = DateTime.Now.Hour.ToString("D2");
             }
+            isHourBoxFocus = false;
         }
-
+        private void HourTextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            isHourBoxFocus = true;
+        }
         private void MinuteTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             var val = MinuteTextBox.Text;
@@ -78,7 +84,29 @@ namespace MasterScheduler.Views
             }
             
         }
-
+       
+        private void TimerCounterPlus_Click(object sender, RoutedEventArgs e)
+        {
+            if (HourTextBox.IsMouseCaptured)
+            {
+               if(vm.Hour < 24) vm.Hour++;
+            }
+            else
+            {
+                if (vm.Minute < 60) vm.Minute++;               
+            }
+        }
+        private void TimerCounterMinus_Click(object sender, RoutedEventArgs e)
+        {
+            if (HourTextBox.IsMouseCaptured)
+            {
+                if (vm.Hour > 1) vm.Hour--;
+            }
+            else
+            {
+                if (vm.Minute > 1) vm.Minute--;
+            }
+        }
         private void btnCancel_Click(object sender, RoutedEventArgs e)
         {
             this.DialogResult = false;
@@ -94,5 +122,7 @@ namespace MasterScheduler.Views
             this.DialogResult = true;
             Close();
         }
+
+        
     }
 }
