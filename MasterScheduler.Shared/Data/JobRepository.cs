@@ -32,7 +32,7 @@ namespace MasterScheduler.Shared.Data
                             L.Level, 
                             L.Timestamp, 
                             L.JobId, 
-                            COALESCE(J.Type, 'General') AS JobType
+                            COALESCE(J.JobType, 'General') AS JobType
                         FROM BackupLogs L
                         LEFT JOIN Jobs J ON L.JobId = J.Id
                         ORDER BY L.Timestamp DESC 
@@ -256,9 +256,8 @@ namespace MasterScheduler.Shared.Data
             try
             {               
                 // 2. Delete Job Logs (if you have a logs table)
-                using (var cmd = new SqliteCommand("DELETE FROM BackUpLogs @where", con))
+                using (var cmd = new SqliteCommand($"DELETE FROM BackUpLogs {(id == 0 ? " WHERE 1=1" : $" WHERE Id={id}")}", con))
                 {
-                    cmd.Parameters.AddWithValue("@where", (id == 0 ? " WHERE 1=1" : $" WHERE Id={id}"));
                     cmd.ExecuteNonQuery();
                 }
             }

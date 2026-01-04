@@ -16,9 +16,9 @@ namespace MasterScheduler.Converter
             string level = value?.ToString() ?? "Information";
             return level switch
             {
-                "Error" => Brushes.IndianRed,
-                "Warning" => Brushes.Orange,
-                _ => Brushes.CornflowerBlue
+                "Error" => "IndianRed",
+                "Warning" => "Orange",
+                _ => "CornflowerBlue"
             };
         }
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
