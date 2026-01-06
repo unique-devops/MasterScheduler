@@ -278,18 +278,31 @@ namespace MasterScheduler.ViewModels
         }
         
         [RelayCommand]
-        public void SchedulerSettings()
+        public async void SchedulerSettings()
         {
-            //_navigationService.NavigateTo<SchedulerSettingsViewModel>();
-            var dialog = new ScheduleTimeView();
+            var dialog = new SchedulerSettingsView();
             dialog.Owner = Application.Current.MainWindow;
-            // Simulate loading available databases            
-            if (dialog.ShowDialog() == true)
+            if (dialog.DataContext is SchedulerSettingsViewModel vm)
             {
-                scheduleTimeModel = dialog.ScheduleTime;
-                ScheduledTime = $"Daily at {scheduleTimeModel.Hour}:{scheduleTimeModel.Minute}";
-                sqlBackupDetails.Schedule.ExecutionTime = ScheduledTime;
+                // Pass the Job ID (e.g., 101) to load the data
+                await vm.InitializeAsync(editJobId);
+                if (dialog.ShowDialog() == true)
+                {
+                    ScheduledTime = vm.HumanText;
+                    sqlBackupDetails.Schedule.ExecutionTime = vm.NextRun;
+                    sqlBackupDetails.Schedule.Crons = vm.CronExpression;                    
+                }
             }
+            
+            //var dialog = new ScheduleTimeView();
+            //dialog.Owner = Application.Current.MainWindow;
+            //// Simulate loading available databases            
+            //if (dialog.ShowDialog() == true)
+            //{
+            //    scheduleTimeModel = dialog.ScheduleTime;
+            //    ScheduledTime = $"Daily at {scheduleTimeModel.Hour}:{scheduleTimeModel.Minute}";
+            //    sqlBackupDetails.Schedule.ExecutionTime = ScheduledTime;
+            //}
         }
 
         [RelayCommand]
@@ -314,15 +327,15 @@ namespace MasterScheduler.ViewModels
                     MessageBox.Show($"ScheduleTime Required!");
                     return;
                 }
-                int hour = scheduleTimeModel.Hour;
-                int min = scheduleTimeModel.Minute;
-                string cron = $"{min} {hour} * * *";
+                //int hour = scheduleTimeModel.Hour;
+                //int min = scheduleTimeModel.Minute;
+                //string cron = $"{min} {hour} * * *";                
                 var job = new JobModel
                 {
                     JobName = JobAliasName,
                     JobType = "SqlBackup",
-                    CronExpression = cron,
-                    NextRunTime = CronosHelper.GetNextRunTime(cron),
+                    CronExpression = sqlBackupDetails.Schedule.Crons,
+                    NextRunTime = CronosHelper.GetNextRunTime(sqlBackupDetails.Schedule.Crons),
                     IsActive = true,
                     Status = "pending",
                     Message = "not run yet"

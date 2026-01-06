@@ -19,5 +19,6 @@ namespace MasterScheduler.Models
         public int EveryTime;
 
         public List<int> Weeks = new List<int>();
+        public string? Crons;
     }
 }

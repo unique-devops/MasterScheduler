@@ -5,55 +5,119 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:MasterScheduler.Views"
              mc:Ignorable="d" 
-             Height="360" Width="480"
+             Height="460" Width="580"
              WindowStartupLocation="CenterOwner"
              ResizeMode="NoResize"
              Background="#FAFAFA"
              FontFamily="Segoe UI"
              >
-    <Grid Margin="10">
+    <Grid Margin="20">
         <Grid.RowDefinitions>
+            <RowDefinition Height="100"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="25"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0">
-            
-            <local:TimePickerControl Margin="0,5"/>
+        <!-- Human readable -->
+        <TextBlock Grid.Row="0"
+                   Text="{Binding HumanText}" TextWrapping="Wrap" LineHeight="22"
+                   FontSize="16"
+                   FontStyle="Italic"
+                   Foreground="Blue"                   
+                   HorizontalAlignment="Center"/>
 
-                <CheckBox Content="Daily (All Days)" IsChecked="{Binding IsDaily, Mode=TwoWay}" 
-                    Command="{Binding ToggleDailyCommand}" Margin="10,0,0,0"/>
+        <!-- Next run -->
+        <TextBlock Grid.Row="1"
+                   Margin="0,10"
+                   Text="{Binding NextRun}"
+                   Foreground="Red"
+                   HorizontalAlignment="Center"/>
 
-                <ItemsControl ItemsSource="{Binding DaysOfWeek}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <CheckBox Content="{Binding DayCode}" IsChecked="{Binding IsSelected, Mode=TwoWay}" Margin="5"/>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              
-            </StackPanel>
-            <StackPanel Grid.Row="1" HorizontalAlignment="Right" Orientation="Horizontal">
-            <Button Content="Save" Margin="2,0" Width="90" Command="{Binding SaveCommand}">
-                <Button.Resources>
-                    <Style TargetType="Border">
-                        <Setter Property="CornerRadius" Value="2"/>
-                    </Style>
-                </Button.Resources>
-            </Button>
-            <Button Content="Cancel" Margin="2,0" Width="90" Command="{Binding CancelCommand}">
-                <Button.Resources>
-                    <Style TargetType="Border">
-                        <Setter Property="CornerRadius" Value="2"/>
-                    </Style>
-                </Button.Resources>
-            </Button>
-            </StackPanel>
-        
+        <!-- Cron Expression Bar -->
+        <Border Grid.Row="2"
+                Margin="0,10"
+                BorderBrush="{Binding IsValidCron,Converter={StaticResource LevelToColorConverter}}"
+                BorderThickness="2"
+                CornerRadius="6"
+                Padding="5">
+
+            <Grid HorizontalAlignment="Center"  VerticalAlignment="Center">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="70"/>
+                    <ColumnDefinition Width="70"/>
+                    <ColumnDefinition Width="70"/>
+                    <ColumnDefinition Width="70"/>
+                    <ColumnDefinition Width="70"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Text="" Grid.Row="0" Grid.Column="0" Foreground="Gray"/>
+                <TextBox Text="{Binding Minute}" Grid.Row="0" Grid.Column="1"
+                         FontSize="22"
+                         Background="Transparent"                         
+                         BorderThickness="0"
+                         HorizontalContentAlignment="Center"/>
+
+                <TextBox Text="{Binding Hour}" Grid.Row="0" Grid.Column="2"
+                 FontSize="22"
+                 Background="Transparent"                 
+                 BorderThickness="0"
+                 HorizontalContentAlignment="Center"/>
+
+                <TextBox Text="{Binding Day}" Grid.Row="0" Grid.Column="3"
+                 FontSize="22"
+                 Background="Transparent"                 
+                 BorderThickness="0"
+                 HorizontalContentAlignment="Center"/>
+
+                <TextBox Text="{Binding Month}" Grid.Row="0" Grid.Column="4"
+                 FontSize="22"
+                 Background="Transparent"                 
+                 BorderThickness="0"
+                 HorizontalContentAlignment="Center"/>
+
+                <TextBox Text="{Binding Weekday}" Grid.Row="0" Grid.Column="5"
+                 FontSize="22"
+                 Background="Transparent"                 
+                 BorderThickness="0"
+                 HorizontalContentAlignment="Center"/>
+
+                <TextBlock Text="minute" Grid.Row="1" Grid.Column="1" TextAlignment="Center" Foreground="Gray"/>
+                <TextBlock Text="hour" Grid.Row="1" Grid.Column="2" TextAlignment="Center" Foreground="Gray"/>
+                <TextBlock Text="day" Grid.Row="1" Grid.Column="3" TextAlignment="Center" Foreground="Gray"/>
+                <TextBlock Text="month" Grid.Row="1" Grid.Column="4" TextAlignment="Center" Foreground="Gray"/>
+                <TextBlock Text="weekday" Grid.Row="1" Grid.Column="5" TextAlignment="Center" Foreground="Gray"/>
+                <TextBlock Text="" Grid.Row="1" Grid.Column="6" TextAlignment="Center" Foreground="Gray"/>
+
+            </Grid>
+        </Border>
+
+        <!-- Bottom Help Table -->
+        <StackPanel HorizontalAlignment="Center" Grid.Row="3" Margin="0,5">
+            <TextBlock Text="*    any value"/>
+            <TextBlock Text=",    value list separator"/>
+            <TextBlock Text="-    range of values"/>
+            <TextBlock Text="/    step values"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="20">
+            <Button Content="Cancel" 
+            Command="{Binding CancelCommand}" 
+            IsCancel="True"
+            Width="80" Margin="5"/>
+
+            <Button Content="Save Settings" 
+            Command="{Binding SaveCommand}" 
+            IsDefault="True"
+            Width="120" Margin="5"
+            IsEnabled="{Binding IsValidCron}"/>
+        </StackPanel>
     </Grid>
 </Window>

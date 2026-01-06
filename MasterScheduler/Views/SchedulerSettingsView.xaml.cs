@@ -22,31 +22,20 @@ namespace MasterScheduler.Views
     /// </summary>
     public partial class SchedulerSettingsView : Window
     {
-        private bool _isClosing =false;
+        SchedulerSettingsViewModel vm = new SchedulerSettingsViewModel();
         public SchedulerSettingsView()
         {
-            InitializeComponent();
-            var vm  = new SchedulerSettingsViewModel();
+            InitializeComponent();            
             DataContext = vm;
-            vm.PropertyChanged += Vm_PropertyChanged;
-        }
-
-        private void Vm_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(SchedulerSettingsViewModel.ShouldClose))
+            if (DataContext is SchedulerSettingsViewModel vm1)
             {
-                var vm = (SchedulerSettingsViewModel)sender;
-                if (vm.ShouldClose && !_isClosing)
+                // Define what happens when the ViewModel calls CloseAction
+                vm1.CloseAction = (result) =>
                 {
-                    this.DialogResult =true;
-                }
+                    this.DialogResult = result;
+                    this.Close();
+                };
             }
-        }
-
-        protected override void OnClosing(CancelEventArgs e)
-        {
-            _isClosing = true;
-            base.OnClosing(e);
         }
     }
 }

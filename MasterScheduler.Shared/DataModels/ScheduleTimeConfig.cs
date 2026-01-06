@@ -10,6 +10,7 @@ namespace MasterScheduler.Shared.DataModels
     {
         public string Frequency { get; set; }
         public string ExecutionTime { get; set; }
+        public string Crons { get; set; }       
         public List<string> DaysOfWeek { get; set; } = new List<string>();
     }
 }

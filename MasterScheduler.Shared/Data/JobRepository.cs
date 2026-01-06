@@ -169,6 +169,33 @@ namespace MasterScheduler.Shared.Data
             return job;
         }
 
+        public async Task<JobModel?> GeByIdAsync(int JobId)
+        {
+            JobModel job = null;
+            using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
+            await con.OpenAsync();
+            using var cmd = new SqliteCommand("SELECT * FROM Jobs where id = @JobId", con);
+            cmd.Parameters.AddWithValue("@JobId", JobId);
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                job = new JobModel
+                {
+                    Id = Convert.ToInt32(reader["Id"]),
+                    JobName = reader["JobName"].ToString()!,
+                    JobType = reader["JobType"].ToString()!,
+                    CronExpression = reader["CronExpression"].ToString()!,
+                    IsActive = Convert.ToInt32(reader["IsActive"]) == 1,
+                    Status = reader["Status"].ToString()!,
+                    Message = reader["Message"].ToString()!,
+                    LastRunTime = string.IsNullOrWhiteSpace(reader["LastRunTime"].ToString()) ? null : Convert.ToDateTime(reader["LastRunTime"]),
+                    NextRunTime = string.IsNullOrWhiteSpace(reader["NextRunTime"].ToString()) ? null : Convert.ToDateTime(reader["NextRunTime"]),
+                    CreatedAt = string.IsNullOrWhiteSpace(reader["CreatedAt"].ToString()) ? null : Convert.ToDateTime(reader["CreatedAt"]),
+                    UpdatedAt = string.IsNullOrWhiteSpace(reader["UpdatedAt"].ToString()) ? null : Convert.ToDateTime(reader["UpdatedAt"])
+                };
+            }
+            return job;
+        }
         public int Add(JobModel job)
         {
             using var con = new SqliteConnection(DatabaseHelper.ConnectionString);

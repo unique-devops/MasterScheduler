@@ -17,6 +17,7 @@ namespace MasterScheduler.Converter
             return level switch
             {
                 "Error" => Brushes.IndianRed,
+                "Valid" => "#FFF36D",
                 "Warning" => Brushes.Orange,
                 _ => Brushes.CornflowerBlue
             };

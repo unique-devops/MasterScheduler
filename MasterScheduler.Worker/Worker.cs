@@ -157,7 +157,7 @@ namespace MasterScheduler.Worker
         private bool TryMarkRunning(JobModel job)
         {
             try
-            {
+            {                
                 job.Status = "running";
                 job.Message = "running";
                 job.LastRunTime = DateTime.Now;

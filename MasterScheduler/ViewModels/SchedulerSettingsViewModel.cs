@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MasterScheduler.Models;
+using MasterScheduler.Shared;
+using MasterScheduler.Shared.Data;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -13,47 +15,84 @@ namespace MasterScheduler.ViewModels
 {
     public partial class SchedulerSettingsViewModel : ObservableObject
     {
-        [ObservableProperty]
-        private int hour;
+        [ObservableProperty] private string minute = "*";
+        [ObservableProperty] private string hour = "4";
+        [ObservableProperty] private string day = "*";
+        [ObservableProperty] private string month = "*";
+        [ObservableProperty] private string weekday = "*";
 
-        [ObservableProperty]
-        private int minute;
+        [ObservableProperty] private string cronExpression;
+        [ObservableProperty] private string humanText;
+        [ObservableProperty] private string nextRun;
+        [ObservableProperty] private string isValidCron = "Valid";
 
-        [ObservableProperty]
-        private bool isDaily;
+        // This method is called by the CommunityToolkit whenever any property changes
+        partial void OnMinuteChanged(string value) => UpdateCronDetails();
+        partial void OnHourChanged(string value) => UpdateCronDetails();
+        partial void OnDayChanged(string value) => UpdateCronDetails();
+        partial void OnMonthChanged(string value) => UpdateCronDetails();
+        partial void OnWeekdayChanged(string value) => UpdateCronDetails();
 
-        public ObservableCollection<DayItem> DaysOfWeek { get; }
-
-        [ObservableProperty]
-        private bool shouldClose;
-
-        public SchedulerSettingsViewModel()
+        private readonly JobRepository _repo = new JobRepository();
+        public async Task InitializeAsync(int jobId)
         {
-            DaysOfWeek = new ObservableCollection<DayItem>
+            // 1. Fetch from Database (Example using a repository or service)
+            var job = await _repo.GeByIdAsync(jobId);
+
+            if (job != null)
             {
-                new("MON"), new("TUE"), new("WED"), new("THU"),
-                new("FRI"), new("SAT"), new("SUN")
-            };
-        }
+                // 2. Map the DB values to your ObservableProperties
+                // Assuming your DB stores the full cron or individual parts
+                var crons = job.CronExpression.Split();
+                Minute = crons[0];
+                Hour = crons[1];
+                Day = crons[2];
+                Month = crons[3];
+                Weekday = crons[4];
 
-        [RelayCommand]
-        private void ToggleDaily()
+                // 3. Trigger the calculation logic
+                UpdateCronDetails();
+            }
+        }
+        private void UpdateCronDetails()
         {
-            foreach (var day in DaysOfWeek)
-                day.IsSelected = IsDaily;
+            // 1. Construct the string
+            CronExpression = $"{Minute} {Hour} {Day} {Month} {Weekday}";
+
+            try
+            {
+                // 2. Validate and Get Next Run                
+                var next = CronosHelper.GetNextRunAt(CronExpression);
+
+                NextRun = next ?? "No future occurrence";
+                IsValidCron = "Valid";
+
+                // 3. Get Human Readable Text
+                HumanText = CronosHelper.GetHumanReadableDescription(CronExpression);
+            }
+            catch (Exception)
+            {
+                IsValidCron = "Error";
+                HumanText = "Invalid Cron Format";
+                NextRun = "N/A";
+            }
         }
 
         [RelayCommand]
         private void Save()
         {
-            ShouldClose = true;
+            if (IsValidCron == "Valid")
+            {                
+                CloseAction?.Invoke(true);
+            }
         }
 
         [RelayCommand]
         private void Cancel()
         {
-            ShouldClose = true;
+            CloseAction?.Invoke(false);
         }
 
+        public Action<bool?> CloseAction { get; set; }
     }
 }
