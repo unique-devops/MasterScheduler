@@ -165,7 +165,7 @@ namespace MasterScheduler.ViewModels
         [RelayCommand]      
         public void Logs()
         {           
-            _navigation.NavigateTo<LogDashboardViewControl>();
+            _navigation.NavigateTo<LogDashboardViewModel>();
         }
 
         //------------------Server----------------
