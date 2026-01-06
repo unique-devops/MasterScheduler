@@ -362,6 +362,7 @@ namespace MasterScheduler.ViewModels
                     if (existJob != null)
                     {
                         existJob.JobName = JobAliasName;
+                        existJob.CronExpression = job.CronExpression;
                         existJob.NextRunTime = job.NextRunTime;
                         _repo.Update(existJob);
                        
