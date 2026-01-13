@@ -48,11 +48,11 @@ namespace MasterScheduler.Shared.Service
                     _logger.LogInformation("Starting SQL Backup for {db}...", db);
                     await PerformSqlBackupAsync(sqlBackupDetails.ConnectionString, db, localPath, token);
                     _logger.LogInformation("SQL Backup to Temp successful: {path}", localPath);
-
+                    await Task.Delay(1000, token);
                     bool allFinished = true;
                     foreach (var dest in sqlBackupDetails.Destinations)
                     {
-                        if (dest.Status == "Success") continue;
+                        //if (dest.Status == "Success") continue;
                         try
                         {
                             await SendToDestinationAsync(localPath, dest, job.Id, token);
@@ -61,7 +61,7 @@ namespace MasterScheduler.Shared.Service
                         }
                         catch (OperationCanceledException)
                         {
-                            dest.Status = "Paused";
+                            dest.Status = "Cancelled";
                             _jobRepository.UpdateJobConfiguration(job.Id, sqlBackupDetails);
                             allFinished = false;
                             throw; // Stop the loop
@@ -77,7 +77,7 @@ namespace MasterScheduler.Shared.Service
                     // 4. Always cleanup the temp file, even if an upload failed
                     if (File.Exists(localPath) && allFinished)
                     {
-                        File.Delete(localPath);
+                        await DeleteFileWithRetryAsync(localPath, 3);
                         _logger.LogInformation("Deleted temp file for Job {Id}", job.Id);
                     }
                 }
@@ -102,7 +102,23 @@ namespace MasterScheduler.Shared.Service
                 }               
             }
         }
-
+        async Task DeleteFileWithRetryAsync(string path, int retries)
+        {
+            for (int i = 0; i < retries; i++)
+            {
+                try
+                {
+                    File.Delete(path);
+                    _logger.LogInformation("Deleted temp file: {path}", path);
+                    return;
+                }
+                catch (IOException)
+                {
+                    if (i == retries - 1) throw;
+                    await Task.Delay(2000); // Wait 2 seconds and try again
+                }
+            }
+        }
         public string GetDefaultSQLBackupPath(string connectionString)
         {
             string defaultSqlPath = "";
@@ -151,7 +167,10 @@ namespace MasterScheduler.Shared.Service
                 }
                 else if (destination.Type == DestinationType.GoogleDrive)
                 {
-                    await UploadToGoogleDriveAsync(filePath, (GoogleDriveConfig)destination.Config, token);
+                    GoogleDriveHelper googleDriveHelper = new GoogleDriveHelper();
+                    var cred = await googleDriveHelper.GetSilentCredentialsAsync();
+                    var driveConfig = (GoogleDriveConfig)destination.Config;
+                    await googleDriveHelper.UploadBackup(cred,filePath, driveConfig);
                     _logger.LogInformation("Uploaded to Google Drive (Job {id})", jobId);
 
                     //if (sqlBackupDetails.RetentionDays > 0)
@@ -166,211 +185,9 @@ namespace MasterScheduler.Shared.Service
                 // We don't throw here if you want other destinations to still try even if one fails
             }
         }
-        private async Task UploadToGoogleDriveAsyncWithoutResume(string filePath, GoogleDriveConfig driveConfig, CancellationToken ct)
-        {
-            // 1. Decrypt the Refresh Token (using the Cipher helper we created)
-            string decryptedRefreshToken = Cipher.Unprotect(driveConfig.RefreshToken);
-
-            // 2. Setup the Authorization Flow
-            var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
-            {
-                ClientSecrets = new ClientSecrets
-                {
-                    ClientId = driveConfig.ClientId,
-                    ClientSecret = driveConfig.ClientSecret
-                }
-            });
-
-            // 3. Create the Credential using the Refresh Token
-            var tokenResponse = new TokenResponse { RefreshToken = decryptedRefreshToken };
-            var credential = new UserCredential(flow, "user", tokenResponse);
-
-
-            // 4. Initialize the Drive Service
-            using var driveService = new DriveService(new BaseClientService.Initializer
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = "MasterScheduler"
-            });
-
-            // 5. Prepare File Metadata
-            var fileMetadata = new Google.Apis.Drive.v3.Data.File()
-            {
-                Name = Path.GetFileName(filePath),
-                Parents = string.IsNullOrEmpty(driveConfig.TargetFolderId) ? null : new List<string> { driveConfig.TargetFolderId }
-            };
-
-            // 6. Execute the Upload
-            using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-            var request = driveService.Files.Create(fileMetadata, stream, "application/octet-stream");
-
-            // Optional: Add a progress tracker for large SQL files
-            //request.ProgressChanged += (progress) =>
-            //{
-            //    Console.WriteLine($"Upload Status: {progress.Status} {progress.BytesSent} bytes sent.");
-            //};
-
-            await request.UploadAsync(ct);
-
-            if (request.ResponseBody == null)
-            {
-                throw new Exception("Upload failed: No response from Google Drive.");
-            }
-
-        }
-
+       
         // Use a dictionary or DB to store URIs for jobs in progress
         private static readonly ConcurrentDictionary<int, Uri> _resumeUris = new();
-        private async Task UploadToGoogleDriveAsync(string filePath, GoogleDriveConfig driveConfig, CancellationToken ct)
-        {
-            // 1. Decrypt Token
-            string decryptedRefreshToken = Cipher.Unprotect(driveConfig.RefreshToken);
-
-            // 2. Setup Flow
-            var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
-            {
-                ClientSecrets = new ClientSecrets
-                {
-                    ClientId = driveConfig.ClientId,
-                    ClientSecret = driveConfig.ClientSecret
-                }
-            });
-
-            // 3. Create Credential and FORCE REFRESH
-            var tokenResponse = new TokenResponse { RefreshToken = decryptedRefreshToken };
-            var credential = new UserCredential(flow, "user", tokenResponse);
-
-            // CRITICAL: Ensure the access token is fresh before starting a long backup upload
-            if (credential.Token.IsStale)
-            {
-                await credential.RefreshTokenAsync(ct);
-            }
-
-            // 4. Initialize Service
-            using var driveService = new DriveService(new BaseClientService.Initializer
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = "MasterScheduler"
-            });
-
-            // 5. Prepare Metadata
-            var fileMetadata = new Google.Apis.Drive.v3.Data.File()
-            {
-                Name = Path.GetFileName(filePath),
-                Parents = string.IsNullOrEmpty(driveConfig.TargetFolderId)
-                          ? null : new List<string> { driveConfig.TargetFolderId }
-            };
-
-            // 6. Execute Resumable Upload
-            await using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);
-
-            var request = driveService.Files.Create(fileMetadata, stream, "application/octet-stream");
-
-            // Set chunk size (e.g., 1MB chunks) for stability on large files
-            request.ChunkSize = ResumableUpload.MinimumChunkSize * 4;
-            // --- RESUME LOGIC START ---
-            var jobId = 1;
-            if (_resumeUris.TryGetValue(jobId, out Uri sessionUri))
-            {
-                _logger.LogInformation("Found existing upload session for Job {Id}. Attempting to resume...", jobId);
-                // This tells the SDK to try and pick up where it left off
-                await request.ResumeAsync(sessionUri, ct);
-            }
-            else
-            {
-                // First time starting: Subscribe to find out the Session URI Google gives us
-                request.ResponseReceived += (file) => _resumeUris.TryRemove(jobId, out _); // Cleanup on finish
-
-                // This event captures the URI so we can save it if it fails later
-                request.UploadSessionData += (uploadProgress) =>
-                {
-                    if (uploadProgress.UploadUri != null)
-                    {
-                        _resumeUris[jobId] = uploadProgress.UploadUri;
-                    }
-                };
-
-                await request.UploadAsync(ct);
-            }
-
-            // --- RESUME LOGIC END ---
-
-            if (request.GetProgress().Status == UploadStatus.Failed)
-            {
-                // If it failed, we DON'T remove the URI from _resumeUris. 
-                // The next time the worker tries this job, it will hit the 'if' block above.
-                throw new Exception($"Upload failed: {request.GetProgress().Exception.Message}");
-            }
-            //// Progress Tracking (logged to Serilog)
-            //request.ProgressChanged += (progress) =>
-            //{
-            //    if (progress.Status == UploadStatus.Uploading)
-            //        _logger.LogDebug("Job {Id}: Uploading to GDrive... {Bytes} bytes sent", driveConfig.JobId, progress.BytesSent);
-            //    else if (progress.Status == UploadStatus.Failed)
-            //        _logger.LogError(progress.Exception, "Job {Id}: GDrive Upload failed", driveConfig.JobId);
-            //};
-
-            //var finalStatus = await request.UploadAsync(ct);
-
-            //if (finalStatus.Status == UploadStatus.Failed)
-            //{
-            //    throw new Exception($"Google Drive upload failed: {finalStatus.Exception?.Message}", finalStatus.Exception);
-            //}
-        }
-
-        private DriveService GetDriveService(GoogleDriveConfig config)
-        {
-            string decryptedRefreshToken = Cipher.Unprotect(config.RefreshToken);
-
-            var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
-            {
-                ClientSecrets = new ClientSecrets { ClientId = config.ClientId, ClientSecret = config.ClientSecret }
-            });
-
-            var credential = new UserCredential(flow, "user", new TokenResponse { RefreshToken = decryptedRefreshToken });
-
-            return new DriveService(new BaseClientService.Initializer
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = "MasterScheduler"
-            });
-        }
-        public async Task CleanOldGoogleDriveBackupsAsync(GoogleDriveConfig driveConfig, int retentionDays, CancellationToken ct)
-        {
-            // 1. Initialize Service (Reuse the same logic from Upload)
-            var driveService = GetDriveService(driveConfig); // Helper to encapsulate the Flow/Credential logic
-
-            // 2. Calculate the threshold date (RFC 3339 format required by Google)
-            string dateThreshold = DateTime.UtcNow.AddDays(-retentionDays).ToString("yyyy-MM-ddTHH:mm:ssZ");
-
-            // 3. Prepare the Query
-            // 'modifiedTime < ...' finds old files
-            // 'trashed = false' ensures we only look at active files
-            // 'parents in ...' limits the search to your specific backup folder
-            var request = driveService.Files.List();
-            request.Q = $"modifiedTime < '{dateThreshold}' and trashed = false and '{driveConfig.TargetFolderId}' in parents";
-            request.Fields = "files(id, name, modifiedTime)";
-
-            var result = await request.ExecuteAsync(ct);
-
-            if (result.Files != null && result.Files.Any())
-            {
-                _logger.LogInformation("Found {count} old backups to delete in Google Drive.", result.Files.Count);
-
-                foreach (var file in result.Files)
-                {
-                    try
-                    {
-                        // 4. Delete the file
-                        await driveService.Files.Delete(file.Id).ExecuteAsync(ct);
-                        _logger.LogInformation("Deleted old GDrive backup: {name} (ID: {id})", file.Name, file.Id);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to delete old GDrive file {id}", file.Id);
-                    }
-                }
-            }
-        }
+       
     }
 }

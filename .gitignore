@@ -240,3 +240,5 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+credentials.json
+client_secret*.json

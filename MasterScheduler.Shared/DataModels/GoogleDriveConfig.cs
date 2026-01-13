@@ -7,11 +7,12 @@ using System.Threading.Tasks;
 namespace MasterScheduler.Shared.DataModels
 {
     public class GoogleDriveConfig : DestinationConfig
-    {
-        public string ClientId { get; set; }
-        public string ClientSecret { get; set; }
+    {       
+        public string FolderName { get; set; }      // Human-readable name (optional, for UI)
+        public string UserEmail { get; set; }
         public string RefreshToken { get; set; }
         public string TargetFolderId { get; set; }
+        public object FolderList { get; set; }
     }
 
 }

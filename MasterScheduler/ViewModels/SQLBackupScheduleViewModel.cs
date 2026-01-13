@@ -208,22 +208,26 @@ namespace MasterScheduler.ViewModels
             switch (destinationType)
             {
                 case "LocalFolder":
+                    var localConfig = (LocalFolderConfig)destination.Config;
                     var localDialog = new LocalPathBackupConfigDialog();
-                    localDialog.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
+                    localDialog.Owner = Application.Current.MainWindow;
+                    var data = (LocalPathDestinationModel)localDialog.DataContext;
+                    data.Path = localConfig?.TargetPath;
                     if (localDialog.ShowDialog() == true)
                     {
-                        var data = (LocalPathDestinationModel)localDialog.DataContext;
+                        data = (LocalPathDestinationModel)localDialog.DataContext;
                         var newConfig = new LocalFolderConfig { TargetPath = data.Path };
                         UpdateOrAddDestination(existingItem, DestinationType.LocalFolder, data.Path, newConfig);
                     }
                     break;
                 case "GoogleDrive":
-                    var googleDrive = new GoogleDriveConfigDialog();
-                    googleDrive.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
+                    var gDConfig = (GoogleDriveConfig)existingItem?.Config;
+                    var googleDrive = new GoogleDriveConfigDialog(gDConfig);
+                    googleDrive.Owner = Application.Current.MainWindow;
                     if (googleDrive.ShowDialog() == true)
                     {                        
                         GoogleDriveConfig gdConfig = googleDrive.ResultConfig;
-                        UpdateOrAddDestination(existingItem, DestinationType.GoogleDrive, gdConfig.TargetFolderId, gdConfig);
+                        UpdateOrAddDestination(existingItem, DestinationType.GoogleDrive, gdConfig.FolderName, gdConfig);
                     }                    
                     break;
                 //case "FTP":

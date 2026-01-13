@@ -22,6 +22,7 @@ namespace MasterScheduler.Shared.Data
 
             CreateJobsTable();
             CreateJobSettingsTable();
+            CreateGoogleSettingsTable();
             UpdateCrashedStatusJOb();
         }
 
@@ -47,7 +48,7 @@ namespace MasterScheduler.Shared.Data
             using var cmd2 = new SqliteCommand(sql, con);
             cmd2.ExecuteNonQuery();
         }
-
+        
         private static void CreateJobSettingsTable()
         {
             using var con = new SqliteConnection(ConnectionString);
@@ -62,7 +63,18 @@ namespace MasterScheduler.Shared.Data
             using var cmd2 = new SqliteCommand(sql, con);
             cmd2.ExecuteNonQuery();
         }
-        
+
+        private static void CreateGoogleSettingsTable()
+        {
+            using var con = new SqliteConnection(ConnectionString);
+            con.Open();
+            var sql = @"CREATE TABLE IF NOT EXISTS GoogleSettings (
+                        Key TEXT PRIMARY KEY,
+                        TokenJson TEXT                        
+                    );";
+            using var cmd2 = new SqliteCommand(sql, con);
+            cmd2.ExecuteNonQuery();
+        }
         private static void UpdateCrashedStatusJOb()
         {
             using var con = new SqliteConnection(ConnectionString);

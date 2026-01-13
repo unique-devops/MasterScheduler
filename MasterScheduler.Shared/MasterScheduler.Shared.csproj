@@ -4,7 +4,20 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <ApplicationIcon>fav.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="credentials.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="fav.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="credentials.json" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CronExpressionDescriptor" Version="2.44.0" />

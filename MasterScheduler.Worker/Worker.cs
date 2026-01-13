@@ -39,7 +39,7 @@ namespace MasterScheduler.Worker
 
             // Use a short delay for responsiveness, but the core logic handles the wait
             // We check every 500ms for new jobs, but only execute them at their target time.
-            const int checkIntervalMs = 500;
+            const int checkIntervalMs = 800;
 
             while (!stoppingToken.IsCancellationRequested)
             {

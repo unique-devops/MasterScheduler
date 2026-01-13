@@ -7,6 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <LangVersion>preview</LangVersion>
+    <ApplicationIcon>fav.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,6 +31,10 @@
     <None Remove="Assets\success.png" />
     <None Remove="Assets\sync.png" />
     <None Remove="Assets\task.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="fav.ico" />
   </ItemGroup>
 
   <ItemGroup>

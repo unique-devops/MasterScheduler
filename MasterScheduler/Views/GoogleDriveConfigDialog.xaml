@@ -7,27 +7,41 @@
         mc:Ignorable="d"
         Title="Google Drive Authorization" Height="380" Width="400" ResizeMode="NoResize" WindowStartupLocation="CenterOwner">
     <Grid Margin="20">
-        <StackPanel>
-            <TextBlock Text="Google Drive API Setup" FontSize="18" FontWeight="Bold" Margin="0,0,0,15"/>
+        <StackPanel Margin="12">
+                <TextBlock Text="Google Drive Configuration" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
 
-            <Label Content="Client ID:"/>
-            <TextBox x:Name="TxtClientId" Margin="0,0,0,10" Padding="3"/>
+                <GroupBox Header="Account Information" Margin="0,0,0,12">
+                    <Grid Margin="12">
+                        <Button x:Name="BtnAuthorize" Grid.Column="1" Content="Link Account" Click="BtnAuthorize_Click" Margin="10,0,0,0" Padding="10,2">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Content" Value="Authorize Google Drive" />
+                                    <Setter Property="Background" Value="#4285F4" />
+                                    <Setter Property="Foreground" Value="White" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                            <Setter Property="Content" Value="Connected ✅" />
+                                            <Setter Property="Background" Value="#34A853" />
+                                            <Setter Property="IsEnabled" Value="False" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </Grid>
+                </GroupBox>
 
-            <Label Content="Client Secret:"/>
-            <PasswordBox x:Name="TxtClientSecret" Margin="0,0,0,10" Padding="3"/>
+                <TextBlock Text="Backup Folder" Margin="0,5"/>
+                <DockPanel>
+                <TextBox x:Name="TxtFolderPath" IsReadOnly="True" Text="MSDataBackups"/>
+                <Button x:Name="btnCreateDriveFoder" Content="Create" Width="70" HorizontalAlignment="Right" Click="BtnCreateDriveFolder_Click"/>
+            </DockPanel>
 
-            <Label Content="Target Folder ID (Optional):"/>
-            <TextBox x:Name="TxtFolderId" Margin="0,0,0,20" Padding="3"/>
-
-            <TextBlock x:Name="StatusMsg" Margin="0,10,0,0" TextAlignment="Center" Foreground="Gray"/>
-            
-            <Button x:Name="BtnAuthorize" Content="Authorize &amp; Connect" 
-                    Height="25" Background="#4285F4" Foreground="White" FontWeight="Bold"
-                    Click="BtnAuthorize_Click"/>
-            <Button x:Name="btnCancel" Content="Cancel" Margin="0,5"
-                     Background="PaleVioletRed" Foreground="White" FontWeight="Bold"
-                      Height="25" Click="btnCancel_Click"/>
-            
-        </StackPanel>
+                <Separator Margin="0,20"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="btnTest" Content="Test" Margin="5" Background="LightGray" Click="btnTest_Click"/>
+                    <Button Content="Save Settings" Click="btnSave_Click" Margin="5" Background="SkyBlue"/>
+                </StackPanel>
+            </StackPanel>
     </Grid>
 </Window>

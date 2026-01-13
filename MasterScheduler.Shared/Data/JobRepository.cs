@@ -63,11 +63,12 @@ namespace MasterScheduler.Shared.Data
                     SELECT *
                     FROM Jobs
                     WHERE IsActive = 1                     
-                      AND NextRunTime IS NOT NULL
-                      AND datetime(NextRunTime) <= datetime('now','localtime')
+                      AND NextRunTime IS NOT NULL AND Status <> 'running'
+                      AND datetime(NextRunTime) <= datetime(@indiaNow)
                     ORDER BY datetime(NextRunTime) ASC;
                     ";
             using var cmd = new SqliteCommand(sql, con);
+            cmd.Parameters.AddWithValue("@indiaNow",CronosHelper.getTimeZone());
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {

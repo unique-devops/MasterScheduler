@@ -24,10 +24,10 @@ namespace MasterScheduler.Views
     /// </summary>
     public partial class LocalPathBackupConfigDialog : Window
     {
-        private readonly LocalPathDestinationModel pathDestination = new();
+        public LocalPathDestinationModel pathDestination = new();
         public LocalPathBackupConfigDialog()
         {
-            InitializeComponent();
+            InitializeComponent();           
             DataContext = pathDestination;
         }
 
