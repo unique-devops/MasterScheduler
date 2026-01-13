@@ -15,8 +15,8 @@ namespace MasterScheduler.ViewModels
 {
     public partial class SchedulerSettingsViewModel : ObservableObject
     {
-        [ObservableProperty] private string minute = "*";
-        [ObservableProperty] private string hour = "4";
+        [ObservableProperty] private string minute = "00";
+        [ObservableProperty] private string hour = "12";
         [ObservableProperty] private string day = "*";
         [ObservableProperty] private string month = "*";
         [ObservableProperty] private string weekday = "*";
@@ -48,11 +48,9 @@ namespace MasterScheduler.ViewModels
                 Hour = crons[1];
                 Day = crons[2];
                 Month = crons[3];
-                Weekday = crons[4];
-
-                // 3. Trigger the calculation logic
-                UpdateCronDetails();
+                Weekday = crons[4];               
             }
+            UpdateCronDetails();
         }
         private void UpdateCronDetails()
         {

@@ -23,5 +23,7 @@ namespace MasterScheduler.Models
         private string nextRunAt;
         [ObservableProperty]
         private string message;
+        [ObservableProperty]
+        private bool isActive;
     }
 }

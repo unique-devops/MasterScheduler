@@ -28,8 +28,7 @@ namespace MasterScheduler.Views
     /// </summary>
     public partial class GoogleDriveConfigDialog : Window, INotifyPropertyChanged
     {
-        private CancellationTokenSource _cts;
-
+       
         public GoogleDriveConfig ResultConfig = new GoogleDriveConfig();
 
         private bool _isConnected;
@@ -39,6 +38,7 @@ namespace MasterScheduler.Views
             set { _isConnected = value; OnPropertyChanged("IsConnected"); }
         }
         GoogleDriveHelper GoogleDriveHelper = new GoogleDriveHelper();
+        
         public GoogleDriveConfigDialog(GoogleDriveConfig googleDriveConfig)
         {
             InitializeComponent();
@@ -50,14 +50,12 @@ namespace MasterScheduler.Views
         {
             try
             {
-                UserCredential credential = await GoogleDriveHelper.GetSilentCredentialsAsync();
-                var testResult = await GoogleDriveHelper.TestAuthOnlyAsync(credential);               
-                IsConnected = testResult.success;
-                BtnAuthorize.Content = "Connected";
+                IsConnected = await GoogleDriveHelper.IsAuthorizedAsync(ResultConfig.UserEmail);               
+                BtnAuthorize.Content = IsConnected ? "Connected" : "Link Account";
             }
             catch
             {
-                BtnAuthorize.Content = "Link Accoun";
+                BtnAuthorize.Content = "Link Account";
                 IsConnected = false;
             }
 
@@ -67,17 +65,15 @@ namespace MasterScheduler.Views
             try
             {
                 // This opens the Gmail login page in the browser
-                UserCredential credential = await GoogleDriveHelper.GetCredentialsAsync();
+                UserCredential credential = await GoogleDriveHelper.AuthorizeTempAsync();
 
                 if (credential != null)
                 {
                     IsConnected = true;
-                    var details = await GoogleDriveHelper.GetAccountDetailsAndFolders(credential);
-
-                    // Update your WPF UI
-                    ResultConfig = details;
-                    IsConnected = true;
-                    BtnAuthorize.Content = "Connected";
+                    var loginInfo = await GoogleDriveHelper.GetLoginInfoAsync(credential);
+                    await GoogleDriveHelper.SaveAuthAsync(loginInfo.Email,credential);
+                    ResultConfig.UserEmail = loginInfo.Email;
+                    CheckExistingConnection();
                     MessageBox.Show("Drive Connected Successfully!");
                 }
             }
@@ -89,30 +85,34 @@ namespace MasterScheduler.Views
             }
 
         }
-
         private async void BtnAuthorize_Click(object sender, RoutedEventArgs e)
         {
             await AuthenticateGoogleDrive();
         }
-
         private async void BtnCreateDriveFolder_Click(object sender, RoutedEventArgs e)
         {
-            string userInputName = TxtFolderPath.Text; // e.g., "My SQL Backups"
-            if (string.IsNullOrWhiteSpace(userInputName)) return;
-            // Get the ID (either existing or newly created)
-            UserCredential credential = await GoogleDriveHelper.GetSilentCredentialsAsync();
-            string finalFolderId = await GoogleDriveHelper.GetOrCreateFolderAsync(credential, userInputName);
+            try
+            {
+                string folderName = TxtFolderPath.Text; // e.g., "My SQL Backups"
+                if (string.IsNullOrWhiteSpace(folderName)) return;
+                // Get the ID (either existing or newly created)
+                UserCredential credential = await GoogleDriveHelper.GetAccountCredentialsAsync(ResultConfig.UserEmail);
+                string finalFolderId = await GoogleDriveHelper.GetOrCreateFolderAsync(credential, folderName);
 
-            // Save this ID to your ResultConfig and SQLite
-            ResultConfig?.TargetFolderId = finalFolderId;
-            ResultConfig?.FolderName = userInputName;           
+                // Save this ID to your ResultConfig and SQLite
+                ResultConfig?.TargetFolderId = finalFolderId;
+                ResultConfig?.FolderName = folderName;
 
-            MessageBox.Show("Folder linked successfully!");
+                MessageBox.Show("Folder linked successfully!");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private void btnCancel_Click(object sender, RoutedEventArgs e)
-        {
-            _cts?.Cancel();
+        {           
             Close();
         }
         private void btnSave_Click(object sender, RoutedEventArgs e)
@@ -129,14 +129,11 @@ namespace MasterScheduler.Views
 
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));       
-
         private async void btnTest_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                UserCredential credential = await GoogleDriveHelper.GetSilentCredentialsAsync();
+                UserCredential credential = await GoogleDriveHelper.GetAccountCredentialsAsync(ResultConfig?.UserEmail);
                 var testResult = await GoogleDriveHelper.TestConnectionAsync(credential, ResultConfig?.TargetFolderId);
                 MessageBox.Show(testResult.message);
             }
@@ -144,7 +141,12 @@ namespace MasterScheduler.Views
             {
                 MessageBox.Show(ex.Message);
             }
-            
+
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));       
+
+        
     }
 }

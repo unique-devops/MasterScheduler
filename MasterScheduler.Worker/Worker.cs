@@ -9,6 +9,7 @@ using Quartz.Spi;
 using Serilog.Context;
 using System.Collections.Concurrent;
 using System.Text.Json;
+using static Quartz.Logging.OperationName;
 
 namespace MasterScheduler.Worker
 {
@@ -177,7 +178,7 @@ namespace MasterScheduler.Worker
             if (_activeJobs.TryGetValue(jobId, out var cts))
             {
                 _logger.LogWarning("UI requested cancellation for Job {id}", jobId);
-                cts.Cancel();
+                cts.Cancel();                
             }            
         }       
         

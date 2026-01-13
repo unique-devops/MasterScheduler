@@ -2,9 +2,12 @@
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Drive.v3;
+using Google.Apis.Oauth2.v2;
 using Google.Apis.Services;
+using Google.Apis.Util.Store;
 using MasterScheduler.Shared.Data;
 using MasterScheduler.Shared.DataModels;
+using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,28 +19,51 @@ namespace MasterScheduler.Shared.JobHelper
     public class GoogleDriveHelper
     {
         private readonly string _appName = "MasterScheduler";
-        public async Task<UserCredential> GetCredentialsAsync()
+
+        public async Task<bool> IsAuthorizedAsync(string email)
+        {
+            var dataStore = new MySqliteDataStore();
+
+            var token = await dataStore.GetAsync<TokenResponse>(email);
+            return (token != null);            
+        }
+
+        public async Task<UserCredential> AuthorizeTempAsync()
         {
             var assembly = typeof(GoogleDriveHelper).Assembly;
-            // Check the exact path (Namespace.FileName.json)
             string resourceName = "MasterScheduler.Shared.credentials.json";
 
-            using (Stream stream = assembly?.GetManifestResourceStream(resourceName))
-            {
-                if (stream == null) throw new Exception("Credential resource not found!");
-
-                // Use your SQLite-backed DataStore instead of FileDataStore
-                var dataStore = new MySqliteDataStore();
-
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            {                               
+                // This call will now be 100% silent because the token exists in the dataStore
                 return await GoogleWebAuthorizationBroker.AuthorizeAsync(
                     GoogleClientSecrets.FromStream(stream).Secrets,
                     new[] { DriveService.Scope.DriveFile, "https://www.googleapis.com/auth/userinfo.email" },
-                    "user",
+                    "temp",
                     CancellationToken.None,
-                    dataStore);
+                    new NullDataStore());
             }
         }
-        public async Task<UserCredential> GetSilentCredentialsAsync()
+
+        public async Task<(string Email, string GoogleUserId)> GetLoginInfoAsync(UserCredential credential)
+        {
+            var oauth2 = new Oauth2Service(new BaseClientService.Initializer
+            {
+                HttpClientInitializer = credential
+            });
+
+            var user = await oauth2.Userinfo.Get().ExecuteAsync();
+            return (user.Email, user.Id);
+        }
+
+        public async Task SaveAuthAsync(string email, UserCredential credential)
+        {
+            var dataStore = new MySqliteDataStore();
+
+            await dataStore.StoreAsync(email, credential.Token);
+        }
+               
+        public async Task<UserCredential> GetAccountCredentialsAsync(string Email)
         {
             var assembly = typeof(GoogleDriveHelper).Assembly;
             string resourceName = "MasterScheduler.Shared.credentials.json";
@@ -47,7 +73,7 @@ namespace MasterScheduler.Shared.JobHelper
                 var dataStore = new MySqliteDataStore();
 
                 // IMPORTANT: Check if the token exists for the "user" key in SQLite first
-                var existingToken = await dataStore.GetAsync<TokenResponse>("user");
+                var existingToken = await dataStore.GetAsync<TokenResponse>(Email);
 
                 if (existingToken == null)
                 {
@@ -59,45 +85,19 @@ namespace MasterScheduler.Shared.JobHelper
                 return await GoogleWebAuthorizationBroker.AuthorizeAsync(
                     GoogleClientSecrets.FromStream(stream).Secrets,
                     new[] { DriveService.Scope.DriveFile, "https://www.googleapis.com/auth/userinfo.email" },
-                    "user",
+                    Email,
                     CancellationToken.None,
                     dataStore);
             }
+
         }
-        public async Task<GoogleDriveConfig> GetAccountDetailsAndFolders(UserCredential credential)
-        {
-            // 1. Create the Drive Service
-            var driveService = new DriveService(new BaseClientService.Initializer()
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = _appName
-            });
 
-            // 2. GET EMAIL: Use the 'About' service
-            var aboutRequest = driveService.About.Get();
-            aboutRequest.Fields = "user";
-            var about = await aboutRequest.ExecuteAsync();
-            string userEmail = about.User.EmailAddress;
-
-            // 3. GET FOLDERS: List all folders so the user can pick one in WPF
-            var listRequest = driveService.Files.List();
-            listRequest.Q = "mimeType = 'application/vnd.google-apps.folder' and trashed = false";
-            listRequest.Fields = "files(id, name)";
-            var folderList = await listRequest.ExecuteAsync();
-
-            // Now you have everything!
-            return new GoogleDriveConfig
-            {
-                UserEmail = userEmail,
-                FolderList = folderList.Files.ToList() // Pass this to your WPF ComboBox
-            };
-        }
         public async Task<string> GetOrCreateFolderAsync(UserCredential credential, string folderName)
         {
             var service = new DriveService(new BaseClientService.Initializer()
             {
                 HttpClientInitializer = credential,
-                ApplicationName = _appName
+                ApplicationName = _appName               
             });
 
             // 1. SEARCH: Check if a folder with this name already exists
@@ -127,6 +127,36 @@ namespace MasterScheduler.Shared.JobHelper
             var newFolder = await createRequest.ExecuteAsync();
             return newFolder.Id;
         }
+        
+        public async Task<GoogleDriveConfig> GetAccountDetailsAndFolders(UserCredential credential)
+        {
+            // 1. Create the Drive Service
+            var driveService = new DriveService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = _appName
+            });
+
+            // 2. GET EMAIL: Use the 'About' service
+            var aboutRequest = driveService.About.Get();
+            aboutRequest.Fields = "user";
+            var about = await aboutRequest.ExecuteAsync();
+            string userEmail = about.User.EmailAddress;
+
+            // 3. GET FOLDERS: List all folders so the user can pick one in WPF
+            var listRequest = driveService.Files.List();
+            listRequest.Q = "mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+            listRequest.Fields = "files(id, name)";
+            var folderList = await listRequest.ExecuteAsync();
+
+            // Now you have everything!
+            return new GoogleDriveConfig
+            {
+                UserEmail = userEmail,
+                FolderList = folderList.Files.ToList() // Pass this to your WPF ComboBox
+            };
+        }
+        
         public async Task<(bool success, string email)> TestAuthOnlyAsync(UserCredential credential)
         {
             try
@@ -193,22 +223,17 @@ namespace MasterScheduler.Shared.JobHelper
                 return (false, $"Error: {ex.Message}");
             }
         }
-        public async Task UploadBackup(UserCredential credential, string filePath,GoogleDriveConfig driveConfig)
+       
+        public async Task UploadBackup(UserCredential credential, string filePath,GoogleDriveConfig driveConfig, CancellationToken ct)
         {
             var service = new DriveService(new BaseClientService.Initializer()
             {
                 HttpClientInitializer = credential,
                 ApplicationName = _appName,
             });
-            try
-            {
-                // Try to get folder info to verify it still exists
-                await service.Files.Get(driveConfig.TargetFolderId).ExecuteAsync();
-            }
-            catch (GoogleApiException ex) when (ex.Error.Code == 404)
-            {               
-                throw new Exception("The target backup folder was not found on Google Drive.");
-            }
+
+            await service.Files.Get(driveConfig.TargetFolderId).ExecuteAsync(ct);
+
             var fileMetadata = new Google.Apis.Drive.v3.Data.File()
             {
                 Name = Path.GetFileName(filePath),
@@ -222,7 +247,7 @@ namespace MasterScheduler.Shared.JobHelper
                 var request = service.Files.Create(fileMetadata, stream, "application/zip");
                 request.Fields = "id";
 
-                var progress = await request.UploadAsync();
+                var progress = await request.UploadAsync(ct);
 
                 if (progress.Status == Google.Apis.Upload.UploadStatus.Failed)
                 {
@@ -272,5 +297,72 @@ namespace MasterScheduler.Shared.JobHelper
                 }
             }
         }
+
+        public async Task<UserCredential> GetCredentialsAsync()
+        {
+            var assembly = typeof(GoogleDriveHelper).Assembly;
+            // Check the exact path (Namespace.FileName.json)
+            string resourceName = "MasterScheduler.Shared.credentials.json";
+
+            using (Stream stream = assembly?.GetManifestResourceStream(resourceName))
+            {
+                if (stream == null) throw new Exception("Credential resource not found!");
+
+                // Use your SQLite-backed DataStore instead of FileDataStore
+                var dataStore = new MySqliteDataStore();
+
+                return await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                    GoogleClientSecrets.FromStream(stream).Secrets,
+                    new[] { DriveService.Scope.DriveFile, "https://www.googleapis.com/auth/userinfo.email" },
+                    "user",
+                    CancellationToken.None,
+                    dataStore);
+            }
+        }
+
+        public async Task<UserCredential> GetSilentCredentialsAsync()
+        {
+            var assembly = typeof(GoogleDriveHelper).Assembly;
+            string resourceName = "MasterScheduler.Shared.credentials.json";
+
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            {
+                var dataStore = new MySqliteDataStore();
+
+                // IMPORTANT: Check if the token exists for the "user" key in SQLite first
+                var existingToken = await dataStore.GetAsync<TokenResponse>("user");
+
+                if (existingToken == null)
+                {
+                    // If no token, do NOT call AuthorizeAsync (it would try to open browser)
+                    throw new Exception("No Google Drive token found in database. Please authorize via the UI first.");
+                }
+
+                // This call will now be 100% silent because the token exists in the dataStore
+                return await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                    GoogleClientSecrets.FromStream(stream).Secrets,
+                    new[] { DriveService.Scope.DriveFile, "https://www.googleapis.com/auth/userinfo.email" },
+                    "user",
+                    CancellationToken.None,
+                    dataStore);
+            }
+        }
+        public async Task<IList<Google.Apis.Drive.v3.Data.File>> GetDriveFoldersAsync(UserCredential credential)
+        {
+            var service = new DriveService(new BaseClientService.Initializer
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "MasterScheduler"
+            });
+
+            var request = service.Files.List();
+            request.Q = "mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+            request.Fields = "files(id, name)";
+            request.Spaces = "drive";
+
+            var result = await request.ExecuteAsync();
+            return result.Files;
+        }
+
     }
 }

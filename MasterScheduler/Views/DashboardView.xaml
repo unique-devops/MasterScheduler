@@ -1,303 +1,322 @@
 ﻿<UserControl x:Class="MasterScheduler.Views.DashboardView"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:fa="http://schemas.fontawesome.io/icons/"
-        xmlns:local="clr-namespace:MasterScheduler.Views"
-        xmlns:crt="clr-namespace:MasterScheduler.Converter"
-        xmlns:gif="http://wpfanimatedgif.codeplex.com"
-        mc:Ignorable="d"
-        d:DesignHeight="450" d:DesignWidth="800" Loaded="UserControl_Loaded">
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:fa="http://schemas.fontawesome.io/icons/"
+             xmlns:local="clr-namespace:MasterScheduler.Views"
+             xmlns:crt="clr-namespace:MasterScheduler.Converter"
+             xmlns:gif="http://wpfanimatedgif.codeplex.com"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="1000" Loaded="UserControl_Loaded">
+
     <UserControl.Resources>
         <crt:RunningToVisibilityConverter x:Key="RunningToVisibilityConverter"/>
         <crt:NotRunningToVisibilityConverter x:Key="NotRunningToVisibilityConverter"/>
         <crt:StatusToBrushConverter x:Key="StatusToBrushConverter"/>
+
+        <Style x:Key="ToolbarButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#F8F9FA"/>
+            <Setter Property="BorderBrush" Value="#DEE2E6"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="4"/>
+                </Style>
+            </Style.Resources>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E9ECEF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="JobToggleStyle" TargetType="CheckBox">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <BulletDecorator Background="Transparent">
+                            <BulletDecorator.Bullet>
+                                <Border x:Name="Background" Width="35" Height="18" CornerRadius="9" Background="#CBD5E1" BorderThickness="0">
+                                    <Ellipse x:Name="Dot" Width="14" Height="14" HorizontalAlignment="Left" Margin="2,0" Fill="White">
+                                        <Ellipse.RenderTransform>
+                                            <TranslateTransform X="0"/>
+                                        </Ellipse.RenderTransform>
+                                    </Ellipse>
+                                </Border>
+                            </BulletDecorator.Bullet>
+                        </BulletDecorator>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Background" Property="Background" Value="#22C55E"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Dot" Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" To="17" Duration="0:0:0.1"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Dot" Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" To="0" Duration="0:0:0.1"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
-    <Grid Margin="10">
+
+    <Grid Background="#F4F7F9">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="28"/>
         </Grid.RowDefinitions>
 
-        <!-- Toolbar -->
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,10" HorizontalAlignment="Left">
-            <Button Width="120" Margin="5" ToolTip="Add a new job" Command="{Binding AddJobCommand}">
-                <StackPanel Orientation="Horizontal">
-                    <fa:ImageAwesome Icon="PlusCircle" Width="16" Height="16" Margin="0,0,5,0"/>
-                    <TextBlock Text="Add Job"/>
+        <Border Grid.Row="0" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="15,10">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding AddJobCommand}" ToolTip="Add a new job">
+                        <StackPanel Orientation="Horizontal">
+                            <fa:ImageAwesome Icon="PlusCircle" Width="14" Height="14" Foreground="#28A745" Margin="0,0,8,0"/>
+                            <TextBlock Text="Add Job" FontWeight="Medium" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Style="{StaticResource ToolbarButtonStyle}" ToolTip="Enable all jobs">
+                        <StackPanel Orientation="Horizontal">
+                            <fa:ImageAwesome Icon="ToggleOn" Width="14" Height="14" Foreground="#007BFF" Margin="0,0,8,0"/>
+                            <TextBlock Text="Enable All" FontWeight="Medium" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Style="{StaticResource ToolbarButtonStyle}" ToolTip="Disable all jobs">
+                        <StackPanel Orientation="Horizontal">
+                            <fa:ImageAwesome Icon="ToggleOff" Width="14" Height="14" Foreground="#6C757D" Margin="0,0,8,0"/>
+                            <TextBlock Text="Disable All" FontWeight="Medium" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
-            </Button>
-            <Button Width="120" Margin="5" ToolTip="Enable all jobs">
-                <StackPanel Orientation="Horizontal">
-                    <fa:ImageAwesome Icon="ToggleOn" Width="16" Height="16" Margin="0,0,5,0"/>
-                    <TextBlock Text="Enable All"/>
-                </StackPanel>
-            </Button>
-            <Button Width="120" Margin="5" ToolTip="Disable all jobs">
-                <StackPanel Orientation="Horizontal">
-                    <fa:ImageAwesome Icon="ToggleOff" Width="16" Height="16" Margin="0,0,5,0"/>
-                    <TextBlock Text="Disable All"/>
-                </StackPanel>
-            </Button>
-            <Button Width="120" Margin="5" ToolTip="Clear Genaral Logs" Command="{Binding LogsCommand}">
-                <StackPanel Orientation="Horizontal">
-                    <fa:ImageAwesome Icon="Info" Width="16" Height="16" Margin="0,0,5,0"/>
-                    <TextBlock Text="Logs"/>
-                </StackPanel>
-            </Button>
-        </StackPanel>
 
-        <!-- Job Monitor Grid -->
-        <DataGrid Grid.Row="1" x:Name="dataGrid"
-                  ItemsSource="{Binding Jobs}" 
-                  SelectedItem="{Binding SelectedJob ,Mode=TwoWay}"
-                  AutoGenerateColumns="False"
-                  CanUserDeleteRows="False"
-                  IsReadOnly="True"                 
-                  HeadersVisibility="Column"                 
-                  SelectionMode="Single"
-                  SelectionUnit="FullRow"
-                  GridLinesVisibility="Vertical"
-                  Background="White"
-                  BorderBrush="#DDD"
-                  BorderThickness="1"
-                  RowHeight="30"
-                  FontSize="13"   
-                  Focusable="True"                  
-                  HorizontalGridLinesBrush="#EEE"
-                  VerticalGridLinesBrush="#EEE" PreviewKeyDown="DataGrid_KeyDown">
-            <DataGrid.Resources>
-                <Style TargetType="{x:Type DataGridCell}">
-                    <Setter Property="BorderThickness" Value="0" />
-                    <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-                </Style>
-                <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="FontWeight" Value="SemiBold"/>
-                </Style>
-                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#c5dadb"/>
-                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent"/>
-                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="Black"/>
-            </DataGrid.Resources>
-            
-            <!--<DataGrid.CellStyle>
-                <Style TargetType="DataGridCell">
-                    <Style.Triggers>
-                        <Trigger Property="IsSelected"
-                        Value="True">
-                            <Setter Property="Foreground"
-                        Value="Black" />
-                            <Setter Property="BorderThickness" Value="0"/>
-                            <Setter Property="BorderBrush" Value="Transparent"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </DataGrid.CellStyle>-->           
-            
-            <DataGrid.Style>
-                <Style TargetType="DataGrid">
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding Jobs.Count}" Value="0">
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="DataGrid">
-                                        <Grid Background="White">
-                                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                <TextBlock Text="No job available"
-                                                   VerticalAlignment="Center"
-                                                   HorizontalAlignment="Center"
-                                                   FontSize="16"
-                                                   Foreground="Gray"
-                                                   FontWeight="SemiBold"/>
-                                                <Button  Command="{Binding AddJobCommand}">
-                                                    <fa:ImageAwesome Icon="PlusCircle" Width="16" Height="16" Margin="0,0,5,0"/>
-                                                </Button>
-                                            </StackPanel>
-                                        </Grid>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </DataGrid.Style>
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="ID"  Binding="{Binding Id}" MinWidth="60" Width="80">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="VerticalAlignment" Value="Center"/>
-                            <Setter Property="Padding" Value="5 0"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-                <DataGridTextColumn Header="Name"  Binding="{Binding Name}" MinWidth="100" Width="200">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="VerticalAlignment" Value="Center"/>
-                            <Setter Property="Padding" Value="5 0"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-                <DataGridTextColumn Header="Type" Binding="{Binding JobType}" MinWidth="60" Width="100">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="VerticalAlignment" Value="Center"/>
-                            <Setter Property="Padding" Value="5 0"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-                <!--<DataGridTextColumn Header="Status" Binding="{Binding status}" Width="120"/>-->
-                <DataGridTextColumn Header="Last Run" Binding="{Binding LastRunAt}" Width="150">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="VerticalAlignment" Value="Center"/>
-                            <Setter Property="Padding" Value="5 0"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-                <DataGridTextColumn Header="Next Run" Binding="{Binding NextRunAt}" Width="150">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="VerticalAlignment" Value="Center"/>
-                            <Setter Property="Padding" Value="5 0"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
+                <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding LogsCommand}" DockPanel.Dock="Right" HorizontalAlignment="Right" Margin="0">
+                    <StackPanel Orientation="Horizontal">
+                        <fa:ImageAwesome Icon="ListAlt" Width="14" Height="14" Foreground="#17A2B8" Margin="0,0,8,0"/>
+                        <TextBlock Text="View Logs" FontWeight="Medium" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </DockPanel>
+        </Border>
 
-               
-                
+        <Grid Grid.Row="1" Margin="15">
+            <DataGrid x:Name="dataGrid"
+                      ItemsSource="{Binding Jobs}" 
+                      SelectedItem="{Binding SelectedJob, Mode=TwoWay}"
+                      AutoGenerateColumns="False"
+                      CanUserDeleteRows="False"
+                      IsReadOnly="True"                  
+                      HeadersVisibility="Column"                  
+                      SelectionMode="Single"
+                      SelectionUnit="FullRow"
+                      GridLinesVisibility="Horizontal"
+                      HorizontalGridLinesBrush="#F0F0F0"
+                      Background="White"
+                      BorderBrush="#E0E0E0"
+                      BorderThickness="1"
+                      RowHeight="40"
+                      FontSize="13"   
+                      PreviewKeyDown="DataGrid_KeyDown">
 
-                <DataGridTemplateColumn Header="Status" MinWidth="50" Width="*">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Grid HorizontalAlignment="Left" Margin="2,0" VerticalAlignment="Center">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="50"/>
-                                    <ColumnDefinition/>
-                                </Grid.ColumnDefinitions>
-                                <!-- Spinner GIF -->
-                                <!-- Animated GIF -->
-                                <Image gif:ImageBehavior.AnimatedSource="/Assets/loading.gif"
-                                       Width="20" Height="20" Grid.Column="0"
-                                       Visibility="{Binding Status, Converter={StaticResource RunningToVisibilityConverter}}"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"/>
+                <DataGrid.Resources>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Background" Value="#F8F9FA"/>
+                        <Setter Property="Foreground" Value="#495057"/>
+                        <Setter Property="Padding" Value="10,8"/>
+                        <Setter Property="FontWeight" Value="SemiBold"/>
+                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                        <Setter Property="BorderBrush" Value="#DEE2E6"/>
+                    </Style>
 
-                                <Image Width="20" Height="20" Grid.Column="0" 
-                                   Visibility="{Binding Status, Converter={StaticResource NotRunningToVisibilityConverter}}"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center">
-                                    <Image.Style>
-                                        <Style TargetType="Image">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                            <Style.Triggers>
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="BorderThickness" Value="0" />
+                        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="DataGridCell">
+                                    <Border Background="{TemplateBinding Background}" Padding="5,0">
+                                        <ContentPresenter VerticalAlignment="Center" />
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
 
-                                                <!-- SUCCESS -->
-                                                <DataTrigger Binding="{Binding Status}" Value="completed">
-                                                    <Setter Property="gif:ImageBehavior.AnimatedSource" Value="{x:Null}"/>
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                    <Setter Property="Source" Value="/Assets/success.png"/>
-                                                   
-                                                </DataTrigger>
+                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#E7F1FF"/>
+                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#0056B3"/>
+                </DataGrid.Resources>
 
-                                                <!-- ERROR -->
-                                                <DataTrigger Binding="{Binding Status}" Value="error">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                    <Setter Property="Source" Value="/Assets/error.png"/>
-                                                    <Setter Property="gif:ImageBehavior.AnimatedSource" Value="{x:Null}"/>
-                                                </DataTrigger>
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FAFAFA"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
 
-                                                <!-- ERROR -->
-                                                <DataTrigger Binding="{Binding Status}" Value="failed">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                    <Setter Property="Source" Value="/Assets/error.png"/>
-                                                    <Setter Property="gif:ImageBehavior.AnimatedSource" Value="{x:Null}"/>
-                                                </DataTrigger>
+                <DataGrid.Style>
+                    <Style TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Jobs.Count}" Value="0">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="DataGrid">
+                                            <Border Background="White" BorderBrush="#DDD" BorderThickness="1" CornerRadius="4">
+                                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                    <fa:ImageAwesome Icon="Inbox" Width="48" Height="48" Foreground="#DEE2E6" Margin="0,0,0,15"/>
+                                                    <TextBlock Text="No scheduled jobs found" FontSize="16" Foreground="#ADB5BD" FontWeight="Light"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.Style>
 
-                                                <!-- ERROR -->
-                                                <DataTrigger Binding="{Binding Status}" Value="cancelled">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                    <Setter Property="Source" Value="/Assets/error.png"/>
-                                                    <Setter Property="gif:ImageBehavior.AnimatedSource" Value="{x:Null}"/>
-                                                </DataTrigger>
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="Active" Width="60">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsActive, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                    Style="{StaticResource JobToggleStyle}" Command="{Binding DataContext.ToggleJobCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                    CommandParameter="{Binding}"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
 
-                                                <!-- PENDING -->
-                                                <DataTrigger Binding="{Binding Status}" Value="pending">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                    <Setter Property="Source" Value="/Assets/pending.png"/>
-                                                    <Setter Property="gif:ImageBehavior.AnimatedSource" Value="{x:Null}"/>
-                                                </DataTrigger>
+                    <DataGridTextColumn Header="Job Name" Binding="{Binding Name}" Width="2*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
 
-                                                <!-- INACTIVE -->
-                                                <DataTrigger Binding="{Binding Status}" Value="inactive">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                    <Setter Property="Source" Value="/Assets/inactive.png"/>
-                                                    <Setter Property="gif:ImageBehavior.AnimatedSource" Value="{x:Null}"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Image.Style>
-                                </Image>
+                    <DataGridTextColumn Header="Type" Binding="{Binding JobType}" Width="100"/>
 
+                    <DataGridTextColumn Header="Last Run" Binding="{Binding LastRunAt, StringFormat=\{0:MM/dd HH:mm\}}" Width="140"/>
 
+                    <DataGridTextColumn Header="Next Run" Binding="{Binding NextRunAt, StringFormat=\{0:MM/dd HH:mm\}}" Width="140"/>
 
-                                <!-- Text -->
-                                <TextBlock Text="{Binding Message}" Grid.Column="1"
-                                   FontWeight="SemiBold"
-                                   Foreground="{Binding Status, Converter={StaticResource StatusToBrushConverter}}"
-                                   HorizontalAlignment="Left"
-                                   VerticalAlignment="Center"/>
-                            </Grid>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                
-                <!-- Action Buttons Column -->
-                <DataGridTemplateColumn Visibility="Visible" Header="Action" MinWidth="50" Width="60">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel  Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Menu Background="Transparent" Visibility="{Binding Status, Converter={StaticResource NotRunningToVisibilityConverter}}">
-                                    <MenuItem Padding="2">
-                                        <MenuItem.Header>
-                                            <Image Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                Source="/Assets/ellipse.png"/>
-                              
-                                            <!--<fa:ImageAwesome Icon="EllipsisV" Width="14" Height="14"/>-->
-                                        </MenuItem.Header>
-                                        <MenuItem Header="Run now" Command="{Binding DataContext.RunNowJobCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}">
-                                            <MenuItem.Icon>
-                                                <fa:ImageAwesome Icon="Play" Width="14" Height="14"/>
-                                            </MenuItem.Icon>
+                    <DataGridTemplateColumn Header="Status" Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Grid Margin="0,0,8,0">
+                                        <Image gif:ImageBehavior.AnimatedSource="/Assets/loading.gif" Width="18" Height="18"
+                                               Visibility="{Binding Status, Converter={StaticResource RunningToVisibilityConverter}}"/>
+
+                                        <Image Width="18" Height="18" Visibility="{Binding Status, Converter={StaticResource NotRunningToVisibilityConverter}}">
+                                            <Image.Style>
+                                                <Style TargetType="Image">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Status}" Value="completed">
+                                                            <Setter Property="Source" Value="/Assets/success.png"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Status}" Value="error">
+                                                            <Setter Property="Source" Value="/Assets/error.png"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Status}" Value="failed">
+                                                            <Setter Property="Source" Value="/Assets/error.png"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Status}" Value="pending">
+                                                            <Setter Property="Source" Value="/Assets/pending.png"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Image.Style>
+                                        </Image>
+                                    </Grid>
+
+                                    <TextBlock Text="{Binding Message}" 
+                                               Foreground="{Binding Status, Converter={StaticResource StatusToBrushConverter}}"
+                                               FontWeight="Medium" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Header="Actions" Width="80">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Menu Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                          Visibility="{Binding Status, Converter={StaticResource NotRunningToVisibilityConverter}}">
+                                        <MenuItem Padding="4">
+                                            <MenuItem.Header>
+                                                <fa:ImageAwesome Icon="EllipsisH" Width="16" Height="16" Foreground="#6C757D"/>
+                                            </MenuItem.Header>
+                                            <MenuItem Header="Run Now" Command="{Binding DataContext.RunNowJobCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}">
+                                                <MenuItem.Icon>
+                                                    <fa:ImageAwesome Icon="Play" Foreground="Green"/>
+                                                </MenuItem.Icon>
+                                            </MenuItem>
+                                            <MenuItem Header="Configure" Command="{Binding DataContext.ConfigJobCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}">
+                                                <MenuItem.Icon>
+                                                    <fa:ImageAwesome Icon="Cogs" Foreground="Gray"/>
+                                                </MenuItem.Icon>
+                                            </MenuItem>
+                                            <Separator/>
+                                            <MenuItem Header="Delete" Command="{Binding DataContext.DeleteJobCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}">
+                                                <MenuItem.Icon>
+                                                    <fa:ImageAwesome Icon="Trash" Foreground="Red"/>
+                                                </MenuItem.Icon>
+                                            </MenuItem>
                                         </MenuItem>
-                                        <MenuItem Header="Delete" Command="{Binding DataContext.DeleteJobCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}">
-                                            <MenuItem.Icon>
-                                                <fa:ImageAwesome Icon="Remove" Width="14" Height="14"/>
-                                            </MenuItem.Icon>
-                                        </MenuItem>
-                                        <MenuItem Header="Config" Command="{Binding DataContext.ConfigJobCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}">
-                                            <MenuItem.Icon>
-                                                <fa:ImageAwesome Icon="Cogs" Width="14" Height="14"/>
-                                            </MenuItem.Icon>
-                                        </MenuItem>
-                                    </MenuItem>
-                                </Menu>
-                                <Button Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Width="20" Height="20" ToolTip="Stop Job" Visibility="{Binding Status, Converter={StaticResource RunningToVisibilityConverter}}"
-                                        Command="{Binding DataContext.StopJobCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                        CommandParameter="{Binding}" Margin="2">
-                                    <!--<fa:ImageAwesome Icon="Stop" Width="14" Height="14"/>-->
-                                    <Image Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                           Source="/Assets/stop.png"/>
-                                    
+                                    </Menu>
 
-                                </Button>
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+                                    <Button Background="Transparent" BorderThickness="0" ToolTip="Stop Job"
+                                            Visibility="{Binding Status, Converter={StaticResource RunningToVisibilityConverter}}"
+                                            Command="{Binding DataContext.StopJobCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}">
+                                        <fa:ImageAwesome Icon="StopCircle" Width="18" Height="18" Foreground="#DC3545"/>
+                                    </Button>
+                                </Grid>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+        <Border Grid.Row="2" Background="#333" Padding="15,0">
+            <DockPanel VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="v1.0.4" Foreground="#AAA" FontSize="11" VerticalAlignment="Center" Margin="0,0,15,0"/>
+                    <Ellipse Width="8" Height="8" Fill="#22C55E" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                    <TextBlock Text="Scheduler Engine: Active" Foreground="White" FontSize="11" VerticalAlignment="Center"/>
+                </StackPanel>
 
-            </DataGrid.Columns>
-        </DataGrid>
-        
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <TextBlock Text="SENDER STATUS:" Foreground="#AAA" FontSize="10" VerticalAlignment="Center" FontWeight="Bold" Margin="0,0,10,0"/>
+                    <Border Background="#F59E0B" CornerRadius="3" Padding="5,1" VerticalAlignment="Center">
+                        <TextBlock Text="TRIAL VERSION" Foreground="Black" FontSize="10" FontWeight="Bold"/>
+                    </Border>
+                    <TextBlock Text=" - 12 Days Remaining" Foreground="#EEE" FontSize="11" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
     </Grid>
 </UserControl>

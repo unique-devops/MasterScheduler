@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using MasterScheduler.Interface;
 using MasterScheduler.Models;
 using MasterScheduler.Shared.Data;
+using MasterScheduler.Shared.DataModels;
 using MasterScheduler.Views;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -63,7 +64,8 @@ namespace MasterScheduler.ViewModels
                                 NextRunAt = dbJob.NextRunTime.ToString(),
                                 LastRunAt = dbJob.LastRunTime.ToString(),
                                 Status = dbJob.Status,
-                                Message = dbJob.Message
+                                Message = dbJob.Message,
+                                IsActive = dbJob.IsActive
                             });
                         }
                         else
@@ -73,6 +75,7 @@ namespace MasterScheduler.ViewModels
                             uiJob.LastRunAt = dbJob.LastRunTime.ToString();
                             uiJob.Status = dbJob.Status;
                             uiJob.Message = dbJob.Message;
+                            uiJob.IsActive = dbJob.IsActive;
                         }
                     }
                 });
@@ -117,6 +120,14 @@ namespace MasterScheduler.ViewModels
                     index = Jobs.Count - 1;                
                 SelectedJob = Jobs[index];                
             }           
+        }
+
+        [RelayCommand]
+        private void OnToggleJob(ScheduledJobDto job)
+        {
+            if (job == null) return;
+            
+            _repo.ActiveInActive(job.Id,job.IsActive);                       
         }
 
         [RelayCommand]

@@ -64,13 +64,28 @@ namespace MasterScheduler.Shared.Data
             cmd2.ExecuteNonQuery();
         }
 
+        //private static void CreateGoogleSettingsTable()
+        //{
+        //    using var con = new SqliteConnection(ConnectionString);
+        //    con.Open();
+        //    var sql = @"CREATE TABLE IF NOT EXISTS GoogleSettings (
+        //                Key TEXT PRIMARY KEY,
+        //                TokenJson TEXT                        
+        //            );";
+        //    using var cmd2 = new SqliteCommand(sql, con);
+        //    cmd2.ExecuteNonQuery();
+        //}
         private static void CreateGoogleSettingsTable()
         {
             using var con = new SqliteConnection(ConnectionString);
             con.Open();
-            var sql = @"CREATE TABLE IF NOT EXISTS GoogleSettings (
-                        Key TEXT PRIMARY KEY,
-                        TokenJson TEXT                        
+            var sql = @"CREATE TABLE IF NOT EXISTS GoogleAccounts (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Email TEXT NOT NULL UNIQUE,
+                        GoogleUserId TEXT NULL,
+                        TokenJson TEXT NOT NULL,
+                        CreatedOn DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        LastUsedOn DATETIME
                     );";
             using var cmd2 = new SqliteCommand(sql, con);
             cmd2.ExecuteNonQuery();

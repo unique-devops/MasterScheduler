@@ -1,24 +1,11 @@
-﻿using Google.Apis.Auth.OAuth2;
-using Google.Apis.Auth.OAuth2.Flows;
-using Google.Apis.Auth.OAuth2.Responses;
-using Google.Apis.Drive.v3;
-using Google.Apis.Services;
-using Google.Apis.Upload;
-using MasterScheduler.Shared.Data;
-using MasterScheduler.Shared.DataModels;
+﻿using MasterScheduler.Shared.DataModels;
 using MasterScheduler.Shared.Enums;
 using MasterScheduler.Shared.Interface;
 using MasterScheduler.Shared.JobHelper;
 using Microsoft.Data.SqlClient;
-using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+using System.Numerics;
 
 namespace MasterScheduler.Shared.Service
 {
@@ -26,10 +13,12 @@ namespace MasterScheduler.Shared.Service
     {
         private IJobRepository _jobRepository;
         private ILogger<ScheduledJobStore> _logger;
-        public ScheduledJobStore(IJobRepository jobRepository, ILogger<ScheduledJobStore> logger)
+        private IEmailService _emailService;
+        public ScheduledJobStore(IJobRepository jobRepository, ILogger<ScheduledJobStore> logger,IEmailService emailService)
         {
             _jobRepository = jobRepository;
             _logger = logger;
+            _emailService = emailService;
         }
         public async Task RunSqlBackupAsync(JobModel job, CancellationToken token)
         {
@@ -79,7 +68,7 @@ namespace MasterScheduler.Shared.Service
                     {
                         await DeleteFileWithRetryAsync(localPath, 3);
                         _logger.LogInformation("Deleted temp file for Job {Id}", job.Id);
-                    }
+                    }                    
                 }
                 catch (OperationCanceledException)
                 {
@@ -101,6 +90,14 @@ namespace MasterScheduler.Shared.Service
                     
                 }               
             }
+
+            if (!string.IsNullOrWhiteSpace(sqlBackupDetails?.Notifications?.EmailOnSuccess))
+            {
+                
+                await _emailService.SendEmailAsync(sqlBackupDetails?.Notifications?.EmailOnSuccess, sqlBackupDetails?.JobName, $"The scheduler finished successfully at {DateTime.Now}", token);
+                _logger.LogWarning("SQL Backup Notification succes for Job {Id}", job.Id);
+            }
+            
         }
         async Task DeleteFileWithRetryAsync(string path, int retries)
         {
@@ -167,10 +164,11 @@ namespace MasterScheduler.Shared.Service
                 }
                 else if (destination.Type == DestinationType.GoogleDrive)
                 {
-                    GoogleDriveHelper googleDriveHelper = new GoogleDriveHelper();
-                    var cred = await googleDriveHelper.GetSilentCredentialsAsync();
+                    
                     var driveConfig = (GoogleDriveConfig)destination.Config;
-                    await googleDriveHelper.UploadBackup(cred,filePath, driveConfig);
+                    GoogleDriveHelper googleDriveHelper = new GoogleDriveHelper();
+                    var cred = await googleDriveHelper.GetAccountCredentialsAsync(driveConfig.UserEmail);
+                    await googleDriveHelper.UploadBackup(cred,filePath, driveConfig, token);
                     _logger.LogInformation("Uploaded to Google Drive (Job {id})", jobId);
 
                     //if (sqlBackupDetails.RetentionDays > 0)

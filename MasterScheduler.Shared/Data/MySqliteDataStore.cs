@@ -1,9 +1,11 @@
-﻿using Google.Apis.Util.Store;
+﻿using Dapper;
+using Google.Apis.Util.Store;
 using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,69 +18,81 @@ namespace MasterScheduler.Shared.Data
         {
             _connectionString = DatabaseHelper.ConnectionString;
         }
-        public Task StoreAsync<T>(string key, T value)
+
+        // 🔐 Encrypt
+        private string Protect(string plainText)
+        {
+            var bytes = Encoding.UTF8.GetBytes(plainText);
+            var encrypted = ProtectedData.Protect(bytes, null, DataProtectionScope.CurrentUser);
+
+            return Convert.ToBase64String(encrypted);
+        }
+
+        // 🔓 Decrypt
+        private string Unprotect(string cipherText)
+        {
+            var bytes = Convert.FromBase64String(cipherText);
+            var decrypted = ProtectedData.Unprotect(bytes, null, DataProtectionScope.CurrentUser);
+
+            return Encoding.UTF8.GetString(decrypted);
+        }
+        public async Task StoreAsync<T>(string key, T value)
         {
             var json = JsonConvert.SerializeObject(value);
+            var encrypted = Protect(json);
 
-            using (var connection = new SqliteConnection(_connectionString))
+            using var conn = new SqliteConnection(_connectionString);
+            await conn.OpenAsync();
+
+            var sql = @"
+                INSERT INTO GoogleAccounts (Email, TokenJson, LastUsedOn)
+                VALUES (@email, @json, DATETIME('now'))
+                ON CONFLICT(Email)
+                DO UPDATE SET
+                    TokenJson = excluded.TokenJson,
+                    LastUsedOn = DATETIME('now');";
+
+            await conn.ExecuteAsync(sql, new
             {
-                connection.Open();
-                var command = connection.CreateCommand();
-                command.CommandText = @"
-                INSERT INTO GoogleSettings (Key, TokenJson) 
-                VALUES ($key, $json)
-                ON CONFLICT(Key) DO UPDATE SET TokenJson = $json;";
-                command.Parameters.AddWithValue("$key", key);
-                command.Parameters.AddWithValue("$json", json);
-                command.ExecuteNonQuery();
-            }
-            return Task.CompletedTask;
+                email = key,
+                json = encrypted
+            });
         }
 
-        public Task<T> GetAsync<T>(string key)
+
+        public async Task<T> GetAsync<T>(string key)
         {
-            using (var connection = new SqliteConnection(_connectionString))
-            {
-                connection.Open();
-                var command = connection.CreateCommand();
-                command.CommandText = "SELECT TokenJson FROM GoogleSettings WHERE Key = $key";
-                command.Parameters.AddWithValue("$key", key);
+            using var conn = new SqliteConnection(_connectionString);
+            await conn.OpenAsync();
 
-                using (var reader = command.ExecuteReader())
-                {
-                    if (reader.Read())
-                    {
-                        var json = reader.GetString(0);
-                        return Task.FromResult(JsonConvert.DeserializeObject<T>(json));
-                    }
-                }
-            }
-            return Task.FromResult(default(T));
+            var encrypted = await conn.QueryFirstOrDefaultAsync<string>(
+                "SELECT TokenJson FROM GoogleAccounts WHERE Email = @key",
+                new { key });
+
+            if (string.IsNullOrEmpty(encrypted))
+                return default;
+
+            var json = Unprotect(encrypted);
+            return JsonConvert.DeserializeObject<T>(json);
         }
 
-        public Task DeleteAsync<T>(string key)
+        public async Task DeleteAsync<T>(string key)
         {
-            using (var connection = new SqliteConnection(_connectionString))
-            {
-                connection.Open();
-                var command = connection.CreateCommand();
-                command.CommandText = "DELETE FROM GoogleSettings WHERE Key = $key";
-                command.Parameters.AddWithValue("$key", key);
-                command.ExecuteNonQuery();
-            }
-            return Task.CompletedTask;
+            using var conn = new SqliteConnection(_connectionString);
+            await conn.OpenAsync();
+
+            await conn.ExecuteAsync(
+                "DELETE FROM GoogleAccounts WHERE Email = @key",
+                new { key });
         }
 
-        public Task ClearAsync()
+        public async Task ClearAsync()
         {
-            using (var connection = new SqliteConnection(_connectionString))
-            {
-                connection.Open();
-                var command = connection.CreateCommand();
-                command.CommandText = "DELETE FROM GoogleSettings";
-                command.ExecuteNonQuery();
-            }
-            return Task.CompletedTask;
+            using var conn = new SqliteConnection(_connectionString);
+            await conn.OpenAsync();
+
+            await conn.ExecuteAsync("DELETE FROM GoogleAccounts");
         }
+        
     }
 }

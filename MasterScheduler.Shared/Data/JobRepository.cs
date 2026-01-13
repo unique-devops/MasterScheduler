@@ -234,7 +234,17 @@ namespace MasterScheduler.Shared.Data
             cmd.Parameters.AddWithValue("@id", job.Id);
             cmd.ExecuteNonQuery();
         }
-       
+
+        public void ActiveInActive(int id,bool isActive)
+        {
+            using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
+            con.Open();
+            var cmd = new SqliteCommand(@"UPDATE Jobs SET IsActive=@active WHERE Id=@id", con);           
+            cmd.Parameters.AddWithValue("@active", isActive ? 1 : 0);
+            cmd.Parameters.AddWithValue("@id", id);
+            cmd.ExecuteNonQuery();
+        }
+
         public void Delete(int id)
         {
             using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
