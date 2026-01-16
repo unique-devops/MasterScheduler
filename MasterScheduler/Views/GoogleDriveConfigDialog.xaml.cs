@@ -100,8 +100,8 @@ namespace MasterScheduler.Views
                 string finalFolderId = await GoogleDriveHelper.GetOrCreateFolderAsync(credential, folderName);
 
                 // Save this ID to your ResultConfig and SQLite
-                ResultConfig?.TargetFolderId = finalFolderId;
-                ResultConfig?.FolderName = folderName;
+                ResultConfig.TargetFolderId = finalFolderId;
+                ResultConfig.FolderName = folderName;
 
                 MessageBox.Show("Folder linked successfully!");
             }

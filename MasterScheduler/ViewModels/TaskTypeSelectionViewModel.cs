@@ -34,7 +34,7 @@ namespace MasterScheduler.ViewModels
                 new TaskType { Id=4, Name = "Report", Description = "Generate and email status reports.", JobType = "Report" }
             };
 
-           
+            SelectedTaskType =  TaskTypeList.FirstOrDefault();
         }
 
         [RelayCommand]
