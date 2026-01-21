@@ -8,8 +8,8 @@ namespace MasterScheduler.Shared.DataModels
 {
     public class NotificationsConfig
     {
-        public string EmailOnSuccess { get; set; }
-        public string EmailOnFailure { get; set; }
-        public string WebhookUrl { get; set; }
+        public string? EmailOnSuccess { get; set; }
+        public string? EmailOnFailure { get; set; }
+        public string? WebhookUrl { get; set; }
     }
 }

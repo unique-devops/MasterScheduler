@@ -179,6 +179,37 @@ namespace MasterScheduler.ViewModels
             _navigation.NavigateTo<LogDashboardViewModel>();
         }
 
+        [RelayCommand]
+        public void OpenLog()
+        {
+            if (SelectedJob == null) return;
+            if (SelectedJob.Status == "Running") return;
+            if (SelectedJob != null && !string.IsNullOrEmpty(SelectedJob.Message))
+            {
+                try
+                {
+                    // 1. Create a temporary file path
+                    string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"Log_{DateTime.Now:yyyyMMdd_HHmmss}.txt");
+
+                    // 2. Write the log content to the file
+                    System.IO.File.WriteAllText(tempPath, SelectedJob.Message);
+
+                    // 3. Open the file with Notepad
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "notepad.exe",
+                        Arguments = tempPath,
+                        UseShellExecute = true
+                    });
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Could not open log: {ex.Message}");
+                }
+            }
+        }
+
+        
         //------------------Server----------------
         public async Task StartAsync(CancellationToken token)
         {

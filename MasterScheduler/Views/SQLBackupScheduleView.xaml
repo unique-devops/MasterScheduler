@@ -224,14 +224,46 @@
                         <fa:ImageAwesome  Icon="PlusCircle" Foreground="#777" Width="16"/>
                         <Button.ContextMenu>
                             <ContextMenu>
-                                <MenuItem x:Name="LocalFolder" Header="Local Folder" Click="MenuItem_Click"  />
-                                <MenuItem x:Name="GoogleDrive" Header="Google Drive" Click="MenuItem_Click"  />
-                                <MenuItem x:Name="FTP" Header="FTP" Click="MenuItem_Click"  />
-                                <MenuItem x:Name="SFTP" Header="SFTP" Click="MenuItem_Click"  />
-                                <MenuItem x:Name="OneDrive" Header="OneDrive" Click="MenuItem_Click"  />
-                                <MenuItem x:Name="AmazonS3" Header="Amazon S3" Click="MenuItem_Click"  />
-                                <MenuItem x:Name="AzureBlob" Header="Azure Blob" Click="MenuItem_Click"  />
-                                <MenuItem x:Name="NetworkShare" Header="NAS / Network Share" Click="MenuItem_Click"  />
+                                <MenuItem x:Name="LocalFolder" Header="Local Folder" Click="MenuItem_Click"  >
+                                    <MenuItem.Icon>
+                                        <Image Source="/Assets/folder.png" Width="16" Height="16"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="GoogleDrive" Header="Google Drive" Click="MenuItem_Click"  >
+                                    <MenuItem.Icon>
+                                        <Image Source="/Assets/google-drive.png" Width="16" Height="16"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="FTP" Header="FTP" Click="MenuItem_Click"  >
+                                    <MenuItem.Icon>
+                                        <Image Source="/Assets/ftp.png" Width="16" Height="16"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="SFTP" Header="SFTP" Click="MenuItem_Click"  >
+                                    <MenuItem.Icon>
+                                        <Image Source="/Assets/sftp.png" Width="16" Height="16"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="OneDrive" Header="OneDrive" Click="MenuItem_Click"  >
+                                    <MenuItem.Icon>
+                                        <Image Source="/Assets/onedrive.png" Width="16" Height="16"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="AmazonS3" Header="Amazon S3" Click="MenuItem_Click"  >
+                                    <MenuItem.Icon>
+                                        <Image Source="/Assets/s3.png" Width="16" Height="16"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="AzureBlob" Header="Azure Blob" Click="MenuItem_Click"  >
+                                    <MenuItem.Icon>
+                                        <Image Source="/Assets/azure.png" Width="16" Height="16"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem x:Name="NetworkShare" Header="NAS / Network Share" Click="MenuItem_Click"  >
+                                    <MenuItem.Icon>
+                                        <Image Source="/Assets/local-area-network.png" Width="16" Height="16"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
                             </ContextMenu>
                         </Button.ContextMenu>
                     </Button>

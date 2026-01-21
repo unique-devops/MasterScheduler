@@ -63,12 +63,8 @@ namespace MasterScheduler.Shared.Service
                             // Continue to next destination or stop based on your preference
                         }                       
                     }
-                    // 4. Always cleanup the temp file, even if an upload failed
-                    if (File.Exists(localPath) && allFinished)
-                    {
-                        await DeleteFileWithRetryAsync(localPath, 3);
-                        _logger.LogInformation("Deleted temp file for Job {Id}", job.Id);
-                    }                    
+
+                                        
                 }
                 catch (OperationCanceledException)
                 {
@@ -86,8 +82,12 @@ namespace MasterScheduler.Shared.Service
                     throw;
                 }
                 finally
-                {
-                    
+                {                   
+                    if (File.Exists(localPath))
+                    {
+                        await DeleteFileWithRetryAsync(localPath, 3);
+                        _logger.LogInformation("Deleted temp file for Job {Id}", job.Id);
+                    }
                 }               
             }
 

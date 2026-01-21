@@ -85,6 +85,8 @@ namespace MasterScheduler.ViewModels
                 
                 Destinations.Clear();
                 foreach (var dest in sqlBackupDetails.Destinations) Destinations.Add(dest);
+
+                SendConfirmationMail = sqlBackupDetails?.Notifications?.EmailOnSuccess ?? "";
             }
         }
 
@@ -345,6 +347,7 @@ namespace MasterScheduler.ViewModels
                     Message = "not run yet"
                 };                
                 sqlBackupDetails.Destinations = Destinations.ToList();
+                sqlBackupDetails.Notifications.EmailOnSuccess = SendConfirmationMail ?? "";
                 var options = new JsonSerializerOptions
                 {
                     WriteIndented = true
