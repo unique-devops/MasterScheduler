@@ -4,6 +4,7 @@ using MasterScheduler.Interface;
 using MasterScheduler.Models;
 using MasterScheduler.Shared.Data;
 using MasterScheduler.Shared.DataModels;
+using MasterScheduler.Shared.Service;
 using MasterScheduler.Views;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -20,17 +21,34 @@ namespace MasterScheduler.ViewModels
         private readonly JobRepository _repo = new JobRepository();        
         [ObservableProperty]
         private ObservableCollection<ScheduledJobDto> jobs;
+
+        [ObservableProperty]
+        private string licType;
+
+        [ObservableProperty]
+        private string licExp;
+
         private const string PipeName = "JobControlPipe";
 
+        LicenseChecker licenseChecker = new LicenseChecker();
         [ObservableProperty] private ScheduledJobDto? _selectedJob;       
         public DashboardViewModel(INavigationService navigation)
         {
             _navigation = navigation;            
             Jobs = new();
-            
+            License();
             _ =LoadNewJobs();
             _=StartAsync(new CancellationToken());
         }
+
+        private async void License()
+        {
+            await licenseChecker.CheckAndInitializeLicense();
+            var lic = licenseChecker.GetLocalLicense();
+            LicType = lic.LicenseType;
+            LicExp = lic.LicenseType =="lite" ? "" : lic.ExpiryDate;
+        }
+
         [RelayCommand]
         private async Task LoadNewJobs()
         {

@@ -12,7 +12,7 @@ namespace MasterScheduler.Shared.Service
         public async Task SendEmailAsync(string to, string subject, string body, CancellationToken token)
         {
             // Use the 16-character App Password here, NOT your gmail password
-            var appPassword = "";
+            var appPassword = "afgl bktr asqg buxj";
 
             using var client = new System.Net.Mail.SmtpClient("smtp.gmail.com")
             {

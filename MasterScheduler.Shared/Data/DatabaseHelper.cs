@@ -20,6 +20,7 @@ namespace MasterScheduler.Shared.Data
         {
             Directory.CreateDirectory(Path.GetDirectoryName(_dbPath)!);
 
+            CreateLicenseTable();
             CreateJobsTable();
             CreateJobSettingsTable();
             CreateGoogleSettingsTable();
@@ -63,18 +64,7 @@ namespace MasterScheduler.Shared.Data
             using var cmd2 = new SqliteCommand(sql, con);
             cmd2.ExecuteNonQuery();
         }
-
-        //private static void CreateGoogleSettingsTable()
-        //{
-        //    using var con = new SqliteConnection(ConnectionString);
-        //    con.Open();
-        //    var sql = @"CREATE TABLE IF NOT EXISTS GoogleSettings (
-        //                Key TEXT PRIMARY KEY,
-        //                TokenJson TEXT                        
-        //            );";
-        //    using var cmd2 = new SqliteCommand(sql, con);
-        //    cmd2.ExecuteNonQuery();
-        //}
+        
         private static void CreateGoogleSettingsTable()
         {
             using var con = new SqliteConnection(ConnectionString);
@@ -89,6 +79,24 @@ namespace MasterScheduler.Shared.Data
                     );";
             using var cmd2 = new SqliteCommand(sql, con);
             cmd2.ExecuteNonQuery();
+        }
+
+        private static void CreateLicenseTable()
+        {
+            using var con = new SqliteConnection(ConnectionString);
+            con.Open();
+            var sql = @"CREATE TABLE IF NOT EXISTS LicenseInfo (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    PCID TEXT NOT NULL,
+                    Email TEXT NULL,
+                    LicenseType TEXT DEFAULT 'lite',
+                    Status TEXT DEFAULT 'active',
+                    ExpiryDate TEXT NULL,
+                    LicenseKey TEXT,
+                    LastVerified DATETIME DEFAULT CURRENT_TIMESTAMP
+                );";
+            using var cmd = new SqliteCommand(sql, con);
+            cmd.ExecuteNonQuery();
         }
         private static void UpdateCrashedStatusJOb()
         {

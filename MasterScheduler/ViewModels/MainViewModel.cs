@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using MasterScheduler.Interface;
 using MasterScheduler.Service;
+using MasterScheduler.Shared.Service;
 using MasterScheduler.Views;
 using System;
 using System.Collections.Generic;
@@ -17,14 +18,16 @@ namespace MasterScheduler.ViewModels
 
         [ObservableProperty]
         private ObservableObject _currentViewModel;
+
+       
         public MainViewModel(INavigationService navigationService)
         {
             NavigationService = navigationService;
-
+           
             // Default page
-            NavigationService.NavigateTo<DashboardViewModel>();
+            NavigationService.NavigateTo<DashboardViewModel>();            
         }
-
+        
         //[RelayCommand]
         //private void Navigate(string destination)
         //{

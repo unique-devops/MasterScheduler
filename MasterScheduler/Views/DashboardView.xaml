@@ -314,9 +314,9 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <TextBlock Text="SENDER STATUS:" Foreground="#AAA" FontSize="10" VerticalAlignment="Center" FontWeight="Bold" Margin="0,0,10,0"/>
                     <Border Background="#F59E0B" CornerRadius="3" Padding="5,1" VerticalAlignment="Center">
-                        <TextBlock Text="TRIAL VERSION" Foreground="Black" FontSize="10" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding LicType}" Foreground="Black" FontSize="10" FontWeight="Bold"/>
                     </Border>
-                    <TextBlock Text=" - 12 Days Remaining" Foreground="#EEE" FontSize="11" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                    <TextBlock Text="{Binding LicExp}" Foreground="#EEE" FontSize="11" VerticalAlignment="Center" Margin="5,0,0,0"/>
                 </StackPanel>
             </DockPanel>
         </Border>
