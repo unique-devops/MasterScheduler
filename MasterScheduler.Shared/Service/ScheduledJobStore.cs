@@ -91,7 +91,7 @@ namespace MasterScheduler.Shared.Service
                 }               
             }
 
-            if (!string.IsNullOrWhiteSpace(sqlBackupDetails?.Notifications?.EmailOnSuccess))
+            if (sqlBackupDetails.Notifications.ActiveAlert && !string.IsNullOrWhiteSpace(sqlBackupDetails?.Notifications?.EmailOnSuccess))
             {
                 
                 await _emailService.SendEmailAsync(sqlBackupDetails?.Notifications?.EmailOnSuccess, sqlBackupDetails?.JobName, $"The scheduler finished successfully at {DateTime.Now}", token);

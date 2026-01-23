@@ -11,11 +11,13 @@ namespace MasterScheduler.Worker
     public class PipeServer
     {
         private readonly Action<int> _onCancelRequested;
+        private readonly Action<int> _onRunNowRequested;
         private const string PipeName = "JobControlPipe";
 
-        public PipeServer(Action<int> onCancelRequested)
+        public PipeServer(Action<int> onCancelRequested, Action<int> onRunNowRequested)
         {
             _onCancelRequested = onCancelRequested;
+            _onRunNowRequested = onRunNowRequested;
         }
         public async Task StartAsync(CancellationToken stoppingToken)
         {
@@ -38,6 +40,13 @@ namespace MasterScheduler.Worker
                         {
                             // Trigger the callback to the Worker
                             _onCancelRequested?.Invoke(jobId);
+                        }
+                    }
+                    else if(!string.IsNullOrEmpty(message) && message.StartsWith("RUNNOW:")) {
+                        if (int.TryParse(message.Split(':')[1], out int jobId))
+                        {
+                            // Trigger the callback to the Worker
+                            _onRunNowRequested?.Invoke(jobId);
                         }
                     }
                 }

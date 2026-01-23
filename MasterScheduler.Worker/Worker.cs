@@ -31,7 +31,7 @@ namespace MasterScheduler.Worker
             _logger = logger;
             _repo = new JobRepository();
             _jobStore = jobStore;
-            _pipeServer = new PipeServer(id => RequestCancellation(id));           
+            _pipeServer = new PipeServer(id => RequestCancellation(id),id => RequestRunNow(id));           
         }        
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -180,7 +180,18 @@ namespace MasterScheduler.Worker
                 _logger.LogWarning("UI requested cancellation for Job {id}", jobId);
                 cts.Cancel();                
             }            
-        }       
-        
+        }
+
+        private async void RequestRunNow(int jobId)
+        {
+            if (_activeJobs.TryGetValue(jobId, out var cts))
+            {
+                _logger.LogWarning("UI requested run now for Job {id}", jobId);
+                var job = _repo.GetById(jobId);
+                if (job == null) return;
+                await ExecuteJobAsync(job, new CancellationToken());
+            }
+        }
+
     }
 }

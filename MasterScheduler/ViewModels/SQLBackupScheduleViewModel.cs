@@ -44,6 +44,9 @@ namespace MasterScheduler.ViewModels
         private string scheduledTime = "not schedule";
 
         [ObservableProperty]
+        private bool activeAlert;
+
+        [ObservableProperty]
         [RegularExpression(EmailRegexPattern)]
         [NotifyDataErrorInfo]
         private string? sendConfirmationMail;
@@ -87,6 +90,7 @@ namespace MasterScheduler.ViewModels
                 foreach (var dest in sqlBackupDetails.Destinations) Destinations.Add(dest);
 
                 SendConfirmationMail = sqlBackupDetails?.Notifications?.EmailOnSuccess ?? "";
+                ActiveAlert = sqlBackupDetails.Notifications.ActiveAlert;
             }
         }
 
@@ -348,6 +352,7 @@ namespace MasterScheduler.ViewModels
                 };                
                 sqlBackupDetails.Destinations = Destinations.ToList();
                 sqlBackupDetails.Notifications.EmailOnSuccess = SendConfirmationMail ?? "";
+                sqlBackupDetails.Notifications.ActiveAlert = ActiveAlert;
                 var options = new JsonSerializerOptions
                 {
                     WriteIndented = true

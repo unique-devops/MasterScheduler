@@ -72,24 +72,10 @@ namespace MasterScheduler.Shared.Service
                     UpdateLocalLicense(serverUpdate);
                 }
             }
-            
-            return DateTime.Parse(localLicense.ExpiryDate) > DateTime.Now;
+            if (string.IsNullOrWhiteSpace(localLicense?.ExpiryDate)) return false;
+            return DateTime.Parse(localLicense?.ExpiryDate) > DateTime.Now;
         }
-        public void UpdateLocalLicense(LicenseResponseDto lic)
-        {
-            using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
-            con.Open();
-            var sql = "UPDATE LicenseInfo SET Email = @email ,PCID =@pc , LicenseType =@type, ExpiryDate =@expiry, LicenseKey =@licenseKey";
-            using var cmd = new SqliteCommand(sql, con);
-            cmd.Parameters.AddWithValue("@pc", lic.PCID);
-            cmd.Parameters.AddWithValue("@email", lic.Email ?? "lite@gmail.com");
-            cmd.Parameters.AddWithValue("@type", lic.Status);
-            cmd.Parameters.AddWithValue("@expiry", lic.ExpiryDate);
-            cmd.Parameters.AddWithValue("@licenseKey", lic.LicenseKey);
-            cmd.ExecuteNonQuery();
-
-            // Tip: Call your Vercel API here too to sync the email to Supabase
-        }
+       
         private async Task<LicenseResponseDto> RegisterWithServer(LicenseResponseDto lic)
         {
             using var client = new HttpClient();
@@ -112,12 +98,26 @@ namespace MasterScheduler.Shared.Service
             var cmd = new SqliteCommand("INSERT INTO LicenseInfo (PCID, Email, LicenseType, ExpiryDate, LicenseKey) VALUES (@pc, @email, @type, @expiry, @licenseKey)", con);
             cmd.Parameters.AddWithValue("@pc", res.PCID);
             cmd.Parameters.AddWithValue("@email", res.Email ?? "lite@gmail.com");
-            cmd.Parameters.AddWithValue("@type", res.Status);
-            cmd.Parameters.AddWithValue("@expiry", res.ExpiryDate);
+            cmd.Parameters.AddWithValue("@type", res.LicenseType);
+            cmd.Parameters.AddWithValue("@expiry", res.ExpiryDate ?? "");
             cmd.Parameters.AddWithValue("@licenseKey", res.LicenseKey);
             cmd.ExecuteNonQuery();
         }
+        public void UpdateLocalLicense(LicenseResponseDto lic)
+        {
+            using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
+            con.Open();
+            var sql = "UPDATE LicenseInfo SET Email = @email ,PCID =@pc , LicenseType =@type, ExpiryDate =@expiry, LicenseKey =@licenseKey";
+            using var cmd = new SqliteCommand(sql, con);
+            cmd.Parameters.AddWithValue("@pc", lic.PCID);
+            cmd.Parameters.AddWithValue("@email", lic.Email ?? "lite@gmail.com");
+            cmd.Parameters.AddWithValue("@type", lic.LicenseType);
+            cmd.Parameters.AddWithValue("@expiry", lic.ExpiryDate ?? "");
+            cmd.Parameters.AddWithValue("@licenseKey", lic.LicenseKey);
+            cmd.ExecuteNonQuery();
 
+            // Tip: Call your Vercel API here too to sync the email to Supabase
+        }
         public LicenseResponseDto GetLocalLicense()
         {
             using var con = new SqliteConnection(DatabaseHelper.ConnectionString);

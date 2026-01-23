@@ -151,28 +151,15 @@ namespace MasterScheduler.ViewModels
         [RelayCommand]
         private async Task RunNowJob()
         {
-            if (SelectedJob == null) return;
-            //var job = _repo.GetById(SelectedJob.Id);
-            //if (job != null)
-            //{
-            //    _repo.Update(job);
-            //}            
-            //LoadJobs();
-           
-            Jobs.First(c => c.Id == SelectedJob.Id).Status = "Running";
-            //await PipeClient.SendAsync(SelectedJob.Id.ToString());            
+            if (SelectedJob == null) return;           
+            //Jobs.First(c => c.Id == SelectedJob.Id).Status = "Running";
+            bool sent = await SendCancelRequestAsync(SelectedJob.Id);
         }
 
         [RelayCommand]
         private async Task StopJob()
         {
-            if (SelectedJob == null) return;
-            //var job = _repo.GetById(SelectedJob.Id);
-            //if (job != null)
-            //{
-            //    _repo.Update(job);
-            //}            
-            //LoadJobs();
+            if (SelectedJob == null) return;           
             bool sent = await SendCancelRequestAsync(SelectedJob.Id);
         }
 
@@ -289,6 +276,28 @@ namespace MasterScheduler.ViewModels
                 // 2. Write the command
                 using var writer = new StreamWriter(client);
                 await writer.WriteLineAsync($"CANCEL:{jobId}");
+                await writer.FlushAsync();
+
+                return true;
+            }
+            catch
+            {
+                // Service might be down or pipe is busy
+                return false;
+            }
+        }
+
+        public static async Task<bool> SendRunNowRequestAsync(int jobId)
+        {
+            try
+            {
+                // 1. Connect to the pipe with a 2-second timeout
+                using var client = new NamedPipeClientStream(".", PipeName, PipeDirection.Out);
+                await client.ConnectAsync(2000);
+
+                // 2. Write the command
+                using var writer = new StreamWriter(client);
+                await writer.WriteLineAsync($"RUNNOW:{jobId}");
                 await writer.FlushAsync();
 
                 return true;

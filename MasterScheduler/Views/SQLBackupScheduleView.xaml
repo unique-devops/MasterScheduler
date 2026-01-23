@@ -92,6 +92,45 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="JobToggleStyle" TargetType="CheckBox">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <BulletDecorator Background="Transparent">
+                            <BulletDecorator.Bullet>
+                                <Border x:Name="Background" Width="35" Height="18" CornerRadius="9" Background="#CBD5E1" BorderThickness="0">
+                                    <Ellipse x:Name="Dot" Width="14" Height="14" HorizontalAlignment="Left" Margin="2,0" Fill="White">
+                                        <Ellipse.RenderTransform>
+                                            <TranslateTransform X="0"/>
+                                        </Ellipse.RenderTransform>
+                                    </Ellipse>
+                                </Border>
+                            </BulletDecorator.Bullet>
+                        </BulletDecorator>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Background" Property="Background" Value="#22C55E"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Dot" Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" To="17" Duration="0:0:0.1"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Dot" Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" To="0" Duration="0:0:0.1"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <Grid Background="#F5F6F7">
@@ -305,9 +344,9 @@
                         <TextBlock Text="Send Confirmation Mail" FontWeight="Bold"/>
                         <TextBox Text="{Binding SendConfirmationMail}" FontSize="14" Foreground="Gray" BorderThickness="0" Background="Transparent" FontWeight="Medium"/>
                     </StackPanel>
-                    <!--<Button Grid.Column="2" Style="{StaticResource IconButton}" Command="{Binding SchedulerSettingsCommand}">
-                        <fa:ImageAwesome Icon="Plus" Foreground="#777" Width="16"/>
-                    </Button>-->
+                    <CheckBox Grid.Column="2" IsChecked="{Binding ActiveAlert, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                        Style="{StaticResource JobToggleStyle}"                        
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Grid>
             </ListBoxItem>
         </ListBox>
