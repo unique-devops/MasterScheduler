@@ -30,6 +30,8 @@ namespace MasterScheduler.ViewModels
 
         private const string PipeName = "JobControlPipe";
 
+        public bool IsLite => LicType.ToLower() == "lite";
+
         LicenseChecker licenseChecker = new LicenseChecker();
         [ObservableProperty] private ScheduledJobDto? _selectedJob;       
         public DashboardViewModel(INavigationService navigation)
@@ -153,7 +155,7 @@ namespace MasterScheduler.ViewModels
         {
             if (SelectedJob == null) return;           
             //Jobs.First(c => c.Id == SelectedJob.Id).Status = "Running";
-            bool sent = await SendCancelRequestAsync(SelectedJob.Id);
+            bool sent = await SendRunNowRequestAsync(SelectedJob.Id);
         }
 
         [RelayCommand]
@@ -214,7 +216,12 @@ namespace MasterScheduler.ViewModels
             }
         }
 
-        
+        [RelayCommand]
+        private void Upgrade()
+        {
+            _navigation.NavigateTo<EditionOverlayViewModel>();
+        }
+
         //------------------Server----------------
         public async Task StartAsync(CancellationToken token)
         {

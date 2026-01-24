@@ -25,13 +25,14 @@ namespace MasterScheduler.Shared.Service
             byte[] hash = sha.ComputeHash(bytes);
             return Convert.ToBase64String(hash);
         }
-
         public static bool VerifyIntegrity(string pcId, string type, string storedKey)
         {
             // Re-generate the key and compare
             string validKey = GenerateSecureKey(pcId, type);
             return validKey == storedKey;
         }
+
+
         public async Task<bool> CheckAndInitializeLicense(string userEmail = null)
         {
             string pcId = fingerprintGenerator.GetId(); // Use the HWID code from earlier
@@ -75,7 +76,24 @@ namespace MasterScheduler.Shared.Service
             if (string.IsNullOrWhiteSpace(localLicense?.ExpiryDate)) return false;
             return DateTime.Parse(localLicense?.ExpiryDate) > DateTime.Now;
         }
-       
+
+        public async Task ActivateTrialLicense(string userEmail)
+        {
+            string pcId = fingerprintGenerator.GetId(); // Use the HWID code from earlier
+            var localLicense = GetLocalLicense();
+            string defaultType = "Pro";
+            string secureKey = GenerateSecureKey(pcId, defaultType);
+            var lic = new LicenseResponseDto { LicenseType = defaultType, LicenseKey = secureKey, PCID = pcId, Email = userEmail, ExpiryDate = DateTime.Now.AddMonths(1).ToString() };
+            if (localLicense == null)
+            {                                               
+                SaveLocalLicense(lic);                                
+            }
+            else
+            {
+                UpdateLocalLicense(lic);                
+            }
+            await RegisterWithServer(lic);
+        }
         private async Task<LicenseResponseDto> RegisterWithServer(LicenseResponseDto lic)
         {
             using var client = new HttpClient();

@@ -40,7 +40,7 @@ namespace MasterScheduler.Worker
 
             // Use a short delay for responsiveness, but the core logic handles the wait
             // We check every 500ms for new jobs, but only execute them at their target time.
-            const int checkIntervalMs = 800;
+            const int checkIntervalMs = 1000;
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -184,13 +184,11 @@ namespace MasterScheduler.Worker
 
         private async void RequestRunNow(int jobId)
         {
-            if (_activeJobs.TryGetValue(jobId, out var cts))
-            {
-                _logger.LogWarning("UI requested run now for Job {id}", jobId);
-                var job = _repo.GetById(jobId);
-                if (job == null) return;
-                await ExecuteJobAsync(job, new CancellationToken());
-            }
+            _logger.LogWarning("UI requested run now for Job {id}", jobId);            
+            var job = _repo.GetById(jobId);            
+            if (job == null) return;
+            TryMarkRunning(job);
+            await ExecuteJobAsync(job, new CancellationToken());
         }
 
     }

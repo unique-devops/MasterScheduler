@@ -30,6 +30,10 @@
             <DataTemplate DataType="{x:Type vm:LogDashboardViewModel}">
                 <views:LogDashboardViewControl/>
             </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vm:EditionOverlayViewModel}">
+                <views:EditionOverlayView/>
+            </DataTemplate>
         </Grid.Resources>
         <ContentControl Content="{Binding NavigationService.CurrentViewModel}" />
         <views:ToastMessage x:Name="GlobalToast" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
