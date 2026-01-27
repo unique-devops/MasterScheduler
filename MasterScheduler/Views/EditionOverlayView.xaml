@@ -38,7 +38,7 @@
                             <TextBlock Text="✓ All Pro Features" Foreground="#CCC" Margin="0,5"/>
                             <TextBlock Text="✓ Auto Scheduling" Foreground="#CCC" Margin="0,5"/>
                             <TextBlock Text="✓ Cloud Sync" Foreground="#CCC" Margin="0,5"/>
-                            <Button Content="{Binding TrialPro}" IsEnabled="{Binding IsActiveTrial}" Command="{Binding ActivateTrialCommand}" Background="#F59E0B" Foreground="Black" FontWeight="Bold" Margin="0,20,0,0"/>
+                            <Button Content="{Binding TrialVersion}" IsEnabled="{Binding IsActiveTrial}" Command="{Binding ActivateTrialCommand}" Background="#F59E0B" Foreground="Black" FontWeight="Bold" Margin="0,20,0,0"/>
                         </StackPanel>
                         
                         

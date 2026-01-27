@@ -43,7 +43,7 @@ namespace MasterScheduler.ViewModels
         {
             var lic = licenseChecker.GetLocalLicense();
             TrialVersion = lic.LicenseType == "Trial" ? "Active Trial " : "Start Trial";
-            IsActiveTrial = lic.LicenseType == "Trial" ;
+            IsActiveTrial = lic.LicenseType == "lite" ;
             LiteVersion = lic.LicenseType == "lite" ? "current version" : "Activate Lite";
         }
 
