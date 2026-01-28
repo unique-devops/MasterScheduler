@@ -15,15 +15,54 @@
                       BlurRadius="10"
                       Opacity="0.5"/>
 
-        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-        <ctr:DestinationIconConverter x:Key="IconConverter"/>
-        <ctr:JobTypeToImageConverter x:Key="JobTypeIconConverter"/>
-        <ctr:LevelToColorConverter x:Key="LevelToColorConverter"/>
+            <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <ctr:DestinationIconConverter x:Key="IconConverter"/>
+            <ctr:JobTypeToImageConverter x:Key="JobTypeIconConverter"/>
+            <ctr:LevelToColorConverter x:Key="LevelToColorConverter"/>
+            
+            <Style x:Key="PlaceholderTextBox" TargetType="{x:Type TextBox}">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type TextBox}">
+                                <Grid>
+                                    <Border x:Name="border" 
+                                Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                SnapsToDevicePixels="True">
+                                        <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
+                                    </Border>
 
-       
-        <ResourceDictionary.MergedDictionaries>
+                                    <TextBlock x:Name="PlaceholderText" 
+                                   Text="{TemplateBinding Tag}" 
+                                   Foreground="Gray" 
+                                   IsHitTestVisible="False" 
+                                   Margin="5,2,0,0" 
+                                   Visibility="Collapsed"/>
+                                </Grid>
+
+                                <ControlTemplate.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value=""/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter TargetName="PlaceholderText" Property="Visibility" Value="Visible"/>
+                                    </MultiDataTrigger>
+
+                                    <Trigger Property="IsFocused" Value="True">
+                                        <Setter TargetName="border" Property="BorderBrush" Value="Blue"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+
+            <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Assets/Icons.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+            
+            
         </ResourceDictionary>
 
     </Application.Resources>

@@ -27,7 +27,13 @@
                         <TextBlock Text="✓ Local Backups" Foreground="#888" Margin="0,5"/>
                         <TextBlock Text="✓ Manual Tasks" Foreground="#888" Margin="0,5"/>
                         <TextBlock Text="✗ No Scheduling" Foreground="#555" Margin="0,5"/>
-                        <Button Content="{Binding LiteVersion}" IsEnabled="False" Margin="0,20,0,0" />
+                        <Button Content="{Binding LiteVersion}" IsEnabled="False" Padding="7" Margin="0,20,0,0" >
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="7"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
                     </StackPanel>
 
                     <Border Grid.Column="1" Background="#2A2A2A" CornerRadius="8" Padding="15" BorderBrush="#F59E0B" BorderThickness="1">
@@ -38,7 +44,13 @@
                             <TextBlock Text="✓ All Pro Features" Foreground="#CCC" Margin="0,5"/>
                             <TextBlock Text="✓ Auto Scheduling" Foreground="#CCC" Margin="0,5"/>
                             <TextBlock Text="✓ Cloud Sync" Foreground="#CCC" Margin="0,5"/>
-                            <Button Content="{Binding TrialVersion}" IsEnabled="{Binding IsActiveTrial}" Command="{Binding ActivateTrialCommand}" Background="#F59E0B" Foreground="Black" FontWeight="Bold" Margin="0,20,0,0"/>
+                            <Button Content="{Binding TrialVersion}" IsEnabled="{Binding IsActiveTrial}" Command="{Binding ActivateTrialCommand}" Background="#F59E0B" Foreground="Black" FontWeight="Bold" Padding="7" Margin="0,20,0,0">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="7"/>
+                                    </Style>
+                                </Button.Resources>
+                            </Button>
                         </StackPanel>
                         
                         
@@ -51,11 +63,23 @@
                         <TextBlock Text="✓ Lifetime Access" Foreground="#CCC" Margin="0,5"/>
                         <TextBlock Text="✓ Priority Support" Foreground="#CCC" Margin="0,5"/>
                         <TextBlock Text="✓ Commercial Use" Foreground="#CCC" Margin="0,5"/>
-                        <Button Content="Buy Now" Background="#3B82F6" Foreground="White" Margin="0,20,0,0"/>
+                        <Button Content="Buy Now" Background="#3B82F6" Foreground="White" Padding="7" Margin="0,20,0,0">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="7"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
                     </StackPanel>
                 </Grid>
 
-                <Button Content="Close" Command="{Binding GoBackCommand}" Background="Transparent" Foreground="#666" BorderThickness="0" Margin="0,30,0,0"/>
+                <Button Content="Close" Command="{Binding GoBackCommand}" Background="Transparent" Foreground="Red" BorderThickness="0" Padding="5" Margin="0,20,0,0">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="7"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
             </StackPanel>
         </Border>
 

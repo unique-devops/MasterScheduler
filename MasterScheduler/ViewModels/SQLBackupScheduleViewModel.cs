@@ -7,17 +7,12 @@ using MasterScheduler.Shared;
 using MasterScheduler.Shared.Data;
 using MasterScheduler.Shared.DataModels;
 using MasterScheduler.Shared.Enums;
+using MasterScheduler.Shared.Service;
 using MasterScheduler.Views;
 using Microsoft.Data.SqlClient;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -56,6 +51,8 @@ namespace MasterScheduler.ViewModels
         
         public ObservableCollection<BackupDestination> Destinations { get; set; } = new();
 
+        public ObservableCollection<BackupDestinations> AvailableDestinations { get; set; }
+
         private readonly IDialogService _dialogService;
 
         private int editJobId =0;
@@ -63,13 +60,40 @@ namespace MasterScheduler.ViewModels
 
         SqlBackupDetails sqlBackupDetails = new SqlBackupDetails();
 
+        LicenseChecker license = new LicenseChecker();
         public SQLBackupScheduleViewModel(IDialogService dialogService, INavigationService navigationService)
         {
+            BindDestinations();
             _dialogService = dialogService;
             _navigationService = navigationService;
             JobAliasName = "Sql Backup";            
         }
 
+        private void BindDestinations()
+        {
+            var lic = license.GetLocalLicense();
+            var allOptions = new List<BackupDestinations>
+            {
+                new BackupDestinations { Type = DestinationType.LocalFolder, Name = "Local Folder", IconPath = "/Assets/folder.png" },
+                new BackupDestinations { Type = DestinationType.GoogleDrive, Name = "Google Drive", IconPath = "/Assets/google-drive.png" },
+                new BackupDestinations { Type = DestinationType.FTP, Name = "FTP", IconPath = "/Assets/ftp.png" },
+                new BackupDestinations { Type = DestinationType.AzureBlob, Name = "Azure Blob", IconPath = "/Assets/azure.png" }
+            };
+
+            switch (lic.LicenseType.ToLower())
+            {
+                case "lite":
+                    allOptions.Find(c => c.Type == DestinationType.LocalFolder)?.IsActive = true;
+                    break;
+                default:
+                    foreach (var item in allOptions)
+                    {                        
+                        item.IsActive = true;
+                    }
+                    break;
+            }        
+            AvailableDestinations = new ObservableCollection<BackupDestinations>(allOptions);
+        }
         private void GetJobDetail()
         {
             if (editJobId == 0) return;

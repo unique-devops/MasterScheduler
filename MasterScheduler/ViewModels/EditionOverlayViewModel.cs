@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using MasterScheduler.Interface;
 using MasterScheduler.Shared.Service;
+using MasterScheduler.Views;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,7 +43,7 @@ namespace MasterScheduler.ViewModels
         private void CheckLicense()
         {
             var lic = licenseChecker.GetLocalLicense();
-            TrialVersion = lic.LicenseType == "Trial" ? "Active Trial " : "Start Trial";
+            TrialVersion = lic.LicenseType == "Trial" ? "🎉 Trial Activated!" : "Start Trial";
             IsActiveTrial = lic.LicenseType == "lite" ;
             LiteVersion = lic.LicenseType == "lite" ? "current version" : "Activate Lite";
         }
@@ -56,7 +57,13 @@ namespace MasterScheduler.ViewModels
         [RelayCommand]
         private async Task ActivateTrial()
         {
+            EnterEmailDialog enterEmail = new EnterEmailDialog();
+            enterEmail.Owner = App.Current.MainWindow;
+            bool? result = enterEmail.ShowDialog();            
+            if (IsActiveTrial || result is null || result == false) return;
+            UserEmail = enterEmail.InputValue;
             if (string.IsNullOrEmpty(UserEmail) || !UserEmail.Contains("@")) return;
+            TrialVersion = "🎉 Trial Activated!";
             await licenseChecker.ActivateTrialLicense("trial@gmail.com");
             _navigationService.NavigateTo<DashboardViewModel>();
         }        

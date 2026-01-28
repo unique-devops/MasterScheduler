@@ -21,10 +21,10 @@ Log.Logger = new LoggerConfiguration()
 builder.Logging.AddSerilog();
 // IMPORTANT: Tell .NET this is a Windows Service
 
-//builder.Services.AddWindowsService(options =>
-//{
-//    options.ServiceName = "MasterScheduler";
-//});
+builder.Services.AddWindowsService(options =>
+{
+    options.ServiceName = "MasterScheduler";
+});
 
 builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddSingleton<IJobRepository, JobRepository>();
