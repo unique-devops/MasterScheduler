@@ -153,8 +153,9 @@ namespace MasterScheduler.ViewModels
         [RelayCommand]
         private async Task RunNowJob()
         {
-            if (SelectedJob == null) return;           
-            //Jobs.First(c => c.Id == SelectedJob.Id).Status = "Running";
+            if (SelectedJob == null) return;
+            if (SelectedJob.IsActive == false) return;
+            //Jobs.First(c => c.Id == SelectedJob.Id).Status = "Running";            
             bool sent = await SendRunNowRequestAsync(SelectedJob.Id);
         }
 

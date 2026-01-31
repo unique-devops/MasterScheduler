@@ -35,8 +35,8 @@ namespace MasterScheduler.Views
 
         private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var viewmodel = (SQLBackupScheduleViewModel)this.DataContext;
-            viewmodel.BackupDestinationCommand.Execute(sender);
+            //var viewmodel = (SQLBackupScheduleViewModel)this.DataContext;
+            //viewmodel.BackupDestinationCommand.Execute(sender);
         }
         private void ContextMenuButton_Click(object sender, RoutedEventArgs e)
         {

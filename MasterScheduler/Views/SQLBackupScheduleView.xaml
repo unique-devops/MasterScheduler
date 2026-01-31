@@ -261,24 +261,40 @@
                             x:Name="btnBackupDestiny"
                             Click="btnBackupDestiny_Click">
                         <fa:ImageAwesome  Icon="PlusCircle" Foreground="#777" Width="16"/>
-                        <!--<Button.ContextMenu>
+                        <Button.ContextMenu>
                             <ContextMenu ItemsSource="{Binding AvailableDestinations}">
+                                <ContextMenu.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Width="16"
+                                               Height="16"
+                                               Margin="0,0,8,0"
+                                               Source="{Binding IconPath}"/>
+                                            <TextBlock Text="{Binding Name}"/>
+                                            <TextBlock Text=" 🔒"   Foreground="#999"  Visibility="{Binding IsActive, Converter={StaticResource FalseToVisibleConverter}}"/>
+
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContextMenu.ItemTemplate>
+                                
                                 <ContextMenu.ItemContainerStyle>
                                     <Style TargetType="MenuItem">
-                                        <Setter Property="Header" Value="{Binding Name}"/>
-                                        <Setter Property="Icon">
-                                            <Setter.Value>
-                                                <Image Source="{Binding IconPath}" Width="16" Height="16"/>
-                                            </Setter.Value>
-                                        </Setter>
-                                        <Setter Property="Command" Value="{Binding DataContext.SelectDestCommand, 
-                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                        <Setter Property="Icon" Value="{x:Null}"/>
+                                        <Setter Property="Command" Value="{Binding DataContext.SelectDestinationCommand, 
+                                                RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                         <Setter Property="CommandParameter" Value="{Binding}"/>
+
+                                        <!--<Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                                <Setter Property="InputGestureText" Value="🔒"/>
+                                                <Setter Property="Opacity" Value="0.7"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>-->
                                     </Style>
                                 </ContextMenu.ItemContainerStyle>
                             </ContextMenu>
-                        </Button.ContextMenu>-->
-                        <Button.ContextMenu>
+                        </Button.ContextMenu>
+                        <!--<Button.ContextMenu>
                             <ContextMenu>
                                 <MenuItem x:Name="LocalFolder" Header="Local Folder" Click="MenuItem_Click"  >
                                     <MenuItem.Icon>
@@ -321,7 +337,7 @@
                                     </MenuItem.Icon>
                                 </MenuItem>
                             </ContextMenu>
-                        </Button.ContextMenu>
+                        </Button.ContextMenu>-->
                     </Button>
 
                 </Grid>

@@ -215,7 +215,7 @@
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
 
-                    <DataGridTextColumn Header="Type" Binding="{Binding JobType}" Width="100"/>
+                    <!--<DataGridTextColumn Header="Type" Binding="{Binding JobType}" Width="100"/>-->
 
                     <DataGridTextColumn Header="Last Run" Binding="{Binding LastRunAt, StringFormat=\{0:MM/dd HH:mm\}}" Width="140"/>
 

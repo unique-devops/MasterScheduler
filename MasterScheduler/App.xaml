@@ -16,6 +16,7 @@
                       Opacity="0.5"/>
 
             <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <ctr:FalseToVisibleConverter x:Key="FalseToVisibleConverter" />
             <ctr:DestinationIconConverter x:Key="IconConverter"/>
             <ctr:JobTypeToImageConverter x:Key="JobTypeIconConverter"/>
             <ctr:LevelToColorConverter x:Key="LevelToColorConverter"/>

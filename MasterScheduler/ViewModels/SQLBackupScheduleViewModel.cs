@@ -74,10 +74,14 @@ namespace MasterScheduler.ViewModels
             var lic = license.GetLocalLicense();
             var allOptions = new List<BackupDestinations>
             {
-                new BackupDestinations { Type = DestinationType.LocalFolder, Name = "Local Folder", IconPath = "/Assets/folder.png" },
-                new BackupDestinations { Type = DestinationType.GoogleDrive, Name = "Google Drive", IconPath = "/Assets/google-drive.png" },
-                new BackupDestinations { Type = DestinationType.FTP, Name = "FTP", IconPath = "/Assets/ftp.png" },
-                new BackupDestinations { Type = DestinationType.AzureBlob, Name = "Azure Blob", IconPath = "/Assets/azure.png" }
+                new() { Type = DestinationType.LocalFolder, Name = "Local Folder", IconPath = "/Assets/folder.png" },
+                new() { Type = DestinationType.GoogleDrive, Name = "Google Drive", IconPath = "/Assets/google-drive.png" },
+                new() { Type = DestinationType.FTP, Name = "FTP", IconPath = "/Assets/ftp.png" },
+                new() { Type = DestinationType.SFTP, Name = "SFTP", IconPath = "/Assets/sftp.png" },
+                new() { Type = DestinationType.OneDrive, Name = "OneDrive", IconPath = "/Assets/onedrive.png" },
+                new() { Type = DestinationType.AmazonS3, Name = "Amazon S3", IconPath = "/Assets/s3.png" },
+                new() { Type = DestinationType.AzureBlob, Name = "Azure Blob", IconPath = "/Assets/azure.png" },
+                new() { Type = DestinationType.NetworkShare, Name = "NAS / Network Share", IconPath = "/Assets/local-area-network.png" }
             };
 
             switch (lic.LicenseType.ToLower())
@@ -87,8 +91,8 @@ namespace MasterScheduler.ViewModels
                     break;
                 default:
                     foreach (var item in allOptions)
-                    {                        
-                        item.IsActive = true;
+                    {
+                        item.IsActive = lic.LicenseType != "lite"  || item.Type == DestinationType.LocalFolder;
                     }
                     break;
             }        
@@ -226,11 +230,20 @@ namespace MasterScheduler.ViewModels
         }
 
         [RelayCommand]
-        public void BackupDestination(object sender)
+        public void SelectDestination(BackupDestinations selectedItem)
         {
-            MenuItem? menuItem = sender as MenuItem;
-            if (menuItem == null) return;
-            AddUpdateDestination(menuItem.Name, new BackupDestination());
+            //MenuItem? menuItem = sender as MenuItem;
+            //if (selectedItem == null) return;
+            if (!selectedItem.IsActive)
+            {
+                MessageBox.Show($"{selectedItem.Name} is a Pro Feature Would you like to visit our store to unlock all features?", "Upgrade Required");
+
+                _navigationService.NavigateTo<EditionOverlayViewModel>();
+            }
+            else {
+                AddUpdateDestination(selectedItem.Type.ToString(), new BackupDestination());
+            }
+                
         }
         private void AddUpdateDestination(string destinationType,BackupDestination destination)
         {
