@@ -87,7 +87,7 @@ namespace MasterScheduler.ViewModels
             switch (lic.LicenseType.ToLower())
             {
                 case "lite":
-                    allOptions.Find(c => c.Type == DestinationType.LocalFolder)?.IsActive = true;
+                    allOptions.Find(c => c.Type == DestinationType.LocalFolder).IsActive = true;
                     break;
                 default:
                     foreach (var item in allOptions)

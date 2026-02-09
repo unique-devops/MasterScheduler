@@ -131,6 +131,35 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="NoIconMenuItemStyle" TargetType="MenuItem">
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="Border"
+                        Background="Transparent"
+                        Padding="{TemplateBinding Padding}">
+                            <ContentPresenter
+                        ContentSource="Header"
+                        VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="Border"
+                                Property="Background"
+                                Value="LightSkyBlue"/>
+                            </Trigger>
+
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </UserControl.Resources>
 
     <Grid Background="#F5F6F7">
@@ -264,32 +293,41 @@
                         <Button.ContextMenu>
                             <ContextMenu ItemsSource="{Binding AvailableDestinations}">
                                 <ContextMenu.ItemTemplate>
+                                    
                                     <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Width="16"
-                                               Height="16"
-                                               Margin="0,0,8,0"
-                                               Source="{Binding IconPath}"/>
-                                            <TextBlock Text="{Binding Name}"/>
-                                            <TextBlock Text=" 🔒"   Foreground="#999"  Visibility="{Binding IsActive, Converter={StaticResource FalseToVisibleConverter}}"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
 
-                                        </StackPanel>
+                                            <Image Grid.Column="0"
+                           Width="16"
+                           Height="16"
+                           Margin="0,0,8,0"
+                           Source="{Binding IconPath}"/>
+
+                                            <TextBlock Grid.Column="1"
+                               Text="{Binding Name}"
+                               VerticalAlignment="Center"/>
+
+                                            <TextBlock Grid.Column="2"
+                               Text="🔒"
+                               Margin="8,0,0,0"
+                               Foreground="#999"
+                               Visibility="{Binding IsActive,
+                                   Converter={StaticResource FalseToVisibleConverter}}"/>
+                                        </Grid>
                                     </DataTemplate>
                                 </ContextMenu.ItemTemplate>
                                 
                                 <ContextMenu.ItemContainerStyle>
-                                    <Style TargetType="MenuItem">
-                                        <Setter Property="Icon" Value="{x:Null}"/>
+                                    <Style TargetType="MenuItem" BasedOn="{StaticResource NoIconMenuItemStyle}">
+                                        
                                         <Setter Property="Command" Value="{Binding DataContext.SelectDestinationCommand, 
                                                 RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                         <Setter Property="CommandParameter" Value="{Binding}"/>
-
-                                        <!--<Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsActive}" Value="False">
-                                                <Setter Property="InputGestureText" Value="🔒"/>
-                                                <Setter Property="Opacity" Value="0.7"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>-->
                                     </Style>
                                 </ContextMenu.ItemContainerStyle>
                             </ContextMenu>
