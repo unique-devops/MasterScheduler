@@ -16,7 +16,7 @@ namespace MasterScheduler.ViewModels
     public partial class EditionOverlayViewModel : ObservableObject
     {
         private readonly INavigationService _navigationService;
-        LicenseChecker licenseChecker = new LicenseChecker();
+        LicenseService licenseChecker = new LicenseService();
 
         [ObservableProperty]
         private string liteVersion = "Current version";
@@ -43,9 +43,9 @@ namespace MasterScheduler.ViewModels
         private void CheckLicense()
         {
             var lic = licenseChecker.GetLocalLicense();
-            TrialVersion = lic.LicenseType == "Trial" ? "🎉 Trial Activated!" : "Start Trial";
-            IsActiveTrial = lic.LicenseType == "Trial";
-            LiteVersion = lic.LicenseType == "lite" ? "current version" : "Activate Lite";
+            TrialVersion = lic.Edition == "Trial" ? "🎉 Trial Activated!" : "Start Trial";
+            IsActiveTrial = lic.Edition == "Trial";
+            LiteVersion = lic.Edition == "Free" ? "current version" : "Activate Lite";
         }
 
         [RelayCommand]

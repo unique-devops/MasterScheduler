@@ -14,7 +14,7 @@ namespace MasterScheduler.Shared.Service
         private IJobRepository _jobRepository;
         private ILogger<ScheduledJobStore> _logger;
         private IEmailService _emailService;
-        LicenseChecker license = new LicenseChecker();
+        LicenseService licenseService = new LicenseService();
         public ScheduledJobStore(IJobRepository jobRepository, ILogger<ScheduledJobStore> logger,IEmailService emailService)
         {
             _jobRepository = jobRepository;
@@ -151,7 +151,7 @@ namespace MasterScheduler.Shared.Service
         {
             try
             {
-                var lic = license.GetLocalLicense();
+                var lic = licenseService.GetLocalLicense();
                 if (destination.Type == DestinationType.LocalFolder)
                 {
                     var config = (LocalFolderConfig)destination.Config;
@@ -164,7 +164,7 @@ namespace MasterScheduler.Shared.Service
 
                     _logger.LogInformation("Backup to local path: {path} (Job {id})", targetFile, jobId);
                 }
-                else if (destination.Type == DestinationType.GoogleDrive && lic.LicenseType.ToLower() !="lite")
+                else if (destination.Type == DestinationType.GoogleDrive && lic.Edition.ToLower() !="free")
                 {
                     
                     var driveConfig = (GoogleDriveConfig)destination.Config;

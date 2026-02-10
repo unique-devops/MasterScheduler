@@ -1,9 +1,12 @@
 ﻿using MasterScheduler.Shared.Data;
+using MasterScheduler.Shared.DataModels;
 using MasterScheduler.Shared.Dto;
+using MasterScheduler.Shared.Enums;
 using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -11,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace MasterScheduler.Shared.Service
 {
-    public class LicenseChecker
+    public class LicenseService
     {
         private static readonly string SecretSalt = "RoshMasterScheduler_2026_!@#";
         FingerprintGenerator fingerprintGenerator = new FingerprintGenerator();
@@ -41,9 +44,9 @@ namespace MasterScheduler.Shared.Service
             // SCENARIO 1: First Run (No local DB record)
             if (localLicense == null)
             {
-                string defaultType = "lite";
+                string defaultType = "Free";
                 string secureKey = GenerateSecureKey(pcId, defaultType);
-                var lic = new LicenseResponseDto { LicenseType = defaultType,LicenseKey = secureKey,PCID = pcId };
+                var lic = new LicenseInfoModel{ Edition = defaultType,LicenseKey = secureKey,PCID = pcId, Modules = new HashSet<string> { "SQLBACKUP" }, Connectors = new HashSet<string> { "LOCAL" } };
                 SaveLocalLicense(lic);
 
                 // Try to notify server (Async - don't block startup)
@@ -52,14 +55,14 @@ namespace MasterScheduler.Shared.Service
             else
             {
                 // 2. Anti-Tamper Check
-                bool isTampered = !VerifyIntegrity(pcId, localLicense.LicenseType, localLicense.LicenseKey);
+                bool isTampered = !VerifyIntegrity(pcId, localLicense.Edition, localLicense.LicenseKey);
 
                 if (isTampered)
                 {
                     // Someone changed 'lite' to 'pro' in the database manually!
                     // Revert them to Lite.
-                    string secureKey = GenerateSecureKey(pcId, "lite");
-                    var lic = new LicenseResponseDto { LicenseType = "lite", LicenseKey = secureKey, PCID = pcId };
+                    string secureKey = GenerateSecureKey(pcId, "Free");
+                    var lic = new LicenseInfoModel { Edition = "Free", LicenseKey = secureKey, PCID = pcId };
                     UpdateLocalLicense(lic);                    
                 }
 
@@ -68,13 +71,12 @@ namespace MasterScheduler.Shared.Service
                 if (serverUpdate != null)
                 {
                     // Update local DB with new status (e.g. if they bought Pro)
-                    string newKey = GenerateSecureKey(pcId, serverUpdate.LicenseType);
+                    string newKey = GenerateSecureKey(pcId, serverUpdate.Edition);
                     serverUpdate.LicenseKey = newKey;
                     UpdateLocalLicense(serverUpdate);
                 }
-            }
-            if (string.IsNullOrWhiteSpace(localLicense?.ExpiryDate)) return false;
-            return DateTime.Parse(localLicense?.ExpiryDate) > DateTime.Now;
+            }            
+            return localLicense?.ExpiryDate ==null ? true : localLicense.ExpiryDate > DateTime.Now;
         }
 
         public async Task ActivateTrialLicense(string userEmail)
@@ -83,7 +85,7 @@ namespace MasterScheduler.Shared.Service
             var localLicense = GetLocalLicense();
             string defaultType = "Pro";
             string secureKey = GenerateSecureKey(pcId, defaultType);
-            var lic = new LicenseResponseDto { LicenseType = defaultType, LicenseKey = secureKey, PCID = pcId, Email = userEmail, ExpiryDate = DateTime.Now.AddMonths(1).ToString() };
+            var lic = new LicenseInfoModel { Edition = defaultType, LicenseKey = secureKey, PCID = pcId, Email = userEmail, ExpiryDate = DateTime.Now.AddMonths(1) };
             if (localLicense == null)
             {                                               
                 SaveLocalLicense(lic);                                
@@ -94,7 +96,7 @@ namespace MasterScheduler.Shared.Service
             }
             await RegisterWithServer(lic);
         }
-        private async Task<LicenseResponseDto> RegisterWithServer(LicenseResponseDto lic)
+        private async Task<LicenseInfoModel> RegisterWithServer(LicenseInfoModel lic)
         {
             using var client = new HttpClient();
             var payload = new { pc_id = lic.PCID, customer_email = lic.Email, version = "1.0.0" };
@@ -104,64 +106,77 @@ namespace MasterScheduler.Shared.Service
             if (response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<LicenseResponseDto>(json);
+                return JsonConvert.DeserializeObject<LicenseInfoModel>(json);
             }
             return null;
         }
 
-        private void SaveLocalLicense(LicenseResponseDto res)
+        private void SaveLocalLicense(LicenseInfoModel license)
         {
             using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
             con.Open();
-            var cmd = new SqliteCommand("INSERT INTO LicenseInfo (PCID, Email, LicenseType, ExpiryDate, LicenseKey) VALUES (@pc, @email, @type, @expiry, @licenseKey)", con);
-            cmd.Parameters.AddWithValue("@pc", res.PCID);
-            cmd.Parameters.AddWithValue("@email", res.Email ?? "lite@gmail.com");
-            cmd.Parameters.AddWithValue("@type", res.LicenseType);
-            cmd.Parameters.AddWithValue("@expiry", res.ExpiryDate ?? "");
-            cmd.Parameters.AddWithValue("@licenseKey", res.LicenseKey);
+            var cmd = new SqliteCommand("INSERT INTO LicenseInfo (PCID, Edition, Status, LicenseKey, Modules, Connectors) VALUES (@pcid, @edition, @status, @key, @modules, @connectors)", con);           
+            cmd.Parameters.AddWithValue("@pcid", license.PCID);
+            cmd.Parameters.AddWithValue("@edition", license.Edition);
+            cmd.Parameters.AddWithValue("@status", license.IsExpired ? "Expired" : "Active");           
+            cmd.Parameters.AddWithValue("@key", license.LicenseKey);
+
+            cmd.Parameters.AddWithValue("@modules",
+                JsonConvert.SerializeObject(license.Modules));
+
+            cmd.Parameters.AddWithValue("@connectors",
+                JsonConvert.SerializeObject(license.Connectors));
+
             cmd.ExecuteNonQuery();
         }
-        public void UpdateLocalLicense(LicenseResponseDto lic)
+        public void UpdateLocalLicense(LicenseInfoModel lic)
         {
             using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
             con.Open();
             var sql = "UPDATE LicenseInfo SET Email = @email ,PCID =@pc , LicenseType =@type, ExpiryDate =@expiry, LicenseKey =@licenseKey";
             using var cmd = new SqliteCommand(sql, con);
             cmd.Parameters.AddWithValue("@pc", lic.PCID);
-            cmd.Parameters.AddWithValue("@email", lic.Email ?? "lite@gmail.com");
-            cmd.Parameters.AddWithValue("@type", lic.LicenseType);
-            cmd.Parameters.AddWithValue("@expiry", lic.ExpiryDate ?? "");
+            cmd.Parameters.AddWithValue("@email", lic.Email);
+            cmd.Parameters.AddWithValue("@edition", lic.Edition);
+            cmd.Parameters.AddWithValue("@status", lic.IsExpired ? "Expired" : "Active");
+            cmd.Parameters.AddWithValue("@expiry", lic.ExpiryDate  == null ? "" :lic.ExpiryDate?.ToString("yyyy-MM-dd"));
             cmd.Parameters.AddWithValue("@licenseKey", lic.LicenseKey);
             cmd.ExecuteNonQuery();
 
             // Tip: Call your Vercel API here too to sync the email to Supabase
         }
-        public LicenseResponseDto GetLocalLicense()
+        public LicenseInfoModel GetLocalLicense()
         {
             using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
             con.Open();
 
             // We only ever expect one row in this table
-            var sql = "SELECT PCID, Email, LicenseType, ExpiryDate, Status FROM LicenseInfo LIMIT 1";
+            var sql = "SELECT * FROM LicenseInfo LIMIT 1";
 
             using var cmd = new SqliteCommand(sql, con);
-            using var reader = cmd.ExecuteReader();
+            using var reader = cmd.ExecuteReader();           
 
             if (reader.Read())
             {
-                return new LicenseResponseDto
-                {
-                    PCID = reader.GetString(0),
-                    Email = reader.IsDBNull(1) ? "" : reader.GetString(1),
-                    LicenseType = reader.GetString(2),
-                    ExpiryDate = reader.GetString(3),
-                    Status = reader.GetString(4)
+                return new LicenseInfoModel
+                {                    
+                    Edition = reader["Edition"].ToString(),
+                    ExpiryDate = reader["ExpiryDate"] == DBNull.Value
+                        ? null
+                        : DateTime.Parse(reader["ExpiryDate"].ToString()),
+                    IsExpired = reader["Status"].ToString() == "Expired",
+                    Status = reader["Status"].ToString(),
+                     LicenseKey = reader["LicenseKey"].ToString(),
+                    Modules = JsonConvert.DeserializeObject<HashSet<string>>(
+                    reader["Modules"]?.ToString() ?? "[]"),
+
+                            Connectors = JsonConvert.DeserializeObject<HashSet<string>>(
+                    reader["Connectors"]?.ToString() ?? "[]")
                 };
             }
-
-            return null; // No license found (First Run)
+           return null;
         }
-        public async Task<LicenseResponseDto> ValidateWithServer(string pcId, string serial = "")
+        public async Task<LicenseInfoModel> ValidateWithServer(string pcId, string serial = "")
         {
             using var client = new HttpClient();
             var payload = new
@@ -180,7 +195,7 @@ namespace MasterScheduler.Shared.Service
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var data = JsonConvert.DeserializeObject<LicenseResponseDto>(json);
+                    var data = JsonConvert.DeserializeObject<LicenseInfoModel>(json);
                     // ENCRYPT and SAVE data.expiry locally for offline checks
                     return data;
                 }
@@ -192,5 +207,34 @@ namespace MasterScheduler.Shared.Service
                 return null;
             }
         }
+
+        public bool HasModule(string moduleCode, LicenseInfoModel Current)
+        {
+            if (Current == null)
+                return false;
+
+            // Trial: allow everything
+            if (Current.Edition == "Trial" && !Current.IsExpired)
+                return true;
+
+            // Free edition: no paid modules
+            if (Current.Edition == "Free")
+                return false;
+
+            // Lite edition: allow core modules only
+            if (Current.Edition == "Lite")
+            {
+                return Current.Modules.Contains(moduleCode);
+            }
+
+            // Pro edition: check purchased modules
+            if (Current.Edition == "Pro")
+            {
+                return Current.Modules.Contains(moduleCode);
+            }
+
+            return false;
+        }
+
     }
 }

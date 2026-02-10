@@ -60,7 +60,7 @@ namespace MasterScheduler.ViewModels
 
         SqlBackupDetails sqlBackupDetails = new SqlBackupDetails();
 
-        LicenseChecker license = new LicenseChecker();
+        LicenseService license = new LicenseService();
         public SQLBackupScheduleViewModel(IDialogService dialogService, INavigationService navigationService)
         {
             BindDestinations();
@@ -84,15 +84,15 @@ namespace MasterScheduler.ViewModels
                 new() { Type = DestinationType.NetworkShare, Name = "NAS / Network Share", IconPath = "/Assets/local-area-network.png" }
             };
 
-            switch (lic.LicenseType.ToLower())
+            switch (lic.Edition.ToLower())
             {
-                case "lite":
+                case "free":
                     allOptions.Find(c => c.Type == DestinationType.LocalFolder).IsActive = true;
                     break;
                 default:
                     foreach (var item in allOptions)
                     {
-                        item.IsActive = lic.LicenseType != "lite"  || item.Type == DestinationType.LocalFolder;
+                        item.IsActive = lic.Edition != "free"  || item.Type == DestinationType.LocalFolder;
                     }
                     break;
             }        

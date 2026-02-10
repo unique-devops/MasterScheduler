@@ -1,0 +1,73 @@
+﻿<UserControl x:Class="MasterScheduler.Views.AddOnsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MasterScheduler.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Background="#F4F7F9">
+
+        <Border Background="White" CornerRadius="6" Padding="20">
+
+            <StackPanel>
+
+                <TextBlock Text="License  Add-Ons"
+                           FontSize="22"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,20"/>
+
+                <!-- Job Modules -->
+                <TextBlock Text="Job Modules" FontWeight="Bold"/>
+
+                <ItemsControl ItemsSource="{Binding JobModules}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <DockPanel Margin="0,6">
+                                <TextBlock Text="{Binding Name}" DockPanel.Dock="Left"/>
+                                <TextBlock Text="{Binding Price}" DockPanel.Dock="Right"/>
+                                <Button Content="Buy"
+                                        Visibility="{Binding IsLocked}"
+                                        Command="{Binding BuyCommand}"
+                                        Margin="10,0,0,0"/>
+                            </DockPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <Separator Margin="15"/>
+
+                <!-- Storage Connectors -->
+                <TextBlock Text="Storage Connectors" FontWeight="Bold"/>
+
+                <ItemsControl ItemsSource="{Binding StorageConnectors}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <DockPanel Margin="0,6">
+                                <TextBlock Text="{Binding Name}"/>
+                                <TextBlock Text="{Binding Price}" DockPanel.Dock="Right"/>
+                                <Button Content="Buy"
+                                        Visibility="{Binding IsLocked}"
+                                        Command="{Binding BuyCommand}"
+                                        Margin="10,0,0,0"/>
+                            </DockPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <Separator Margin="20"/>
+
+                <!-- License Key -->
+                <TextBlock Text="Enter License / Add-On Key" FontWeight="Bold"/>
+
+                <StackPanel Orientation="Horizontal" Margin="0,5">
+                    <TextBox Width="260" Text="{Binding LicenseKey}"/>
+                    <Button Content="Apply"
+                            Command="{Binding ApplyKeyCommand}"
+                            Margin="10,0"/>
+                </StackPanel>
+
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

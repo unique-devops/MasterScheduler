@@ -2,6 +2,8 @@
 using CommunityToolkit.Mvvm.Input;
 using MasterScheduler.Interface;
 using MasterScheduler.Models;
+using MasterScheduler.Shared.DataModels;
+using MasterScheduler.Shared.Service;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -16,24 +18,31 @@ namespace MasterScheduler.ViewModels
         [ObservableProperty]
         private string headerTitle;
 
-        public ObservableCollection<TaskType> TaskTypeList { get; set; } 
+        public ObservableCollection<JobTypeModel> TaskTypeList { get; set; } 
 
         private readonly INavigationService _navigationService;
 
         [ObservableProperty]
-        private TaskType? selectedTaskType;
+        private JobTypeModel? selectedTaskType;
+
+        LicenseService licenseService = new LicenseService();
         public TaskTypeSelectionViewModel(INavigationService navigationService)
         {
             HeaderTitle = "Choose task";
             _navigationService = navigationService;
-            TaskTypeList = new ObservableCollection<TaskType>
+            TaskTypeList = new ObservableCollection<JobTypeModel>
             {               
-                new TaskType { Id=1, Name = "SQL Backup", Description = "Backup databases to local or cloud.", JobType = "SqlBackup" },
-                new TaskType { Id=2, Name = "File Sync", Description = "Sync folders between locations.", JobType = "FileSync" },
-                new TaskType { Id=3, Name = "Clean Up", Description = "Delete old logs and temp files.", JobType = "Cleanup" },
-                new TaskType { Id=4, Name = "Report", Description = "Generate and email status reports.", JobType = "Report" }
+                new JobTypeModel { Type = "SQLBACKUP", Name = "SQL Backup", Description = "Backup databases to local or cloud." },
+                new JobTypeModel { Type = "FILESYNC", Name = "File Sync", Description = "Sync folders between locations." },
+                new JobTypeModel { Type = "CLEANUP", Name = "Folder Cleanup", Description = "Delete old logs and temp files." },
+                new JobTypeModel { Type = "Report", Name = "Report", Description = "Generate and email status reports." }
             };
 
+            var current = licenseService.GetLocalLicense();
+            foreach (var job in TaskTypeList)
+            {
+                job.IsLocked = !licenseService.HasModule(job.Type, current);
+            }
             SelectedTaskType =  TaskTypeList.FirstOrDefault();
         }
 
@@ -48,12 +57,12 @@ namespace MasterScheduler.ViewModels
         private void Next()
         {
             if (SelectedTaskType == null) return;
-            switch (SelectedTaskType.Id)
+            switch (SelectedTaskType.Type)
             {
-                case 1:
+                case "SQLBACKUP":
                     _navigationService.NavigateTo<SQLBackupScheduleViewModel>();
                     break;
-                case 2:
+                case "":
                     break;
             }
             

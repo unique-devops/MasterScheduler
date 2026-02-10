@@ -89,10 +89,12 @@ namespace MasterScheduler.Shared.Data
                     Id INTEGER PRIMARY KEY AUTOINCREMENT,
                     PCID TEXT NOT NULL,
                     Email TEXT NULL,
-                    LicenseType TEXT DEFAULT 'lite',
-                    Status TEXT DEFAULT 'active',
-                    ExpiryDate TEXT NULL,
+                    Edition TEXT NOT NULL DEFAULT 'Free',
+                    Status TEXT NOT NULL DEFAULT 'Active',
+                    ExpiryDate TEXT,
                     LicenseKey TEXT,
+                    Modules TEXT,
+                    Connectors TEXT,     
                     LastVerified DATETIME DEFAULT CURRENT_TIMESTAMP
                 );";
             using var cmd = new SqliteCommand(sql, con);

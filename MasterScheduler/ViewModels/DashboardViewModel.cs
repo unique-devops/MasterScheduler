@@ -26,13 +26,13 @@ namespace MasterScheduler.ViewModels
         private string licType;
 
         [ObservableProperty]
-        private string licExp;
+        private string licStatus;
 
         private const string PipeName = "JobControlPipe";
 
         public bool IsLite => LicType.ToLower() == "lite";
 
-        LicenseChecker licenseChecker = new LicenseChecker();
+        LicenseService licenseChecker = new LicenseService();
         [ObservableProperty] private ScheduledJobDto? _selectedJob;       
         public DashboardViewModel(INavigationService navigation)
         {
@@ -47,8 +47,8 @@ namespace MasterScheduler.ViewModels
         {
             await licenseChecker.CheckAndInitializeLicense();
             var lic = licenseChecker.GetLocalLicense();
-            LicType = lic.LicenseType;
-            LicExp = lic.LicenseType =="lite" ? "" : lic.ExpiryDate;
+            LicType = lic.Edition;
+            LicStatus = "12 days left";
         }
 
         [RelayCommand]
