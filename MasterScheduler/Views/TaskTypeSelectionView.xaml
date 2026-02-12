@@ -106,7 +106,7 @@
                                             <Ellipse Fill="#F1F2F6"/>
 
                                             <Image Width="45" Height="45" 
-                                           Source="{Binding JobType, Converter={StaticResource JobTypeIconConverter}}"
+                                           Source="{Binding Type, Converter={StaticResource JobTypeIconConverter}}"
                                            RenderOptions.BitmapScalingMode="HighQuality"/>
                                         </Grid>
                                         <!--<Ellipse Width="60" Height="60" Fill="{TemplateBinding Foreground}" Opacity="0.1"/>-->

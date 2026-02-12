@@ -18,9 +18,9 @@ namespace MasterScheduler.Converter
             // Define your paths here
             string iconPath = type switch
             {
-                "SqlBackup" => "/Assets/sql-server.png",
-                "Cleanup" => "/Assets/delete.png",
-                "FileSync" => "/Assets/sync.png",
+                "SQLBACKUP" => "/Assets/sql-server.png",
+                "CLEANUP" => "/Assets/delete.png",
+                "FIELSYNC" => "/Assets/sync.png",
                 _ => "/Assets/task.png"
             };
 

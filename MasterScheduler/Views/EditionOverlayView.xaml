@@ -6,122 +6,129 @@
              xmlns:local="clr-namespace:MasterScheduler.Views"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid Background="#CC000000">
-        <Border  Background="#1E1E1E" VerticalAlignment="Center" HorizontalAlignment="Center" 
-                CornerRadius="10" Width="700" Padding="15" BorderBrush="#444" BorderThickness="1">
-            <StackPanel>
-                <TextBlock Text="Choose Your Edition" Foreground="White" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+    
+    <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="50"/>
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0">
+                <TextBlock Text="Choose Your Edition" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,10"/>
                 <TextBlock Text="Unlock the full power of Master Scheduler" Foreground="#AAA" HorizontalAlignment="Center" Margin="0,0,0,30"/>
+            </StackPanel>
+        <ScrollViewer Grid.Row="1">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
 
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="320"/>
+                        <ColumnDefinition Width="320"/>
                     </Grid.ColumnDefinitions>
 
                     <Border Grid.Column="0"
-                        CornerRadius="12"
-                        Background="White"
-                        Padding="20"
-                        Margin="10"
-                        BorderBrush="#DADADA"
-                        BorderThickness="1">
+                CornerRadius="12"
+                Background="White"
+                Padding="20"
+                Margin="10"
+                BorderBrush="#DADADA"
+                BorderThickness="1">
 
                         <StackPanel>
 
                             <TextBlock Text="LITE"
-                   FontSize="22"
-                   FontWeight="Bold"
-                   HorizontalAlignment="Center"/>
+           FontSize="22"
+           FontWeight="Bold"
+           HorizontalAlignment="Center"/>
 
                             <TextBlock Text="₹ 3,000 / License"
-                   FontSize="18"
-                   Foreground="#2E7D32"
-                   FontWeight="SemiBold"
-                   Margin="0,10"
-                   HorizontalAlignment="Center"/>
+           FontSize="18"
+           Foreground="#2E7D32"
+           FontWeight="SemiBold"
+           Margin="0,10"
+           HorizontalAlignment="Center"/>
 
                             <Separator Margin="0,10"/>
 
                             <!-- Features -->
                             <TextBlock Text="FEATURES"
-                   FontWeight="Bold"
-                   Margin="0,5"/>
+           FontWeight="Bold"
+           Margin="0,5"/>
 
                             <TextBlock Text="✔ Backup Scheduler"/>
                             <TextBlock Text="✔ Manual  Automatic Backup"/>
                             <TextBlock Text="✔ Compression"/>
                             <TextBlock Text="✔ Encryption"/>
                             <TextBlock Text="✖ Max 5 Databases"
-                   Foreground="DarkRed"
-                   FontWeight="SemiBold"/>
+           Foreground="DarkRed"
+           FontWeight="SemiBold"/>
 
                             <Separator Margin="10"/>
 
                             <!-- Storage -->
                             <TextBlock Text="BACKUP DESTINATION"
-                   FontWeight="Bold"
-                   Margin="0,5"/>
+           FontWeight="Bold"
+           Margin="0,5"/>
 
                             <TextBlock Text="✔ Local Folder"/>
                             <TextBlock Text="✔ Network Path (NAS)"/>
                             <TextBlock Text="✔ FTP"/>
                             <TextBlock Text="✖ Google Drive"
-                   Foreground="Gray"/>
+           Foreground="Gray"/>
                             <TextBlock Text="✖ Dropbox"
-                   Foreground="Gray"/>
+           Foreground="Gray"/>
 
                             <Button Content="Buy Lite"
-                Height="36"
-                Margin="0,20,0,0"
-                Background="#1976D2"
-                Foreground="White"/>
+        Height="36"
+        Margin="0,20,0,0"
+        Background="#1976D2"
+        Foreground="White"/>
                         </StackPanel>
                     </Border>
 
 
                     <Border Grid.Column="1"
-        CornerRadius="12"
-        Background="#E8F5E9"
-        Padding="20"
-        Margin="10"
-        BorderBrush="#2E7D32"
-        BorderThickness="2">
+CornerRadius="12"
+Background="#E8F5E9"
+Padding="20"
+Margin="10"
+BorderBrush="#2E7D32"
+BorderThickness="2">
 
                         <StackPanel>
 
                             <TextBlock Text="PRO"
-                   FontSize="22"
-                   FontWeight="Bold"
-                   HorizontalAlignment="Center"/>
+           FontSize="22"
+           FontWeight="Bold"
+           HorizontalAlignment="Center"/>
 
                             <TextBlock Text="₹ 10,000 / License"
-                   FontSize="18"
-                   Foreground="#1B5E20"
-                   FontWeight="SemiBold"
-                   Margin="0,10"
-                   HorizontalAlignment="Center"/>
+           FontSize="18"
+           Foreground="#1B5E20"
+           FontWeight="SemiBold"
+           Margin="0,10"
+           HorizontalAlignment="Center"/>
 
                             <Separator Margin="0,10"/>
 
                             <!-- Features -->
                             <TextBlock Text="FEATURES"
-                   FontWeight="Bold"
-                   Margin="0,5"/>
+           FontWeight="Bold"
+           Margin="0,5"/>
 
                             <TextBlock Text="✔ Backup Scheduler"/>
                             <TextBlock Text="✔ Manual Automatic Backup"/>
                             <TextBlock Text="✔ Compression"/>
                             <TextBlock Text="✔ Encryption"/>
                             <TextBlock Text="✔ Unlimited Databases"
-                   FontWeight="SemiBold"/>
+           FontWeight="SemiBold"/>
 
                             <Separator Margin="10"/>
 
                             <!-- Storage -->
                             <TextBlock Text="BACKUP DESTINATION"
-                   FontWeight="Bold"
-                   Margin="0,5"/>
+           FontWeight="Bold"
+           Margin="0,5"/>
 
                             <TextBlock Text="✔ Local Folder"/>
                             <TextBlock Text="✔ Network Path (NAS)"/>
@@ -130,41 +137,102 @@
                             <TextBlock Text="✔ Dropbox"/>
 
                             <Button Content="Buy Pro"
-                Height="36"
-                Margin="0,20,0,0"
-                Background="#2E7D32"
-                Foreground="White"/>
+        Height="36"
+        Margin="0,20,0,0"
+        Background="#2E7D32"
+        Foreground="White"/>
                         </StackPanel>
                     </Border>
 
                 </Grid>
 
-                <Button Content="Close" Command="{Binding GoBackCommand}" Background="Transparent" Foreground="Red" BorderThickness="0" Padding="5" Margin="0,20,0,0">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="7"/>
+            </StackPanel>
+        </ScrollViewer>
+        <Border Grid.Row="2" Padding="10" Background="White">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="StartTrialButton"
+                Content="Start 14-Day Free Trial"
+                Visibility="{Binding ShowTrialButton}"
+                Command="{Binding StartTrialCommand}"
+                Cursor="Hand">
+
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="#10B981"/>
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Padding" Value="10,5"/>
+                            <Setter Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect BlurRadius="12"
+                              ShadowDepth="2"
+                              Opacity="0.3"/>
+                                </Setter.Value>
+                            </Setter>
+
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#059669"/>
+                                </Trigger>
+                            </Style.Triggers>
                         </Style>
-                    </Button.Resources>
+
+                    </Button.Style>
                 </Button>
-            </StackPanel>
-        </Border>
 
+                <Button x:Name="CancelButton"
+                  Content="Cancel"                 
+                  Command="{Binding GoBackCommand}"
+                  Cursor="Hand">
+
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="IndianRed"/>
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Padding" Value="10,5"/>
+                            <Setter Property="Margin" Value="7,0"/>
+                            <Setter Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect BlurRadius="12"
+                ShadowDepth="2"
+                Opacity="0.3"/>
+                                </Setter.Value>
+                            </Setter>
+
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#059669"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+
+                    </Button.Style>
+                </Button>
+
+            </StackPanel>
+               
+        </Border>
+            
         <Border Visibility="Collapsed">
-            <StackPanel>
-                <TextBlock Text="Activate Your Trial" Foreground="White" FontSize="20" HorizontalAlignment="Center"/>
-                <TextBlock Text="Enter email to receive your trial key" Foreground="#AAA" Margin="0,10"/>
+                <StackPanel>
+                    <TextBlock Text="Activate Your Trial" Foreground="White" FontSize="20" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Enter email to receive your trial key" Foreground="#AAA" Margin="0,10"/>
 
-                <TextBox Text="{Binding UserEmail, UpdateSourceTrigger=PropertyChanged}" 
-         Background="#333" Foreground="White" Padding="10" Margin="0,10"/>
+                    <TextBox Text="{Binding UserEmail, UpdateSourceTrigger=PropertyChanged}" 
+ Background="#333" Foreground="White" Padding="10" Margin="0,10"/>
 
-                <Button Content="Confirm &amp; Activate" 
-        Command="{Binding ActivateTrialCommand}"
-        Background="#22C55E" Foreground="White" FontWeight="Bold"/>
+                    <Button Content="Confirm &amp; Activate" 
+Command="{Binding ActivateTrialCommand}"
+Background="#22C55E" Foreground="White" FontWeight="Bold"/>
 
-                <Button Content="Go Back" 
-        Command="{Binding ShowEmailFormCommand}" 
-        CommandParameter="false" Background="Transparent" Foreground="#666"/>
-            </StackPanel>
-        </Border>
+                    <Button Content="Go Back" 
+Command="{Binding ShowEmailFormCommand}" 
+CommandParameter="false" Background="Transparent" Foreground="#666"/>
+                </StackPanel>
+            </Border>
     </Grid>
+        
 </UserControl>
