@@ -151,8 +151,7 @@ BorderThickness="2">
         <Border Grid.Row="2" Padding="10" Background="White">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button x:Name="StartTrialButton"
-                Content="Start 14-Day Free Trial"
-                Visibility="{Binding ShowTrialButton}"
+                Content="{Binding TrialVersion}"                
                 Command="{Binding StartTrialCommand}"
                 Cursor="Hand">
 

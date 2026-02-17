@@ -22,7 +22,7 @@ namespace MasterScheduler.ViewModels
         private string liteVersion = "Current version";
 
         [ObservableProperty]
-        private string trialVersion = "Start Trial";
+        private string trialVersion = "Start 14-Day Free Trial";
 
         [ObservableProperty]
         private bool isActiveTrial;
@@ -42,10 +42,16 @@ namespace MasterScheduler.ViewModels
 
         private void CheckLicense()
         {
-            var lic = licenseChecker.GetLocalLicense();
-            TrialVersion = lic.Edition == "Trial" ? "🎉 Trial Activated!" : "Start Trial";
-            IsActiveTrial = lic.Edition == "Trial";
-            LiteVersion = lic.Edition == "Free" ? "current version" : "Activate Lite";
+            var type = "";
+            var lic = licenseChecker.LoadAndVerifyLicense();
+            if (lic != null && lic.Length == 4)
+            {
+                type = lic[0].Split("-")[0].ToLower();
+            }
+            
+            TrialVersion = type == "trial" ? "🎉 Trial Activated!" : "Start Trial";
+            IsActiveTrial = type == "trial";
+            LiteVersion = type == "free" ? "current version" : "Activate Lite";
         }
 
         [RelayCommand]
@@ -55,8 +61,9 @@ namespace MasterScheduler.ViewModels
         }
 
         [RelayCommand]
-        private async Task ActivateTrial()
+        private async Task StartTrial()
         {
+            if (IsActiveTrial) return;
             EnterEmailDialog enterEmail = new EnterEmailDialog();
             enterEmail.Owner = App.Current.MainWindow;
             bool? result = enterEmail.ShowDialog();            
@@ -64,7 +71,7 @@ namespace MasterScheduler.ViewModels
             UserEmail = enterEmail.InputValue;
             if (string.IsNullOrEmpty(UserEmail) || !UserEmail.Contains("@")) return;
             TrialVersion = "🎉 Trial Activated!";
-            await licenseChecker.ActivateTrialLicense("trial@gmail.com");
+            await licenseChecker.ActivateTrialLicense(UserEmail);
             _navigationService.NavigateTo<DashboardViewModel>();
         }        
 

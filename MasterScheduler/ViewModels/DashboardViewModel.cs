@@ -38,17 +38,30 @@ namespace MasterScheduler.ViewModels
         {
             _navigation = navigation;            
             Jobs = new();
-            License();
+            CheckLicenseOnStartup();
             _ =LoadNewJobs();
             _=StartAsync(new CancellationToken());
         }
+        
 
-        private async void License()
+        public void CheckLicenseOnStartup()
         {
-            await licenseChecker.CheckAndInitializeLicense();
-            var lic = licenseChecker.GetLocalLicense();
-            LicType = lic.Edition;
-            LicStatus = "12 days left";
+            var licenseData = licenseChecker.LoadAndVerifyLicense();
+
+            if (licenseData != null && licenseData.Length == 4)
+            {
+                DateTime expiry = DateTime.Parse(licenseData[2]);
+                if (expiry > DateTime.Now)
+                {
+                    // Valid license found - Show Main Screen
+                    LicType = $"{licenseData[0].Split("-")[0]}";
+                    LicStatus = $"(Trial ends: {expiry:d})";
+                    return;
+                }
+            }
+            else {
+                LicType = "Free";
+            }
         }
 
         [RelayCommand]

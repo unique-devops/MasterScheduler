@@ -1,4 +1,5 @@
-﻿using MasterScheduler.Shared.Data;
+﻿using Azure;
+using MasterScheduler.Shared.Data;
 using MasterScheduler.Shared.DataModels;
 using MasterScheduler.Shared.Dto;
 using MasterScheduler.Shared.Enums;
@@ -8,9 +9,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MasterScheduler.Shared.Service
 {
@@ -18,8 +21,8 @@ namespace MasterScheduler.Shared.Service
     {
         private static readonly string SecretSalt = "RoshMasterScheduler_2026_!@#";
         FingerprintGenerator fingerprintGenerator = new FingerprintGenerator();
-        private readonly string _apiUrl = "https://license-manager-mauve.vercel.app/api/validate";
-
+        private readonly string _apiUrl = "http://uniquetest.somee.com/licman/api/license";
+        private string _licFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "license.dat");
         public static string GenerateSecureKey(string pcId, string type)
         {
             // Creates a hash of: PCID + Type + Secret
@@ -34,83 +37,27 @@ namespace MasterScheduler.Shared.Service
             string validKey = GenerateSecureKey(pcId, type);
             return validKey == storedKey;
         }
-
-
-        public async Task<bool> CheckAndInitializeLicense(string userEmail = null)
-        {
-            string pcId = fingerprintGenerator.GetId(); // Use the HWID code from earlier
-            var localLicense = GetLocalLicense();
-
-            // SCENARIO 1: First Run (No local DB record)
-            if (localLicense == null)
-            {
-                string defaultType = "Free";
-                string secureKey = GenerateSecureKey(pcId, defaultType);
-                var lic = new LicenseInfoModel{ Edition = defaultType,LicenseKey = secureKey,PCID = pcId, Modules = new HashSet<string> { "SQLBACKUP" }, Connectors = new HashSet<string> { "LOCAL" } };
-                SaveLocalLicense(lic);
-
-                // Try to notify server (Async - don't block startup)
-                _ = RegisterWithServer(lic);
-            }
-            else
-            {
-                // 2. Anti-Tamper Check
-                bool isTampered = !VerifyIntegrity(pcId, localLicense.Edition, localLicense.LicenseKey);
-
-                if (isTampered)
-                {
-                    // Someone changed 'lite' to 'pro' in the database manually!
-                    // Revert them to Lite.
-                    string secureKey = GenerateSecureKey(pcId, "Free");
-                    var lic = new LicenseInfoModel { Edition = "Free", LicenseKey = secureKey, PCID = pcId };
-                    UpdateLocalLicense(lic);                    
-                }
-
-                // 3. Online Sync (If internet is available)
-                var serverUpdate = await ValidateWithServer(pcId);
-                if (serverUpdate != null)
-                {
-                    // Update local DB with new status (e.g. if they bought Pro)
-                    string newKey = GenerateSecureKey(pcId, serverUpdate.Edition);
-                    serverUpdate.LicenseKey = newKey;
-                    UpdateLocalLicense(serverUpdate);
-                }
-            }            
-            return localLicense?.ExpiryDate ==null ? true : localLicense.ExpiryDate > DateTime.Now;
-        }
-
+       
         public async Task ActivateTrialLicense(string userEmail)
         {
-            string pcId = fingerprintGenerator.GetId(); // Use the HWID code from earlier
-            var localLicense = GetLocalLicense();
-            string defaultType = "Pro";
-            string secureKey = GenerateSecureKey(pcId, defaultType);
-            var lic = new LicenseInfoModel { Edition = defaultType, LicenseKey = secureKey, PCID = pcId, Email = userEmail, ExpiryDate = DateTime.Now.AddMonths(1) };
-            if (localLicense == null)
-            {                                               
-                SaveLocalLicense(lic);                                
-            }
-            else
+            string pcId = fingerprintGenerator.GetId(); // Use the HWID code from earlier            
+            var trialLicense = new TrialRequest
             {
-                UpdateLocalLicense(lic);                
-            }
-            await RegisterWithServer(lic);
-        }
-        private async Task<LicenseInfoModel> RegisterWithServer(LicenseInfoModel lic)
-        {
-            using var client = new HttpClient();
-            var payload = new { pc_id = lic.PCID, customer_email = lic.Email, version = "1.0.0" };
-            var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
-
-            var response = await client.PostAsync(_apiUrl, content);
+                AppName = "MasterScheduler",
+                DeviceId = pcId,
+                Email = userEmail
+            };
+            HttpClient httpClient = new HttpClient();
+            var response = await httpClient.PostAsJsonAsync($"{_apiUrl}/start-trial", trialLicense);
             if (response.IsSuccessStatusCode)
             {
-                var json = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<LicenseInfoModel>(json);
+                var result = await response.Content.ReadFromJsonAsync<LicenseResponseDto>();
+                string rawData = $"{result?.licenseKey}|{result?.ownerEmail}|{result?.expiresAt}|{pcId}";
+                string encrypted = EncryptString(rawData, pcId + SecretSalt);
+                File.WriteAllText(_licFilePath, encrypted);
             }
-            return null;
         }
-
+       
         private void SaveLocalLicense(LicenseInfoModel license)
         {
             using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
@@ -120,13 +67,10 @@ namespace MasterScheduler.Shared.Service
             cmd.Parameters.AddWithValue("@edition", license.Edition);
             cmd.Parameters.AddWithValue("@status", license.IsExpired ? "Expired" : "Active");           
             cmd.Parameters.AddWithValue("@key", license.LicenseKey);
-
             cmd.Parameters.AddWithValue("@modules",
                 JsonConvert.SerializeObject(license.Modules));
-
             cmd.Parameters.AddWithValue("@connectors",
                 JsonConvert.SerializeObject(license.Connectors));
-
             cmd.ExecuteNonQuery();
         }
         public void UpdateLocalLicense(LicenseInfoModel lic)
@@ -175,39 +119,7 @@ namespace MasterScheduler.Shared.Service
                 };
             }
            return null;
-        }
-        public async Task<LicenseInfoModel> ValidateWithServer(string pcId, string serial = "")
-        {
-            using var client = new HttpClient();
-            var payload = new
-            {
-                pc_id = pcId,
-                serial_key = serial,
-                version = "1.0.0"
-            };
-
-            var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
-
-            try
-            {
-                var response = await client.PostAsync($"{_apiUrl}/api/check", content);
-                var json = await response.Content.ReadAsStringAsync();
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var data = JsonConvert.DeserializeObject<LicenseInfoModel>(json);
-                    // ENCRYPT and SAVE data.expiry locally for offline checks
-                    return data;
-                }
-                return null;
-            }
-            catch
-            {
-                // OFFLINE LOGIC: Read the encrypted local file and compare with current PC time
-                return null;
-            }
-        }
-
+        }       
         public bool HasModule(string moduleCode, LicenseInfoModel Current)
         {
             if (Current == null)
@@ -236,5 +148,66 @@ namespace MasterScheduler.Shared.Service
             return false;
         }
 
+
+        public string[] LoadAndVerifyLicense()
+        {
+            if (!File.Exists(_licFilePath)) return null;
+
+            try
+            {
+                string encrypted = File.ReadAllText(_licFilePath);
+                string decrypted = DecryptString(encrypted, fingerprintGenerator.GetId() + SecretSalt);
+                string[] parts = decrypted.Split('|');
+
+                // Verification: Does the Hardware ID in the file match THIS PC?
+                if (parts.Length == 4 && parts[3] == fingerprintGenerator.GetId())
+                {
+                    return parts; // Returns [Key, Email, Expiry, DeviceId]
+                }
+            }
+            catch { /* Tampered or wrong PC */ }
+            return null;
+        }
+        private string EncryptString(string text, string key)
+        {
+            var bKey = Encoding.UTF8.GetBytes(key.PadRight(32).Substring(0, 32));
+            using (var aes = Aes.Create())
+            {
+                aes.Key = bKey;
+                aes.GenerateIV();
+                using (var ms = new MemoryStream())
+                {
+                    ms.Write(aes.IV, 0, aes.IV.Length);
+                    using (var cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                    {
+                        byte[] data = Encoding.UTF8.GetBytes(text);
+                        cs.Write(data, 0, data.Length);
+                    }
+                    return Convert.ToBase64String(ms.ToArray());
+                }
+            }
+        }
+
+        private string DecryptString(string encrypted, string key)
+        {
+            var bKey = Encoding.UTF8.GetBytes(key.PadRight(32).Substring(0, 32));
+            byte[] fullData = Convert.FromBase64String(encrypted);
+            using (var aes = Aes.Create())
+            {
+                aes.Key = bKey;
+                byte[] iv = new byte[aes.BlockSize / 8];
+                Array.Copy(fullData, 0, iv, 0, iv.Length);
+                aes.IV = iv;
+                using (var ms = new MemoryStream())
+                {
+                    using (var cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Read))
+                    {
+                        ms.Write(fullData, iv.Length, fullData.Length - iv.Length);
+                        ms.Position = 0;
+                        using (var reader = new StreamReader(cs)) return reader.ReadToEnd();
+                    }
+                }
+            }
+        }
     }
 }
