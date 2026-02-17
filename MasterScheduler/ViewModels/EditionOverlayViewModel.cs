@@ -49,7 +49,7 @@ namespace MasterScheduler.ViewModels
                 type = lic[0].Split("-")[0].ToLower();
             }
             
-            TrialVersion = type == "trial" ? "🎉 Trial Activated!" : "Start Trial";
+            TrialVersion = type == "trial" ? "🎉 Trial Activated!" : "Start 14-Day Free Trial";
             IsActiveTrial = type == "trial";
             LiteVersion = type == "free" ? "current version" : "Activate Lite";
         }

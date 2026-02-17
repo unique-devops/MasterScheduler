@@ -7,19 +7,62 @@
         xmlns:fa="http://schemas.fontawesome.io/icons/"
         mc:Ignorable="d"
         Title="LocalPath Configuration" WindowStartupLocation="CenterOwner"
-ResizeMode="NoResize" Height="300" Width="500">
-    <Grid>
+        ResizeMode="NoResize" WindowStyle="SingleBorderWindow" Height="350" Width="550">
+    <Grid Background="WhiteSmoke">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="35"/>
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Horizontal">
-            <TextBlock Text="Path:" Width="30" FontSize="14" VerticalAlignment="Center"/>
-            <TextBox x:Name="txtPath" Text="{Binding Path}" Width="390"/>
-            <Button x:Name="btnBrowsePath" Content="BrowsePath" Click="btnBrowsePath_Click" Padding="4"/>
+        <StackPanel Margin="5">
+            <TextBlock Text="Folder location:" FontSize="16"/>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBox x:Name="txtPath" Text="{Binding Path}" Width="500">
+                    <TextBox.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="7"/>
+                        </Style>
+                    </TextBox.Resources>
+                </TextBox>
+                <Button x:Name="btnBrowsePath" Click="btnBrowsePath_Click" Background="Transparent" Margin="5,0" BorderThickness="0">
+                    <Image Source="/Assets/folder.png" Height="32" Width="32"/>
+                </Button>
+            </StackPanel>
         </StackPanel>
+        <GroupBox Grid.Row="1" Header="Authentication" FontSize="16">
+            <StackPanel Margin="5">
+                <TextBlock Text="Network credentials (optional)" FontSize="16"/>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,5" Text="Username :" FontSize="16"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Margin="0,5" FontSize="18" x:Name="txtUser" Text="{Binding Path}">
+                        <TextBox.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="7"/>
+                            </Style>
+                        </TextBox.Resources>
+                    </TextBox>
+                    
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Password :" FontSize="16"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="txtPassword" Text="{Binding Path}" FontSize="18">
+                        <TextBox.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="7"/>
+                            </Style>
+                        </TextBox.Resources>
+                    </TextBox>
+               
+                </Grid>
+            </StackPanel>
+        </GroupBox>
         <Grid Grid.Row="3" Background="Black">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
