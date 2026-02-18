@@ -8,7 +8,11 @@ namespace MasterScheduler.Shared.DataModels
 {
     public class LocalFolderConfig : DestinationConfig
     {
-        public string TargetPath { get; set; }       // C:\Backup or \\Server\Share
+        public string TargetPath { get; set; }
+        public bool IsNetwork { get; set; }       // C:\Backup or \\Server\Share
+        public string? Username { get; set; }       // C:\Backup or \\Server\Share
+        public string? Password { get; set; }       // C:\Backup or \\Server\Share
+        public int Days { get; set; }       // C:\Backup or \\Server\Share
         public bool CreateDateFolder { get; set; }   // yyyy-MM-dd
     }
 

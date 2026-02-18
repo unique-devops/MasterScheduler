@@ -224,7 +224,7 @@ namespace MasterScheduler.Shared.JobHelper
             }
         }
        
-        public async Task UploadBackup(UserCredential credential, string filePath,GoogleDriveConfig driveConfig, CancellationToken ct)
+        public async Task UploadBackup(UserCredential credential,string fileName,string filePath,GoogleDriveConfig driveConfig, CancellationToken ct)
         {
             var service = new DriveService(new BaseClientService.Initializer()
             {
@@ -236,7 +236,7 @@ namespace MasterScheduler.Shared.JobHelper
 
             var fileMetadata = new Google.Apis.Drive.v3.Data.File()
             {
-                Name = Path.GetFileName(filePath),
+                Name = fileName,
                 Parents = new List<string> { driveConfig.TargetFolderId } // Optional: target folder ID
             };
 

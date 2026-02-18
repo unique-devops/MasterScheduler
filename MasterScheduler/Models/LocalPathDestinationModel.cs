@@ -10,6 +10,6 @@ namespace MasterScheduler.Models
     public partial class LocalPathDestinationModel : ObservableObject
     {
         [ObservableProperty]
-        private string path;
+        private string path;        
     }
 }

@@ -31,13 +31,15 @@ namespace MasterScheduler.Shared.Service
             }                                    
             foreach (var db in sqlBackupDetails.Databases)
             {
-                string localPath = Path.Combine(GetDefaultSQLBackupPath(sqlBackupDetails.ConnectionString), $"{db}_{DateTime.Now:yyyyMMddHHmm}.bak");
+                //var backFileName = $"{db}_{DateTime.Now:yyyyMMddHHmm}.bak";
+                var tempFileName = $"{db}_{DateTime.Now:yyyyMMddHHmm}.bak";
+                sqlBackupDetails.TempBackupPath = string.IsNullOrWhiteSpace(sqlBackupDetails.TempBackupPath) ? Path.Combine(GetDefaultSQLBackupPath(sqlBackupDetails.ConnectionString), tempFileName) : Path.Combine(sqlBackupDetails.TempBackupPath, tempFileName);
                
                 try
                 {
                     _logger.LogInformation("Starting SQL Backup for {db}...", db);
-                    await PerformSqlBackupAsync(sqlBackupDetails.ConnectionString, db, localPath, token);
-                    _logger.LogInformation("SQL Backup to Temp successful: {path}", localPath);
+                    await PerformSqlBackupAsync(sqlBackupDetails.ConnectionString, db, sqlBackupDetails.TempBackupPath, token);
+                    _logger.LogInformation("SQL Backup to Temp successful: {path}", sqlBackupDetails.TempBackupPath);
                     await Task.Delay(1000, token);
                     bool allFinished = true;
                     foreach (var dest in sqlBackupDetails.Destinations)
@@ -45,7 +47,7 @@ namespace MasterScheduler.Shared.Service
                         //if (dest.Status == "Success") continue;
                         try
                         {
-                            await SendToDestinationAsync(localPath, dest, job.Id, token);
+                            await SendToDestinationAsync(db, sqlBackupDetails.TempBackupPath, dest, job.Id, token);
                             dest.Status = "Success";
                             _jobRepository.UpdateJobConfiguration(job.Id, sqlBackupDetails); // Save progress
                         }
@@ -84,9 +86,9 @@ namespace MasterScheduler.Shared.Service
                 }
                 finally
                 {                   
-                    if (File.Exists(localPath))
+                    if (File.Exists(sqlBackupDetails.TempBackupPath))
                     {
-                        await DeleteFileWithRetryAsync(localPath, 3);
+                        await DeleteFileWithRetryAsync(sqlBackupDetails.TempBackupPath, 3);
                         _logger.LogInformation("Deleted temp file for Job {Id}", job.Id);
                     }
                 }               
@@ -147,30 +149,54 @@ namespace MasterScheduler.Shared.Service
             await cmd.ExecuteNonQueryAsync(ct);
         }
 
-        private async Task SendToDestinationAsync(string filePath, BackupDestination destination, int jobId, CancellationToken token)
+        private async Task SendToDestinationAsync(string dbName, string tempBackupFile, BackupDestination destination, int jobId, CancellationToken token)
         {
             try
             {
+                var backFileName = Path.GetFileName(tempBackupFile);                
                 var lic = licenseService.GetLocalLicense();
                 if (destination.Type == DestinationType.LocalFolder)
                 {
                     var config = (LocalFolderConfig)destination.Config;
-                    string targetFile = Path.Combine(config.TargetPath, Path.GetFileName(filePath));
+
+                    if (config?.Days > 0)
+                    {
+                        _logger.LogInformation("Cleaning up old backups for {db}...", dbName);
+                        var directory = new DirectoryInfo(config.TargetPath);
+                        DateTime cutoffDate = DateTime.Now.AddDays(config.Days * -1);
+                        var oldFiles = directory.GetFiles($"{dbName}_*.bak")
+                                .Where(f => f.LastWriteTime < cutoffDate);
+                        foreach (var file in oldFiles)
+                        {
+                            try
+                            {
+                                file.Delete();
+                                _logger.LogInformation("Deleted old backup file: {name}", file.Name);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogWarning("Failed to delete {file}: {msg}", file.Name, ex.Message);
+                            }
+                        }
+                    }
+
+                    string targetFile = Path.Combine(config.TargetPath, backFileName);
 
                     // Use Async copy for better performance
-                    using var sourceStream = File.OpenRead(filePath);
+                    using var sourceStream = File.OpenRead(tempBackupFile);
                     using var destStream = File.Create(targetFile);
                     await sourceStream.CopyToAsync(destStream, token);
-
+                    
                     _logger.LogInformation("Backup to local path: {path} (Job {id})", targetFile, jobId);
                 }
                 else if (destination.Type == DestinationType.GoogleDrive && lic.Edition.ToLower() !="free")
                 {
                     
-                    var driveConfig = (GoogleDriveConfig)destination.Config;
+                    var driveConfig = (GoogleDriveConfig)destination.Config;                   
+
                     GoogleDriveHelper googleDriveHelper = new GoogleDriveHelper();
                     var cred = await googleDriveHelper.GetAccountCredentialsAsync(driveConfig.UserEmail);
-                    await googleDriveHelper.UploadBackup(cred,filePath, driveConfig, token);
+                    await googleDriveHelper.UploadBackup(cred, backFileName, tempBackupFile, driveConfig, token);
                     _logger.LogInformation("Uploaded to Google Drive (Job {id})", jobId);
 
                     //if (sqlBackupDetails.RetentionDays > 0)
@@ -185,7 +211,9 @@ namespace MasterScheduler.Shared.Service
                 // We don't throw here if you want other destinations to still try even if one fails
             }
         }
+
        
+
         // Use a dictionary or DB to store URIs for jobs in progress
         private static readonly ConcurrentDictionary<int, Uri> _resumeUris = new();
        

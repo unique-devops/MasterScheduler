@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using MasterScheduler.Models;
+using MasterScheduler.Shared.DataModels;
 using Microsoft.VisualBasic.ApplicationServices;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
@@ -24,11 +25,11 @@ namespace MasterScheduler.Views
     /// </summary>
     public partial class LocalPathBackupConfigDialog : Window
     {
-        public LocalPathDestinationModel pathDestination = new();
+        public LocalFolderConfig localConfig = new();
         public LocalPathBackupConfigDialog()
         {
             InitializeComponent();           
-            DataContext = pathDestination;
+            DataContext = localConfig;
         }
 
         private void btnBrowsePath_Click(object sender, RoutedEventArgs e)
@@ -41,7 +42,7 @@ namespace MasterScheduler.Views
 
             if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                pathDestination.Path = dialog.FileName;
+                localConfig.TargetPath = dialog.FileName;
             }
         }
 
@@ -53,7 +54,7 @@ namespace MasterScheduler.Views
 
         private void btnSave_Click(object sender, RoutedEventArgs e)
         {
-            if (Directory.Exists(pathDestination.Path))
+            if (Directory.Exists(localConfig.TargetPath))
             {
                 DialogResult = true;
                 Close();

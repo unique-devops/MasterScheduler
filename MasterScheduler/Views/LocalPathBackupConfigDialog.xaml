@@ -12,13 +12,14 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="35"/>
         </Grid.RowDefinitions>
         <StackPanel Margin="5">
             <TextBlock Text="Folder location:" FontSize="16"/>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBox x:Name="txtPath" Text="{Binding Path}" Width="500">
+                <TextBox x:Name="txtPath" Text="{Binding TargetPath}" Width="500">
                     <TextBox.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="7"/>
@@ -32,7 +33,8 @@
         </StackPanel>
         <GroupBox Grid.Row="1" Header="Authentication" FontSize="16">
             <StackPanel Margin="5">
-                <TextBlock Text="Network credentials (optional)" FontSize="16"/>
+                <!--<TextBlock Text="Network credentials (optional)" FontSize="16"/>-->
+                <CheckBox IsChecked="{Binding IsNetwork}" Content="Network credentials (optional)" FontSize="16"/>
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition/>
@@ -43,7 +45,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,5" Text="Username :" FontSize="16"/>
-                    <TextBox Grid.Row="0" Grid.Column="1" Margin="0,5" FontSize="18" x:Name="txtUser" Text="{Binding Path}">
+                    <TextBox Grid.Row="0" Grid.Column="1" Margin="0,5" FontSize="18" x:Name="txtUser" Text="{Binding Username}">
                         <TextBox.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="7"/>
@@ -52,7 +54,7 @@
                     </TextBox>
                     
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Password :" FontSize="16"/>
-                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="txtPassword" Text="{Binding Path}" FontSize="18">
+                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="txtPassword" Text="{Binding Password}" FontSize="18">
                         <TextBox.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="7"/>
@@ -63,7 +65,21 @@
                 </Grid>
             </StackPanel>
         </GroupBox>
-        <Grid Grid.Row="3" Background="Black">
+        <GroupBox Grid.Row="2" Header="Common settings" FontSize="16">
+            <StackPanel Margin="5" Orientation="Horizontal">
+                <TextBlock  Text="Delete backup older than" FontSize="16"/>
+                <TextBox Margin="5,0" Width="80" FontSize="18"  Text="{Binding Days}">
+                    <TextBox.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="7"/>
+                        </Style>
+                    </TextBox.Resources>
+                </TextBox>
+
+                <TextBlock Text="Days." FontSize="16"/>
+            </StackPanel>
+        </GroupBox>
+        <Grid Grid.Row="4" Background="Black">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>

@@ -254,13 +254,11 @@ namespace MasterScheduler.ViewModels
                     var localConfig = (LocalFolderConfig)destination.Config;
                     var localDialog = new LocalPathBackupConfigDialog();
                     localDialog.Owner = Application.Current.MainWindow;
-                    var data = (LocalPathDestinationModel)localDialog.DataContext;
-                    data.Path = localConfig?.TargetPath;
+                    localDialog.DataContext = localConfig;                    
                     if (localDialog.ShowDialog() == true)
                     {
-                        data = (LocalPathDestinationModel)localDialog.DataContext;
-                        var newConfig = new LocalFolderConfig { TargetPath = data.Path };
-                        UpdateOrAddDestination(existingItem, DestinationType.LocalFolder, data.Path, newConfig);
+                        localConfig = (LocalFolderConfig)localDialog.DataContext;                       
+                        UpdateOrAddDestination(existingItem, DestinationType.LocalFolder, localConfig.TargetPath, localConfig);
                     }
                     break;
                 case "GoogleDrive":

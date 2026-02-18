@@ -17,6 +17,7 @@ namespace MasterScheduler.Shared.DataModels
         public string ConnectionString { get; set; } = "";
         public string BackupType { get; set; } = "";
         public bool Compression { get; set; }        
+        public string TempBackupPath { get; set; }        
         public List<string> Databases { get; set; } = new List<string>();
         public List<BackupDestination> Destinations { get; set; } = new List<BackupDestination>();
         public ScheduleTimeConfig Schedule { get; set; } = new();
