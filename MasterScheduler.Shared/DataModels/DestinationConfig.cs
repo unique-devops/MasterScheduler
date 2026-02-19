@@ -11,7 +11,7 @@ namespace MasterScheduler.Shared.DataModels
     [JsonDerivedType(typeof(GoogleDriveConfig), typeDiscriminator: "gdrive")]
     public abstract class DestinationConfig
     {
-        public string DisplayName { get; set; }
+        public string DisplayName { get; set; } = "--";
         public bool UseProxy { get; set; }
         public int TimeoutSeconds { get; set; } = 60;
     }

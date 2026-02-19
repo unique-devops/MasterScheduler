@@ -420,6 +420,27 @@
                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Grid>
             </ListBoxItem>
+
+            <ListBoxItem Style="{StaticResource ListItemStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="50"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Background="#FFF3E0" CornerRadius="20" Width="40" Height="40">
+                        <fa:ImageAwesome Icon="Compress" Foreground="#F57C00" Width="18"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" Orientation="Vertical" Margin="10,0">
+                        <TextBlock Text="Compression" FontWeight="Bold" Margin="0,2"/>
+                        <ComboBox x:Name="cbCompress" SelectionChanged="cbCompress_SelectionChanged" IsEnabled="{Binding IsServerConnected}" SelectedValue ="{Binding SelectedCompression}">
+                            <ComboBoxItem Content="Default SQL Compression"/>
+                            <ComboBoxItem Content="Zip"/>
+                            <ComboBoxItem Content="None"/>
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
+            </ListBoxItem>
         </ListBox>
 
         <Grid Grid.Row="3" Background="White">

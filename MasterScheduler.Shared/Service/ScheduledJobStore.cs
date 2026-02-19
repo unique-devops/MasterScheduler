@@ -5,6 +5,7 @@ using MasterScheduler.Shared.JobHelper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Numerics;
 
 namespace MasterScheduler.Shared.Service
@@ -38,9 +39,23 @@ namespace MasterScheduler.Shared.Service
                 try
                 {
                     _logger.LogInformation("Starting SQL Backup for {db}...", db);
-                    await PerformSqlBackupAsync(sqlBackupDetails.ConnectionString, db, sqlBackupDetails.TempBackupPath, token);
+                    if (sqlBackupDetails.Compression.ToLower() == "zip" || sqlBackupDetails.Compression.ToLower() == "none")
+                    {
+                        await PerformSqlBackupAsync(sqlBackupDetails.ConnectionString, db, sqlBackupDetails.TempBackupPath, false, token);
+                    }
+                    else {
+                        await PerformSqlBackupAsync(sqlBackupDetails.ConnectionString, db, sqlBackupDetails.TempBackupPath, true, token);
+                    }
                     _logger.LogInformation("SQL Backup to Temp successful: {path}", sqlBackupDetails.TempBackupPath);
                     await Task.Delay(1000, token);
+
+                    if (sqlBackupDetails.Compression.ToLower() == "zip")
+                    {
+                        await FileCompressionHelper.ZipCompressAsync(sqlBackupDetails.TempBackupPath.Replace(".bak",".zip"), sqlBackupDetails.TempBackupPath, token);
+                        sqlBackupDetails.TempBackupPath = sqlBackupDetails.TempBackupPath.Replace(".bak", ".zip");
+                    }
+
+
                     bool allFinished = true;
                     foreach (var dest in sqlBackupDetails.Destinations)
                     {
@@ -132,12 +147,15 @@ namespace MasterScheduler.Shared.Service
             }
             return defaultSqlPath;
         }
-        private async Task PerformSqlBackupAsync(string connectionString, string dbName, string path, CancellationToken ct)
+        private async Task PerformSqlBackupAsync(string connectionString, string dbName, string path, bool IsCompressed, CancellationToken ct)
         {
+            string sql = $"BACKUP DATABASE @db TO DISK = @path WITH FORMAT, MEDIANAME = 'SQLBackup', NAME = @name";
             using var conn = new SqlConnection(connectionString);
             await conn.OpenAsync(ct);
-
-            var sql = $"BACKUP DATABASE @db TO DISK = @path WITH FORMAT, MEDIANAME = 'SQLBackup', NAME = @name";
+            if (IsCompressed)
+            {
+                sql = $"BACKUP DATABASE @db TO DISK = @path WITH FORMAT, COMPRESSION, NAME = 'Native Comp'";
+            }            
             using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@db", dbName);
             cmd.Parameters.AddWithValue("@name", "Full Backup of " + dbName);
@@ -159,13 +177,19 @@ namespace MasterScheduler.Shared.Service
                 {
                     var config = (LocalFolderConfig)destination.Config;
 
-                    if (config?.Days > 0)
+                    if (config.RetentionDays > 0)
                     {
                         _logger.LogInformation("Cleaning up old backups for {db}...", dbName);
                         var directory = new DirectoryInfo(config.TargetPath);
-                        DateTime cutoffDate = DateTime.Now.AddDays(config.Days * -1);
+                        DateTime cutoffDate = DateTime.Now.AddDays(config.RetentionDays * -1);
                         var oldFiles = directory.GetFiles($"{dbName}_*.bak")
                                 .Where(f => f.LastWriteTime < cutoffDate);
+
+                        var zipFiles = directory.GetFiles($"{dbName}_*.zip")
+                                .Where(f => f.LastWriteTime < cutoffDate);
+
+                        oldFiles.ToList().AddRange(zipFiles);
+
                         foreach (var file in oldFiles)
                         {
                             try
@@ -196,19 +220,20 @@ namespace MasterScheduler.Shared.Service
 
                     GoogleDriveHelper googleDriveHelper = new GoogleDriveHelper();
                     var cred = await googleDriveHelper.GetAccountCredentialsAsync(driveConfig.UserEmail);
-                    await googleDriveHelper.UploadBackup(cred, backFileName, tempBackupFile, driveConfig, token);
+                    await googleDriveHelper.UploadBackup(cred, Path.GetFileNameWithoutExtension(tempBackupFile), tempBackupFile, driveConfig, token);
                     _logger.LogInformation("Uploaded to Google Drive (Job {id})", jobId);
 
-                    //if (sqlBackupDetails.RetentionDays > 0)
-                    //{
-                    //    await CleanOldGoogleDriveBackupsAsync(gdriveDest, sqlBackupDetails.RetentionDays, token);
-                    //}
+                    if (driveConfig.RetentionDays > 0)
+                    {
+                        _logger.LogInformation("Cleaning up Google Drive backups for {db}...", dbName);
+                       var res =  await googleDriveHelper.CleanOldBackupsAsync(cred, driveConfig.TargetFolderId,driveConfig.RetentionDays, token);
+                       _logger.LogInformation("Deleted old Google Drive backup file: {name} : Status:" + res, dbName);                        
+                    }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send backup to {Type} for Job {Id}", destination.Type, jobId);
-                // We don't throw here if you want other destinations to still try even if one fails
+                _logger.LogError(ex, "Failed to send backup to {Type} for Job {Id}", destination.Type, jobId);                
             }
         }
 

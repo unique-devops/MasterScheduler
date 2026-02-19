@@ -23,7 +23,8 @@ namespace MasterScheduler.ViewModels
     {
         private readonly INavigationService _navigationService;
         private readonly JobRepository _repo = new JobRepository();
-
+        SQLServerService sqlService = new SQLServerService();
+        SqlBackupDetails sqlBackupDetails = new SqlBackupDetails();
         private const string EmailRegexPattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
 
         [ObservableProperty]
@@ -41,6 +42,12 @@ namespace MasterScheduler.ViewModels
         [ObservableProperty]
         private bool activeAlert;
 
+        public List<string> CompressionOptions { get; } = new List<string>
+        { "Default SQL Compression", "Zip", "None" };
+
+        [ObservableProperty]
+        private string selectedCompression;                    
+
         [ObservableProperty]
         [RegularExpression(EmailRegexPattern)]
         [NotifyDataErrorInfo]
@@ -57,8 +64,7 @@ namespace MasterScheduler.ViewModels
 
         private int editJobId =0;
         public ScheduleTimeModel scheduleTimeModel { get; set; } = new();
-
-        SqlBackupDetails sqlBackupDetails = new SqlBackupDetails();
+       
 
         LicenseService license = new LicenseService();
         public SQLBackupScheduleViewModel(IDialogService dialogService, INavigationService navigationService)
@@ -66,7 +72,8 @@ namespace MasterScheduler.ViewModels
             BindDestinations();
             _dialogService = dialogService;
             _navigationService = navigationService;
-            JobAliasName = "Sql Backup";            
+            JobAliasName = "Sql Backup";
+            SelectedCompression = "None";
         }
 
         private void BindDestinations()
@@ -110,6 +117,7 @@ namespace MasterScheduler.ViewModels
                 ServerName = sqlBackupDetails?.Server;
                 ConnectionString = sqlBackupDetails?.ConnectionString;
                 ScheduledTime = sqlBackupDetails?.Schedule.ExecutionTime ?? "00:00";
+                SelectedCompression = sqlBackupDetails?.Compression ?? "None";                
                 IsServerConnected = true;
                 SelectedDatabases.Clear();
                 foreach (var db in sqlBackupDetails?.Databases) SelectedDatabases.Add(db);
@@ -122,6 +130,10 @@ namespace MasterScheduler.ViewModels
             }
         }
 
+        public bool IsServerSupportCompression()
+        {
+            return sqlService.IsSupportNativeCompression(sqlBackupDetails.ConnectionString);            
+        }
         public void OnNavigatedTo(object parameter)
         {
             if (parameter is int id)
@@ -387,6 +399,7 @@ namespace MasterScheduler.ViewModels
                 };                
                 sqlBackupDetails.Destinations = Destinations.ToList();
                 sqlBackupDetails.Notifications.EmailOnSuccess = SendConfirmationMail ?? "";
+                sqlBackupDetails.Compression = SelectedCompression ?? "None";
                 sqlBackupDetails.Notifications.ActiveAlert = ActiveAlert;
                 var options = new JsonSerializerOptions
                 {

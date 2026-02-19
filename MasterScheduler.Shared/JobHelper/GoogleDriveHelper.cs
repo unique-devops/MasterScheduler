@@ -256,7 +256,7 @@ namespace MasterScheduler.Shared.JobHelper
             }
         }
 
-        public async Task CleanOldBackupsAsync(UserCredential credential, string targetFolderId, int retentionDays)
+        public async Task<string> CleanOldBackupsAsync(UserCredential credential, string targetFolderId, int retentionDays,CancellationToken token)
         {
             var service = new DriveService(new BaseClientService.Initializer()
             {
@@ -274,7 +274,7 @@ namespace MasterScheduler.Shared.JobHelper
             listRequest.Q = $"'{targetFolderId}' in parents and createdTime < '{rfcCutoff}' and trashed = false";
             listRequest.Fields = "files(id, name, createdTime)";
 
-            var filesToDelete = await listRequest.ExecuteAsync();
+            var filesToDelete = await listRequest.ExecuteAsync(token);
 
             // 3. Loop and Delete
             if (filesToDelete.Files != null && filesToDelete.Files.Count > 0)
@@ -286,16 +286,18 @@ namespace MasterScheduler.Shared.JobHelper
                         // Permanent delete: service.Files.Delete(file.Id).Execute();
                         // Safer "Move to Trash":
                         var updateFile = new Google.Apis.Drive.v3.Data.File { Trashed = true };
-                        await service.Files.Update(updateFile, file.Id).ExecuteAsync();
+                        await service.Files.Update(updateFile, file.Id).ExecuteAsync(token);
 
-                        Console.WriteLine($"Deleted old backup: {file.Name}");
+                        //Console.WriteLine($"Deleted old backup: {file.Name}");
                     }
                     catch (Exception ex)
                     {
-                        // Log failure to delete a specific file
+                        return ex.Message;
                     }
                 }
             }
+
+            return "success";
         }
 
         public async Task<UserCredential> GetCredentialsAsync()
