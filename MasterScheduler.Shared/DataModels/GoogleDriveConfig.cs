@@ -13,7 +13,6 @@ namespace MasterScheduler.Shared.DataModels
         public string RefreshToken { get; set; }
         public string TargetFolderId { get; set; }
         public object FolderList { get; set; }
-
         public int RetentionDays { get; set; } = 0;
     }
 

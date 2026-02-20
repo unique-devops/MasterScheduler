@@ -12,6 +12,8 @@ using MasterScheduler.Views;
 using Microsoft.Data.SqlClient;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
+using System.Management;
+using System.Net.NetworkInformation;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -40,13 +42,24 @@ namespace MasterScheduler.ViewModels
         private string scheduledTime = "not schedule";
 
         [ObservableProperty]
-        private bool activeAlert;
+        private bool activeAlert;        
 
-        public List<string> CompressionOptions { get; } = new List<string>
-        { "Default SQL Compression", "Zip", "None" };
+        private string _selectedCompression = "None"; // Default selected
 
-        [ObservableProperty]
-        private string selectedCompression;                    
+        public string SelectedCompression
+        {
+            get => _selectedCompression;
+            set
+            {
+                if (value.ToString() != "Zip" && value.ToString() != "None" && !IsServerSupportCompression())
+                {
+                    MessageBox.Show("Server does not support default compression.");
+                    return; 
+                }
+                _selectedCompression = value;
+                OnPropertyChanged(nameof(SelectedCompression));
+            }
+        }
 
         [ObservableProperty]
         [RegularExpression(EmailRegexPattern)]
@@ -78,7 +91,9 @@ namespace MasterScheduler.ViewModels
 
         private void BindDestinations()
         {
-            var lic = license.GetLocalLicense();
+            var lic = license.GetLicenseInfo();
+            
+
             var allOptions = new List<BackupDestinations>
             {
                 new() { Type = DestinationType.LocalFolder, Name = "Local Folder", IconPath = "/Assets/folder.png" },

@@ -19,7 +19,7 @@
         <StackPanel Margin="5">
             <TextBlock Text="Folder location:" FontSize="16"/>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBox x:Name="txtPath" Text="{Binding TargetPath}" Width="500">
+                <TextBox x:Name="txtPath" FontSize="16" VerticalContentAlignment="Center" Text="{Binding TargetPath}" Width="480">
                     <TextBox.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="7"/>
@@ -27,7 +27,7 @@
                     </TextBox.Resources>
                 </TextBox>
                 <Button x:Name="btnBrowsePath" Click="btnBrowsePath_Click" Background="Transparent" Margin="5,0" BorderThickness="0">
-                    <Image Source="/Assets/folder.png" Height="32" Width="32"/>
+                    <Image Source="/Assets/folder.png" Height="30" Width="30"/>
                 </Button>
             </StackPanel>
         </StackPanel>

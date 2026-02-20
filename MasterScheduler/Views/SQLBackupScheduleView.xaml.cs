@@ -47,21 +47,6 @@ namespace MasterScheduler.Views
                 button.ContextMenu.IsOpen = true;
             }
         }
-       
-        private void cbCompress_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {            
-            if (cbCompress.ToString() != "Zip" && cbCompress.ToString() != "None")
-            {
-                var viewmodel = (SQLBackupScheduleViewModel)this.DataContext;                
-                //CheckSupportCompress();
-                if (!viewmodel.IsServerSupportCompression())
-                {
-                    e.Handled = true;
-                    MessageBox.Show("Server does not support default compression.");
-                    
-                }
-            }
-            
-        }
+               
     }
 }

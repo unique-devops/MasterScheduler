@@ -9,7 +9,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Management;
 using System.Net.Http.Json;
+using System.Net.NetworkInformation;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -164,9 +166,36 @@ namespace MasterScheduler.Shared.Service
                 {
                     return parts; // Returns [Key, Email, Expiry, DeviceId]
                 }
+
             }
             catch { /* Tampered or wrong PC */ }
             return null;
+        }
+
+        public LicenseInfoModel GetLicenseInfo()
+        {
+            LicenseInfoModel licenseInfo = new();
+            var licData = LoadAndVerifyLicense();
+            if (licData != null && licData.Length == 4)
+            {
+                DateTime expiry = DateTime.Parse(licData[2]);
+                if (expiry > DateTime.Now)
+                {
+                    // Valid license found - Show Main Screen
+                    licenseInfo.Edition = $"{licData[0].Split("-")[0]}";
+                    licenseInfo.Status = $"(Trial ends: {expiry:d})";
+                    licenseInfo.Email = $"{licData[1]}";
+                    licenseInfo.LicenseKey = $"{licData[0]}";
+                }
+            }
+            else
+            {
+                licenseInfo.Edition = "Free";
+                licenseInfo.Status = "";
+                licenseInfo.Email ="";
+                licenseInfo.LicenseKey ="";
+            }
+            return licenseInfo;
         }
         private string EncryptString(string text, string key)
         {

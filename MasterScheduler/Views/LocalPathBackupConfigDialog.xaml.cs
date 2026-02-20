@@ -43,6 +43,7 @@ namespace MasterScheduler.Views
             if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 localConfig.TargetPath = dialog.FileName;
+                txtPath.Text = localConfig.TargetPath;
             }
         }
 

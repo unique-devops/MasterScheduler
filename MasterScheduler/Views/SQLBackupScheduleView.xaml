@@ -421,7 +421,7 @@
                 </Grid>
             </ListBoxItem>
 
-            <ListBoxItem Style="{StaticResource ListItemStyle}">
+            <ListBoxItem Style="{StaticResource ListItemStyle}" Visibility="{Binding IsServerConnected,Converter={StaticResource BoolToVisibilityConverter}}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="50"/>
@@ -433,11 +433,17 @@
                     </Border>
                     <StackPanel Grid.Column="1" Orientation="Vertical" Margin="10,0">
                         <TextBlock Text="Compression" FontWeight="Bold" Margin="0,2"/>
-                        <ComboBox x:Name="cbCompress" SelectionChanged="cbCompress_SelectionChanged" IsEnabled="{Binding IsServerConnected}" SelectedValue ="{Binding SelectedCompression}">
-                            <ComboBoxItem Content="Default SQL Compression"/>
-                            <ComboBoxItem Content="Zip"/>
-                            <ComboBoxItem Content="None"/>
-                        </ComboBox>
+                        <RadioButton GroupName="compress"
+                         Content="Default SQL Compression"
+                         IsChecked="{Binding SelectedCompression, Converter={StaticResource RadioButtonConverter}, ConverterParameter='Default SQL Compression'}"/>
+
+                                <RadioButton GroupName="compress"
+                         Content="Zip"
+                         IsChecked="{Binding SelectedCompression, Converter={StaticResource RadioButtonConverter}, ConverterParameter='Zip'}"/>
+
+                                <RadioButton GroupName="compress"
+                         Content="None"
+                         IsChecked="{Binding SelectedCompression, Converter={StaticResource RadioButtonConverter}, ConverterParameter='None'}"/>
                     </StackPanel>
                 </Grid>
             </ListBoxItem>

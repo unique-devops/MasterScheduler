@@ -20,6 +20,7 @@
             <ctr:DestinationIconConverter x:Key="IconConverter"/>
             <ctr:JobTypeToImageConverter x:Key="JobTypeIconConverter"/>
             <ctr:LevelToColorConverter x:Key="LevelToColorConverter"/>
+            <ctr:RadioButtonConverter x:Key="RadioButtonConverter"/>
             
             <Style x:Key="PlaceholderTextBox" TargetType="{x:Type TextBox}">
                     <Setter Property="Template">

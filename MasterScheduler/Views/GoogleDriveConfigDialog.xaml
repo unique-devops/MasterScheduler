@@ -7,10 +7,17 @@
         mc:Ignorable="d"
         Title="Google Drive Authorization" Height="380" Width="400" ResizeMode="NoResize" WindowStartupLocation="CenterOwner">
     <Grid Margin="20">
-        <StackPanel Margin="12">
-                <TextBlock Text="Google Drive Configuration" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Text="Google Drive Configuration" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
 
-                <GroupBox Header="Account Information" Margin="0,0,0,12">
+        <GroupBox Grid.Row="1" Header="Account Information" Margin="0,0,0,12">
                     <Grid Margin="12">
                         <Button x:Name="BtnAuthorize" Grid.Column="1" Content="Link Account" Click="BtnAuthorize_Click" Margin="10,0,0,0" Padding="10,2">
                             <Button.Style>
@@ -31,17 +38,32 @@
                     </Grid>
                 </GroupBox>
 
-                <TextBlock Text="Backup Folder" Margin="0,5"/>
-                <DockPanel>
-                <TextBox x:Name="TxtFolderPath" IsReadOnly="True" Text="MSDataBackups"/>
-                <Button x:Name="btnCreateDriveFoder" Content="Create" Width="70" HorizontalAlignment="Right" Click="BtnCreateDriveFolder_Click"/>
-            </DockPanel>
-
-                <Separator Margin="0,20"/>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button x:Name="btnTest" Content="Test" Margin="5" Background="LightGray" Click="btnTest_Click"/>
-                    <Button Content="Save Settings" Click="btnSave_Click" Margin="5" Background="SkyBlue"/>
-                </StackPanel>
+        <GroupBox Grid.Row="2" Header="Drive Folder" Padding="0,7" FontSize="16">
+            <StackPanel Orientation="Horizontal">
+                <TextBox x:Name="TxtFolderPath" IsReadOnly="True" Text="MSDataBackups" Width="250"/>
+                <Button x:Name="btnCreateDriveFoder" Margin="7,0" Content="Create" Width="70" Click="BtnCreateDriveFolder_Click"/>
             </StackPanel>
+        </GroupBox>
+
+        <GroupBox Grid.Row="3" Header="Common settings" FontSize="16">
+            <StackPanel Margin="5" Orientation="Horizontal">
+                <TextBlock  Text="Delete backup older than" FontSize="16"/>
+                <TextBox Margin="5,0"  Width="70" FontSize="14" MaxLength="3" HorizontalContentAlignment="Center"  Text="{Binding RetentionDays}">
+                    <TextBox.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="7"/>
+                        </Style>
+                    </TextBox.Resources>
+                </TextBox>
+
+                <TextBlock Text="Days." FontSize="16"/>
+            </StackPanel>
+        </GroupBox>
+
+        <Separator Grid.Row="4" Background="Red" Margin="0,20"/>
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="btnTest" Content="Test" Margin="5" Background="LightGray" Click="btnTest_Click"/>
+            <Button Content="Save Settings" Click="btnSave_Click" Margin="5" Background="SkyBlue"/>
+        </StackPanel>
     </Grid>
 </Window>
