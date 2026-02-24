@@ -144,6 +144,22 @@ namespace MasterScheduler.Views
 
         }
 
+        private void MaskNumericInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+        {
+            // Check if the input text contains non-digit characters
+            e.Handled = !e.Text.All(c => Char.IsDigit(c));
+        }
+
+        private void MaskNumericPaste(object sender, DataObjectPastingEventArgs e)
+        {
+            // Prevent pasting non-numeric text
+            var text = e.DataObject.GetData(typeof(string)) as string;
+            if (text == null || !text.All(Char.IsDigit))
+            {
+                e.CancelCommand();
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));       
 

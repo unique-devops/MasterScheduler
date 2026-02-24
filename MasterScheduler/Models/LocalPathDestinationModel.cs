@@ -8,8 +8,18 @@ using System.Threading.Tasks;
 namespace MasterScheduler.Models
 {
     public partial class LocalPathDestinationModel : ObservableObject
-    {
+    {        
         [ObservableProperty]
-        private string path;        
+        public string targetPath= "";
+        [ObservableProperty]
+        public bool isNetwork;
+        [ObservableProperty]
+        public string? username;
+        [ObservableProperty]
+        public string? password;
+        [ObservableProperty]
+        public int retentionDays = 0;
+        [ObservableProperty]
+        public bool createDateFolder;
     }
 }

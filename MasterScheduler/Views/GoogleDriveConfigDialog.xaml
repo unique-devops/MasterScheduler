@@ -48,7 +48,7 @@
         <GroupBox Grid.Row="3" Header="Common settings" FontSize="16">
             <StackPanel Margin="5" Orientation="Horizontal">
                 <TextBlock  Text="Delete backup older than" FontSize="16"/>
-                <TextBox Margin="5,0"  Width="70" FontSize="14" MaxLength="3" HorizontalContentAlignment="Center"  Text="{Binding RetentionDays}">
+                <TextBox Margin="5,0"  Width="70" FontSize="14" MaxLength="3" HorizontalContentAlignment="Center"  Text="{Binding RetentionDays}" PreviewTextInput="MaskNumericInput" DataObject.Pasting="MaskNumericPaste">
                     <TextBox.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="7"/>

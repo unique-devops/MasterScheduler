@@ -278,15 +278,15 @@ namespace MasterScheduler.ViewModels
             switch (destinationType)
             {
                 case "LocalFolder":
-                    var localConfig = (LocalFolderConfig)destination.Config;
-                    var localDialog = new LocalPathBackupConfigDialog();
-                    localDialog.Owner = Application.Current.MainWindow;
-                    localDialog.DataContext = localConfig;                    
-                    if (localDialog.ShowDialog() == true)
+                    var existingConfig = destination.Config as LocalFolderConfig;
+                    var vm = new LocalPathBackupConfigViewModel(existingConfig);
+                    if (_dialogService.ShowDialog(vm) == true)
                     {
-                        localConfig = (LocalFolderConfig)localDialog.DataContext;                       
-                        UpdateOrAddDestination(existingItem, DestinationType.LocalFolder, localConfig.TargetPath, localConfig);
+                        // 4. Get the updated model back from the VM
+                        var updatedModel = vm.GetModel();
+                        UpdateOrAddDestination(existingItem, DestinationType.LocalFolder, updatedModel.TargetPath, updatedModel);
                     }
+
                     break;
                 case "GoogleDrive":
                     var gDConfig = (GoogleDriveConfig)existingItem?.Config;

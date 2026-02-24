@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,7 @@ namespace MasterScheduler.Interface
 {
     public interface IDialogService
     {
-        bool? ShowDialog<TView>(TView view) where TView : class;
+        bool? ShowDialog<TViewModel>(TViewModel viewModel) where TViewModel : ObservableObject;
     }
 
 }

@@ -32,6 +32,7 @@ namespace MasterScheduler
             services.AddTransient<SchedulerSettingsViewModel>();                                                                                
             services.AddTransient<LogDashboardViewModel>();                                                                                
             services.AddTransient<EditionOverlayViewModel>();                                                                                
+            services.AddTransient<LocalPathBackupConfigViewModel>();                                                                                
 
             Services = services.BuildServiceProvider();
         }

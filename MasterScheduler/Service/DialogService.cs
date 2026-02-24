@@ -1,4 +1,5 @@
-﻿using MasterScheduler.Interface;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using MasterScheduler.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,18 +11,30 @@ namespace MasterScheduler.Service
 {
     public class DialogService : IDialogService
     {
-        public bool? ShowDialog<TView>(TView view) where TView : class
+        public bool? ShowDialog<TViewModel>(TViewModel viewModel) where TViewModel : ObservableObject
         {
-            // Create the dialog window
-            Window window = new Window
+            // 1. Create the 'Shell' Window
+            var shell = new Window
             {
-                Content = view, // Or use DataTemplate binding
-                SizeToContent = SizeToContent.WidthAndHeight,
+                Title = "Configuration", // You can bind this to VM.Title if needed
+                Content = viewModel,      // The DataTemplate handles the UI look
+                SizeToContent = SizeToContent.WidthAndHeight,                
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                ResizeMode = ResizeMode.NoResize,                     
-                Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive)
-            };            
-            return window.ShowDialog();
+                Owner = Application.Current.MainWindow,
+                ResizeMode = ResizeMode.NoResize
+            };
+
+            // 2. Listen for Close request from ViewModel
+            if (viewModel is IClosableDialog closable)
+            {
+                closable.RequestClose += (result) =>
+                {
+                    shell.DialogResult = result;
+                    shell.Close();
+                };
+            }
+
+            return shell.ShowDialog();
         }
     }
 

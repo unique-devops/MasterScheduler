@@ -8,6 +8,15 @@
              >
     <Application.Resources>
         <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Assets/Icons.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <DataTemplate DataType="{x:Type vm:LocalPathBackupConfigViewModel}">
+                <views:LocalPathBackupConfigView />
+            </DataTemplate>
+            
+            
             <DropShadowEffect x:Key="DropShadowEffect"
                       Color="Black"
                       Direction="270"
@@ -60,9 +69,7 @@
                     </Setter>
                 </Style>
 
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Assets/Icons.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
+           
             
             
         </ResourceDictionary>
