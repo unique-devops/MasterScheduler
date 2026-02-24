@@ -15,8 +15,12 @@
             <DataTemplate DataType="{x:Type vm:LocalPathBackupConfigViewModel}">
                 <views:LocalPathBackupConfigView />
             </DataTemplate>
-            
-            
+
+            <DataTemplate DataType="{x:Type vm:GoogleDriveConfigViewModel}">
+                <views:GoogleDriveConfigView />
+            </DataTemplate>
+
+
             <DropShadowEffect x:Key="DropShadowEffect"
                       Color="Black"
                       Direction="270"

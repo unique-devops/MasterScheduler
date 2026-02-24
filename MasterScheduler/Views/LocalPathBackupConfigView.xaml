@@ -44,7 +44,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,5" Text="Username :" FontSize="16"/>
-                    <TextBox Grid.Row="0" Grid.Column="1" Margin="0,5" FontSize="18" x:Name="txtUser" Text="{Binding Username}">
+                    <TextBox Grid.Row="0"  Grid.Column="1" Padding="5,2" Margin="0,5" FontSize="16" x:Name="txtUser" Text="{Binding Username}" IsEnabled="{Binding IsNetwork}">
                         <TextBox.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="7"/>
@@ -53,7 +53,7 @@
                     </TextBox>
 
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Password :" FontSize="16"/>
-                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="txtPassword" Text="{Binding Password}" FontSize="18">
+                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="txtPassword" Padding="5,2" FontSize="16" Text="{Binding Password}" IsEnabled="{Binding IsNetwork}" >
                         <TextBox.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="7"/>

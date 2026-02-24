@@ -289,12 +289,11 @@ namespace MasterScheduler.ViewModels
 
                     break;
                 case "GoogleDrive":
-                    var gDConfig = (GoogleDriveConfig)existingItem?.Config;
-                    var googleDrive = new GoogleDriveConfigDialog(gDConfig);
-                    googleDrive.Owner = Application.Current.MainWindow;
-                    if (googleDrive.ShowDialog() == true)
+                    var gDConfig = destination.Config as GoogleDriveConfig;
+                    var gdvm = new GoogleDriveConfigViewModel(gDConfig);                   
+                    if (_dialogService.ShowDialog(gdvm) == true)
                     {                        
-                        GoogleDriveConfig gdConfig = googleDrive.ResultConfig;
+                        var gdConfig = gdvm.GetModel();
                         UpdateOrAddDestination(existingItem, DestinationType.GoogleDrive, gdConfig.FolderName, gdConfig);
                     }                    
                     break;
