@@ -10,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace MasterScheduler.ViewModels
 {
@@ -38,12 +39,21 @@ namespace MasterScheduler.ViewModels
                 new JobTypeModel { Type = "Report", Name = "Report", Description = "Generate and email status reports." }
             };
 
-            var current = licenseService.GetLocalLicense();
+            LicenseInfoModel current = new LicenseInfoModel();
+            try
+            {
+                current = licenseService.GetLicenseInfo();
+                
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
             foreach (var job in TaskTypeList)
             {
                 job.IsLocked = !licenseService.HasModule(job.Type, current);
             }
-            SelectedTaskType =  TaskTypeList.FirstOrDefault();
+            SelectedTaskType = TaskTypeList.FirstOrDefault();
         }
 
         [RelayCommand]

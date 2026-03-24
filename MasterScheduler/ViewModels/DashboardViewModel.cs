@@ -58,6 +58,11 @@ namespace MasterScheduler.ViewModels
                     LicStatus = $"(Trial ends: {expiry:d})";
                     return;
                 }
+                else {
+                    LicType = "Free";
+                    LicStatus = $"(Trial Expired)";
+                    return;
+                }
             }
             else {
                 LicType = "Free";

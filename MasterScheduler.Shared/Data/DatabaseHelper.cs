@@ -14,6 +14,10 @@ namespace MasterScheduler.Shared.Data
            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
            "rosh", "masterScheduler", "data.db"
         );
+
+        // private static readonly string _dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+        //   "rosh", "masterScheduler", "data.db"
+        //);
         public static string ConnectionString => $"Data Source={_dbPath};Pooling=True;";
 
         public static void Initialize()

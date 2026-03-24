@@ -34,14 +34,14 @@ namespace MasterScheduler.Shared.Service
             {
                 //var backFileName = $"{db}_{DateTime.Now:yyyyMMddHHmm}.bak";
                 var tempFileName = $"{db}_{DateTime.Now:yyyyMMddHHmm}.bak";
-                sqlBackupDetails.TempBackupPath = string.IsNullOrWhiteSpace(sqlBackupDetails.TempBackupPath) ? Path.Combine(GetDefaultSQLBackupPath(sqlBackupDetails.ConnectionString), tempFileName) : Path.Combine(sqlBackupDetails.TempBackupPath, tempFileName);
+                var TempBackupPath = string.IsNullOrWhiteSpace(sqlBackupDetails.TempBackupPath) ? Path.Combine(GetDefaultSQLBackupPath(sqlBackupDetails.ConnectionString), tempFileName) : Path.Combine(sqlBackupDetails.TempBackupPath, tempFileName);
                
                 try
                 {
                     _logger.LogInformation("Starting SQL Backup for {db}...", db);
                     if (sqlBackupDetails.Compression.ToLower() == "zip" || sqlBackupDetails.Compression.ToLower() == "none")
                     {
-                        await PerformSqlBackupAsync(sqlBackupDetails.ConnectionString, db, sqlBackupDetails.TempBackupPath, false, token);
+                        await PerformSqlBackupAsync(sqlBackupDetails.ConnectionString, db, TempBackupPath, false, token);
                     }
                     else {
                         await PerformSqlBackupAsync(sqlBackupDetails.ConnectionString, db, sqlBackupDetails.TempBackupPath, true, token);
@@ -51,8 +51,8 @@ namespace MasterScheduler.Shared.Service
 
                     if (sqlBackupDetails.Compression.ToLower() == "zip")
                     {
-                        await FileCompressionHelper.ZipCompressAsync(sqlBackupDetails.TempBackupPath.Replace(".bak",".zip"), sqlBackupDetails.TempBackupPath, token);
-                        sqlBackupDetails.TempBackupPath = sqlBackupDetails.TempBackupPath.Replace(".bak", ".zip");
+                        await FileCompressionHelper.ZipCompressAsync(TempBackupPath.Replace(".bak",".zip"), TempBackupPath, token);
+                        TempBackupPath = TempBackupPath.Replace(".bak", ".zip");
                     }
 
 
@@ -62,7 +62,7 @@ namespace MasterScheduler.Shared.Service
                         //if (dest.Status == "Success") continue;
                         try
                         {
-                            await SendToDestinationAsync(db, sqlBackupDetails.TempBackupPath, dest, job.Id, token);
+                            await SendToDestinationAsync(db, TempBackupPath, dest, job.Id, token);
                             dest.Status = "Success";
                             _jobRepository.UpdateJobConfiguration(job.Id, sqlBackupDetails); // Save progress
                         }
@@ -101,7 +101,7 @@ namespace MasterScheduler.Shared.Service
                 }
                 finally
                 {                   
-                    if (File.Exists(sqlBackupDetails.TempBackupPath))
+                    if (File.Exists(TempBackupPath))
                     {
                         await DeleteFileWithRetryAsync(sqlBackupDetails.TempBackupPath, 3);
                         _logger.LogInformation("Deleted temp file for Job {Id}", job.Id);
@@ -172,7 +172,7 @@ namespace MasterScheduler.Shared.Service
             try
             {
                 var backFileName = Path.GetFileName(tempBackupFile);                
-                var lic = licenseService.GetLocalLicense();
+                var lic = licenseService.GetLicenseInfo();
                 if (destination.Type == DestinationType.LocalFolder)
                 {
                     var config = (LocalFolderConfig)destination.Config;
@@ -213,7 +213,7 @@ namespace MasterScheduler.Shared.Service
                     
                     _logger.LogInformation("Backup to local path: {path} (Job {id})", targetFile, jobId);
                 }
-                else if (destination.Type == DestinationType.GoogleDrive && lic.Edition.ToLower() !="free")
+                else if (destination.Type == DestinationType.GoogleDrive && lic?.Edition.ToLower() !="free")
                 {
                     
                     var driveConfig = (GoogleDriveConfig)destination.Config;                   
@@ -225,9 +225,9 @@ namespace MasterScheduler.Shared.Service
 
                     if (driveConfig.RetentionDays > 0)
                     {
-                        _logger.LogInformation("Cleaning up Google Drive backups for {db}...", dbName);
-                       var res =  await googleDriveHelper.CleanOldBackupsAsync(cred, driveConfig.TargetFolderId,driveConfig.RetentionDays, token);
-                       _logger.LogInformation("Deleted old Google Drive backup file: {name} : Status:" + res, dbName);                        
+                       // _logger.LogInformation("Cleaning up Google Drive backups for {db}...", dbName);
+                       //var res =  await googleDriveHelper.CleanOldBackupsAsync(cred, driveConfig.TargetFolderId,driveConfig.RetentionDays, token);
+                       //_logger.LogInformation("Deleted old Google Drive backup file: {name} : Status:" + res, dbName);                        
                     }
                 }
             }
