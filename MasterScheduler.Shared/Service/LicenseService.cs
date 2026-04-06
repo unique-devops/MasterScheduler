@@ -178,14 +178,19 @@ namespace MasterScheduler.Shared.Service
             var licData = LoadAndVerifyLicense();
             if (licData != null && licData.Length == 4)
             {
+                licenseInfo.Edition = $"{licData[0].Split("-")[0]}";
+                
+                licenseInfo.Email = $"{licData[1]}";
+                licenseInfo.LicenseKey = $"{licData[0]}";
                 DateTime expiry = DateTime.Parse(licData[2]);
                 if (expiry > DateTime.Now)
                 {
                     // Valid license found - Show Main Screen
-                    licenseInfo.Edition = $"{licData[0].Split("-")[0]}";
-                    licenseInfo.Status = $"(Trial ends: {expiry:d})";
-                    licenseInfo.Email = $"{licData[1]}";
-                    licenseInfo.LicenseKey = $"{licData[0]}";
+                    licenseInfo.Status = $"(Trial ends on: {expiry:d})";
+                }
+                else {
+                    licenseInfo.Status = $"Trial ends";
+                    licenseInfo.Edition = "Free";
                 }
             }
             else

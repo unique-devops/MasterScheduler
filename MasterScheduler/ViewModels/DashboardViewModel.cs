@@ -55,8 +55,14 @@ namespace MasterScheduler.ViewModels
                 {
                     // Valid license found - Show Main Screen
                     LicType = $"{licenseData[0].Split("-")[0]}";
-                    LicStatus = $"(Trial ends: {expiry:d})";
-                    return;
+                    LicStatus = $"(Trial ends on: {expiry:d})";
+                    
+                }
+                else
+                {
+                    LicType = "Free";
+                    LicStatus = $"(Trial ends)";
+
                 }
             }
             else {
