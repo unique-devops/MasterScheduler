@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -25,7 +26,7 @@ namespace MasterScheduler.ViewModels
         private string trialVersion = "Start 14-Day Free Trial";
 
         [ObservableProperty]
-        private bool isActiveTrial;
+        private bool isActiveTrial;       
 
         [ObservableProperty]
         private bool isEmailInputVisible;
@@ -43,15 +44,30 @@ namespace MasterScheduler.ViewModels
         private void CheckLicense()
         {
             var type = "";
+            TrialVersion = "Start 14-Day Free Trial";
+            LiteVersion = type == "free" ? "current version" : "Activate Lite";
             var lic = licenseChecker.LoadAndVerifyLicense();
             if (lic != null && lic.Length == 4)
             {
                 type = lic[0].Split("-")[0].ToLower();
+                DateTime expiry = DateTime.Parse(lic[2]);
+                if (type == "trial" && expiry > DateTime.Now)
+                {
+                    TrialVersion = "🎉 Trial Activated!";
+                    IsActiveTrial = true;
+                    return;
+                }
+                else if (type == "trial" && expiry < DateTime.Now)
+                {
+                    TrialVersion = "Trial Expired";
+                    IsActiveTrial = true;
+                }
+                else {
+                    TrialVersion = type;
+                    IsActiveTrial = false;
+                }
             }
-            
-            TrialVersion = type == "trial" ? "🎉 Trial Activated!" : "Start 14-Day Free Trial";
-            IsActiveTrial = type == "trial";
-            LiteVersion = type == "free" ? "current version" : "Activate Lite";
+               
         }
 
         [RelayCommand]

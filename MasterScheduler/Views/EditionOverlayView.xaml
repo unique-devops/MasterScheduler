@@ -41,7 +41,7 @@
            FontWeight="Bold"
            HorizontalAlignment="Center"/>
 
-                            <TextBlock Text="₹ 3,000 / License"
+                            <TextBlock Text="₹ 5,000 / License"
            FontSize="18"
            Foreground="#2E7D32"
            FontWeight="SemiBold"
