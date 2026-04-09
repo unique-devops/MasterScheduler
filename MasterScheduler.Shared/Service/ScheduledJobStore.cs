@@ -103,7 +103,7 @@ namespace MasterScheduler.Shared.Service
                 {                   
                     if (File.Exists(TempBackupPath))
                     {
-                        await DeleteFileWithRetryAsync(sqlBackupDetails.TempBackupPath, 3);
+                        await DeleteFileWithRetryAsync(TempBackupPath, 3);
                         _logger.LogInformation("Deleted temp file for Job {Id}", job.Id);
                     }
                 }               

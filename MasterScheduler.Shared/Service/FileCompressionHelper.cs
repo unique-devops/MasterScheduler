@@ -14,10 +14,31 @@ namespace MasterScheduler.Shared.Service
         {
             await Task.Run(() =>
             {
-                using (ZipArchive archive = ZipFile.Open(zipPath, ZipArchiveMode.Create))
-                {                    
-                    archive.CreateEntryFromFile(bakFilePath, Path.GetFileName(bakFilePath), CompressionLevel.Optimal);
+                if (File.Exists(zipPath))
+                {
+                    using (ZipArchive archive = ZipFile.Open(zipPath, ZipArchiveMode.Update))
+                    {
+                        string entryName = Path.GetFileName(bakFilePath);
+
+                        // Remove existing entry if exists
+                        var existingEntry = archive.GetEntry(entryName);
+                        existingEntry?.Delete();
+
+                        // Add new file
+                        archive.CreateEntryFromFile(
+                            bakFilePath,
+                            entryName,
+                            CompressionLevel.Optimal
+                        );
+                    }
                 }
+                else
+                {
+                    using (ZipArchive archive = ZipFile.Open(zipPath, ZipArchiveMode.Create))
+                    {
+                        archive.CreateEntryFromFile(bakFilePath, Path.GetFileName(bakFilePath), CompressionLevel.Optimal);
+                    }
+                }                    
             }, token);
 
             if (File.Exists(bakFilePath)) File.Delete(bakFilePath);

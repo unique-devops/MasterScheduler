@@ -57,13 +57,7 @@ namespace MasterScheduler.ViewModels
                     LicType = $"{licenseData[0].Split("-")[0]}";
                     LicStatus = $"(Trial ends on: {expiry:d})";
                     
-                }
-                else
-                {
-                    LicType = "Free";
-                    LicStatus = $"(Trial ends)";
-
-                }
+                }                
                 else {
                     LicType = "Free";
                     LicStatus = $"(Trial Expired)";

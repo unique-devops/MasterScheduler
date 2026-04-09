@@ -127,16 +127,18 @@ namespace MasterScheduler.Worker
                             _logger.LogWarning("Unknown job type: {Type}", job.JobType);
                             break;
                     }
-                    await UpdateJobStatus(job, "completed", "successfully completed");                   
+                    await UpdateJobStatus(job, "completed", "successfully completed");
+                    _logger.LogInformation("Job {id} successfully completed.", job.Id);
                 }
                 catch (OperationCanceledException)
                 {
-                    _logger.LogWarning("Job {id} was cancelled.", job.Id);
+                    _logger.LogError("Job {id} was cancelled.", job.Id);
                     await UpdateJobStatus(job, "cancelled", "cancelled");                    
                 }
                 catch (Exception ex)
                 {                   
                     await UpdateJobStatus(job, "error", ex.Message);
+                    _logger.LogError(exception:ex, "Job {id} Error: " + ex.Message, job.Id);
                 }
                 finally
                 {
