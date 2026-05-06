@@ -91,19 +91,27 @@
                         </StackPanel>
                     </Button>
 
-                    <Button Style="{StaticResource ToolbarButtonStyle}" ToolTip="Enable all jobs">
+                    <Button Visibility="Collapsed" Style="{StaticResource ToolbarButtonStyle}" ToolTip="Enable all jobs">
                         <StackPanel Orientation="Horizontal">
                             <fa:ImageAwesome Icon="ToggleOn" Width="14" Height="14" Foreground="#007BFF" Margin="0,0,8,0"/>
                             <TextBlock Text="Enable All" FontWeight="Medium" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Style="{StaticResource ToolbarButtonStyle}" ToolTip="Disable all jobs">
+                    <Button Visibility="Collapsed" Style="{StaticResource ToolbarButtonStyle}" ToolTip="Disable all jobs">
                         <StackPanel Orientation="Horizontal">
                             <fa:ImageAwesome Icon="ToggleOff" Width="14" Height="14" Foreground="#6C757D" Margin="0,0,8,0"/>
                             <TextBlock Text="Disable All" FontWeight="Medium" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
+
+                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding UpgradeCommand}" >
+                        <StackPanel Orientation="Horizontal">
+                            <fa:ImageAwesome Icon="Buysellads" Width="14" Height="14" Foreground="#6C757D" Margin="0,0,8,0"/>
+                            <TextBlock Text="Add Features" FontWeight="Medium" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    
                 </StackPanel>
 
                 <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding LogsCommand}" DockPanel.Dock="Right" HorizontalAlignment="Right" Margin="0">
@@ -303,7 +311,7 @@
                 </DataGrid.Columns>
             </DataGrid>
         </Grid>
-        <Border Grid.Row="2" Background="#333" Padding="15,0">
+        <Border Visibility="Collapsed" Grid.Row="2" Background="#333" Padding="15,0">
             <DockPanel VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="v1.0.4" Foreground="#AAA" FontSize="11" VerticalAlignment="Center" Margin="0,0,15,0"/>

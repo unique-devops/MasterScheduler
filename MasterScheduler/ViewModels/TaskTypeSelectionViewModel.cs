@@ -34,9 +34,9 @@ namespace MasterScheduler.ViewModels
             TaskTypeList = new ObservableCollection<JobTypeModel>
             {               
                 new JobTypeModel { Type = "SQLBACKUP", Name = "SQL Backup", Description = "Backup databases to local or cloud." },
-                new JobTypeModel { Type = "FILESYNC", Name = "File Sync", Description = "Sync folders between locations." },
-                new JobTypeModel { Type = "CLEANUP", Name = "Folder Cleanup", Description = "Delete old logs and temp files." },
-                new JobTypeModel { Type = "Report", Name = "Report", Description = "Generate and email status reports." }
+                //new JobTypeModel { Type = "FILESYNC", Name = "File Sync", Description = "Sync folders between locations." },
+                //new JobTypeModel { Type = "CLEANUP", Name = "Folder Cleanup", Description = "Delete old logs and temp files." },
+                //new JobTypeModel { Type = "Report", Name = "Report", Description = "Generate and email status reports." }
             };
 
             LicenseInfoModel current = new LicenseInfoModel();
