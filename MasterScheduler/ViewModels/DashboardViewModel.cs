@@ -37,37 +37,13 @@ namespace MasterScheduler.ViewModels
         public DashboardViewModel(INavigationService navigation)
         {
             _navigation = navigation;            
-            Jobs = new();
-            CheckLicenseOnStartup();
+            Jobs = new();           
             _ =LoadNewJobs();
             _=StartAsync(new CancellationToken());
         }
         
 
-        public void CheckLicenseOnStartup()
-        {
-            var licenseData = licenseChecker.LoadAndVerifyLicense();
-
-            if (licenseData != null && licenseData.Length == 4)
-            {
-                DateTime expiry = DateTime.Parse(licenseData[2]);
-                if (expiry > DateTime.Now)
-                {
-                    // Valid license found - Show Main Screen
-                    LicType = $"{licenseData[0].Split("-")[0]}";
-                    LicStatus = $"(Trial ends on: {expiry:d})";
-                    
-                }                
-                else {
-                    LicType = "Free";
-                    LicStatus = $"(Trial Expired)";
-                    return;
-                }
-            }
-            else {
-                LicType = "Free";
-            }
-        }
+        
 
         [RelayCommand]
         private async Task LoadNewJobs()

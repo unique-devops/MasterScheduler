@@ -91,33 +91,30 @@ namespace MasterScheduler.ViewModels
 
         private void BindDestinations()
         {
-            var lic = license.GetLicenseInfo();
-            
+            var lics = license.GetLicenses();
+            var lic = lics.Find(c => c.LicenseName == "PRO");
 
             var allOptions = new List<BackupDestinations>
             {
-                new() { Type = DestinationType.LocalFolder, Name = "Local Folder", IconPath = "/Assets/folder.png" },
-                new() { Type = DestinationType.GoogleDrive, Name = "Google Drive", IconPath = "/Assets/google-drive.png" },
-                new() { Type = DestinationType.FTP, Name = "FTP", IconPath = "/Assets/ftp.png" },
-                new() { Type = DestinationType.SFTP, Name = "SFTP", IconPath = "/Assets/sftp.png" },
-                new() { Type = DestinationType.OneDrive, Name = "OneDrive", IconPath = "/Assets/onedrive.png" },
-                new() { Type = DestinationType.AmazonS3, Name = "Amazon S3", IconPath = "/Assets/s3.png" },
-                new() { Type = DestinationType.AzureBlob, Name = "Azure Blob", IconPath = "/Assets/azure.png" },
-                new() { Type = DestinationType.NetworkShare, Name = "NAS / Network Share", IconPath = "/Assets/local-area-network.png" }
+                new() { IsActive =true, Type = DestinationType.LocalFolder, Name = "Local Folder", IconPath = "/Assets/folder.png" },
+                new() { IsActive =false, Type = DestinationType.GoogleDrive, Name = "Google Drive", IconPath = "/Assets/google-drive.png" },
+                new() { IsActive =true, Type = DestinationType.FTP, Name = "FTP", IconPath = "/Assets/ftp.png" },
+                new() { IsActive =true, Type = DestinationType.SFTP, Name = "SFTP", IconPath = "/Assets/sftp.png" },
+                new() { IsActive =false, Type = DestinationType.OneDrive, Name = "OneDrive", IconPath = "/Assets/onedrive.png" },
+                new() { IsActive =false, Type = DestinationType.AmazonS3, Name = "Amazon S3", IconPath = "/Assets/s3.png" },
+                new() { IsActive =false, Type = DestinationType.AzureBlob, Name = "Azure Blob", IconPath = "/Assets/azure.png" },
+                new() { IsActive =true, Type = DestinationType.NetworkShare, Name = "NAS / Network Share", IconPath = "/Assets/local-area-network.png" }
             };
-
-            switch (lic.Edition.ToLower())
+            if (lic !=null)
             {
-                case "free":
-                    allOptions.Find(c => c.Type == DestinationType.LocalFolder).IsActive = true;
-                    break;
-                default:
-                    foreach (var item in allOptions)
-                    {
-                        item.IsActive = lic.Edition != "free"  || item.Type == DestinationType.LocalFolder;
-                    }
-                    break;
-            }        
+                var isExpired = LicenseService.IsLicenseExpired(lic.ExpiryDate);
+                
+                allOptions.Find(c => c.Type == DestinationType.GoogleDrive).IsActive = !isExpired;
+                allOptions.Find(c => c.Type == DestinationType.OneDrive).IsActive = !isExpired;
+                allOptions.Find(c => c.Type == DestinationType.AzureBlob).IsActive = !isExpired;
+                allOptions.Find(c => c.Type == DestinationType.AmazonS3).IsActive = !isExpired;                
+            }
+            
             AvailableDestinations = new ObservableCollection<BackupDestinations>(allOptions);
         }
         private void GetJobDetail()

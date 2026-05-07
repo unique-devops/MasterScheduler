@@ -25,7 +25,8 @@ namespace MasterScheduler.Worker
         // Separate limits to prevent backups from starving small tasks
         private readonly SemaphoreSlim _generalLimit = new(10);
         private readonly SemaphoreSlim _backupLimit = new(2);
-        
+        LicenseService licenseService = new LicenseService();
+
         public Worker(ILogger<Worker> logger, IScheduledJobStore jobStore)
         {
             _logger = logger;
@@ -45,8 +46,9 @@ namespace MasterScheduler.Worker
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
-                {                    
-                    var pendingJobs = _repo.GetPendingTask();
+                {
+                    licenseService.UpdateLicense();
+                     var pendingJobs = _repo.GetPendingTask();
 
                     if (pendingJobs == null || !pendingJobs.Any())
                     {

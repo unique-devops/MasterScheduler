@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MasterScheduler.Shared.Service
 {
-    internal class FingerprintGenerator
+    public class FingerprintGenerator
     {
         public string GetId()
         {

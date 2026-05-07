@@ -17,7 +17,7 @@ namespace MasterScheduler.ViewModels
     public partial class EditionOverlayViewModel : ObservableObject
     {
         private readonly INavigationService _navigationService;
-        LicenseService licenseChecker = new LicenseService();
+        LicenseService licenseService = new LicenseService();
 
         [ObservableProperty]
         private string liteVersion = "Current version";
@@ -33,49 +33,48 @@ namespace MasterScheduler.ViewModels
 
         [ObservableProperty]
         private string userEmail;
+
+        [ObservableProperty]
+        private bool isPro;
+
+        [ObservableProperty]
+        private string proMessage;
         public EditionOverlayViewModel(INavigationService navigationService)
         {
             _navigationService = navigationService;
-            CheckLicense();
+            _= LoadLicense();
         }
 
-       
-
-        private void CheckLicense()
+        private async Task LoadLicense()
         {
-            var type = "";
-            TrialVersion = "Start 14-Day Free Trial";
-            LiteVersion = type == "free" ? "current version" : "Activate Lite";
-            var lic = licenseChecker.LoadAndVerifyLicense();
-            if (lic != null && lic.Length == 4)
+            try
             {
-                type = lic[0].Split("-")[0].ToLower();
-                DateTime expiry = DateTime.Parse(lic[2]);
-                if (type == "trial" && expiry > DateTime.Now)
+                var lic = licenseService.GetLicenses();               
+                if (lic.Count > 0)
                 {
-                    TrialVersion = "🎉 Trial Activated!";
-                    IsActiveTrial = true;
-                    return;
-                }
-                else if (type == "trial" && expiry < DateTime.Now)
-                {
-                    TrialVersion = "Trial Expired";
-                    IsActiveTrial = true;
-                }
-                else {
-                    TrialVersion = type;
-                    IsActiveTrial = false;
+                    var pro = lic.Find(c => c.LicenseName.Equals("PRO"));
+                    if (pro != null)
+                    {                        
+                        IsPro = true;
+                        var exp = $"{pro.ExpiryDate.Substring(0,2)}-{pro.ExpiryDate.Substring(2,2)}-{pro.ExpiryDate.Substring(4,4)}";
+                        ProMessage = $"Activated (Expired on {exp})";
+                    }                    
                 }
             }
-               
+            catch (Exception ex)
+            {
+                await App.ToastService.ShowAsync(ex.Message,Shared.Enums.ToastType.Error);
+            }
         }
-
+        
 
         [RelayCommand]
-        private void ActivateEdition()
+        private async Task ActivateEdition()
         {
             ActivateEditionViewDialog _view = new ActivateEditionViewDialog();
+            _view.Owner = App.Current.MainWindow;
             _view.ShowDialog();
+            await LoadLicense();
         }
 
         [RelayCommand]
@@ -95,7 +94,7 @@ namespace MasterScheduler.ViewModels
             UserEmail = enterEmail.InputValue;
             if (string.IsNullOrEmpty(UserEmail) || !UserEmail.Contains("@")) return;
             TrialVersion = "🎉 Trial Activated!";
-            await licenseChecker.ActivateTrialLicense(UserEmail);
+            //await licenseChecker.ActivateTrialLicense(UserEmail);
             _navigationService.NavigateTo<DashboardViewModel>();
         }        
 

@@ -149,17 +149,21 @@ namespace MasterScheduler.Shared.Service
         }
         private async Task PerformSqlBackupAsync(string connectionString, string dbName, string path, bool IsCompressed, CancellationToken ct)
         {
-            string sql = $"BACKUP DATABASE @db TO DISK = @path WITH FORMAT, MEDIANAME = 'SQLBackup', NAME = @name";
+
+            string safePath = path.Replace("'", "''");
+            string safeDb = dbName.Replace("]", "]]");
+
+            string sql = $"BACKUP DATABASE [{safeDb}] TO DISK = N'{safePath}' WITH INIT, FORMAT, MEDIANAME = 'SQLBackup', NAME = N'Full Backup of {safeDb}'";
             using var conn = new SqlConnection(connectionString);
             await conn.OpenAsync(ct);
             if (IsCompressed)
             {
-                sql = $"BACKUP DATABASE @db TO DISK = @path WITH FORMAT, COMPRESSION, NAME = 'Native Comp'";
+                sql += ", COMPRESSION";
             }            
             using var cmd = new SqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@db", dbName);
-            cmd.Parameters.AddWithValue("@name", "Full Backup of " + dbName);
-            cmd.Parameters.AddWithValue("@path", path);
+            //cmd.Parameters.AddWithValue("@db", dbName);
+            //cmd.Parameters.AddWithValue("@name", "Full Backup of " + dbName);
+            //cmd.Parameters.AddWithValue("@path", path);
 
             // CommandTimeout needs to be high for large backups
             cmd.CommandTimeout = 0;
@@ -172,7 +176,7 @@ namespace MasterScheduler.Shared.Service
             try
             {
                 var backFileName = Path.GetFileName(tempBackupFile);                
-                var lic = licenseService.GetLicenseInfo();
+                
                 if (destination.Type == DestinationType.LocalFolder)
                 {
                     var config = (LocalFolderConfig)destination.Config;
@@ -213,7 +217,7 @@ namespace MasterScheduler.Shared.Service
                     
                     _logger.LogInformation("Backup to local path: {path} (Job {id})", targetFile, jobId);
                 }
-                else if (destination.Type == DestinationType.GoogleDrive && lic?.Edition.ToLower() !="free")
+                else if (destination.Type == DestinationType.GoogleDrive && IsEditionLicense("PRO"))
                 {
                     
                     var driveConfig = (GoogleDriveConfig)destination.Config;                   
@@ -241,6 +245,21 @@ namespace MasterScheduler.Shared.Service
 
         // Use a dictionary or DB to store URIs for jobs in progress
         private static readonly ConcurrentDictionary<int, Uri> _resumeUris = new();
+
+        private bool IsEditionLicense(string editionName)
+        {
+            try
+            {
+                var lic = licenseService.GetLicByName(editionName);
+                var exist = lic.Any(c => c.IsExpired == false);                
+                return exist;
+            }
+            catch 
+            {
+                return false;
+            }
+           
+        }
        
     }
 }

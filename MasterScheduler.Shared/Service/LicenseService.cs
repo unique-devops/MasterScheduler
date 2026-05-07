@@ -21,227 +21,239 @@ namespace MasterScheduler.Shared.Service
 {
     public class LicenseService
     {
-        private static readonly string SecretSalt = "RoshMasterScheduler_2026_!@#";
+        private static readonly string publicCertKey = "-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEA2mEj4N2Zd4bDihw4JA9DoDVxsck61Q9ZnhVMhnHLH+F/hY9hAVZN\nx/IMMzZwVbZOKfbHcqPCgALB7xd9ELItxOnI2DEPMZX1ONLT2q8CAGZKRzuEOKKx\n+Hj9yvQyCKYCVeOmvJlBpi/xuUK60aMq8mTa8hghxpHc2O9FE6iDXsdMFhNQnuh/\nunK0+L0YFPwrIZk3TrT91yDKRgCVekfQFYsmzJmpNx+CWO03IURaTib/2qeV7pHl\noA6yaKqRwjfYCVIbOYG0+wZUx3GqXOxe1gtDarm9W86wjwY4zdK3EZtgQyPhbnso\n4moiTLuwb6ptzA9WiPaV5QaQuwy/pBK1DQIDAQAB\n-----END RSA PUBLIC KEY-----";
         FingerprintGenerator fingerprintGenerator = new FingerprintGenerator();
         private readonly string _apiUrl = "http://uniquetest.somee.com/licman/api/license";
         private string _licFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "license.dat");
-        public static string GenerateSecureKey(string pcId, string type)
-        {
-            // Creates a hash of: PCID + Type + Secret
-            using var sha = SHA256.Create();
-            byte[] bytes = Encoding.UTF8.GetBytes(pcId + type + SecretSalt);
-            byte[] hash = sha.ComputeHash(bytes);
-            return Convert.ToBase64String(hash);
-        }
-        public static bool VerifyIntegrity(string pcId, string type, string storedKey)
-        {
-            // Re-generate the key and compare
-            string validKey = GenerateSecureKey(pcId, type);
-            return validKey == storedKey;
-        }
+                                     
        
-        public async Task ActivateTrialLicense(string userEmail)
+        public bool SaveLicense(LicenseDataModel license, out string message)
         {
-            string pcId = fingerprintGenerator.GetId(); // Use the HWID code from earlier            
-            var trialLicense = new TrialRequest
+            SqliteTransaction? trn =null;
+            
+            using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
+            con.Open();
+            try
             {
-                AppName = "MasterScheduler",
-                DeviceId = pcId,
-                Email = userEmail
-            };
-            HttpClient httpClient = new HttpClient();
-            var response = await httpClient.PostAsJsonAsync($"{_apiUrl}/start-trial", trialLicense);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadFromJsonAsync<LicenseResponseDto>();
-                string rawData = $"{result?.licenseKey}|{result?.ownerEmail}|{result?.expiresAt}|{pcId}";
-                string encrypted = EncryptString(rawData, pcId + SecretSalt);
-                File.WriteAllText(_licFilePath, encrypted);
+                trn = con.BeginTransaction();
+                var cmdDelete = new SqliteCommand("delete from LicenseInfo where PCID = @pcid and Edition=@edition", con, trn);
+                cmdDelete.Parameters.AddWithValue("@pcid", license.DeviceId);
+                cmdDelete.Parameters.AddWithValue("@edition", license.LicenseName);
+                cmdDelete.ExecuteNonQuery();
+                var cmd = new SqliteCommand("INSERT INTO LicenseInfo (PCID, Edition, ExpiryDate, Status, LicenseKey) VALUES (@pcid, @edition, @expiry, @status, @key)", con, trn);
+                cmd.Parameters.AddWithValue("@pcid", license.DeviceId);
+                cmd.Parameters.AddWithValue("@edition", license.LicenseName);
+                cmd.Parameters.AddWithValue("@status", "Active");                
+                cmd.Parameters.AddWithValue("@expiry", license.ExpiryDate);
+                cmd.Parameters.AddWithValue("@key", license.LicenseKey);
+                cmd.ExecuteNonQuery();
+                trn.Commit();
+                message = "success";
+                return true;
             }
-        }
-       
-        private void SaveLocalLicense(LicenseInfoModel license)
-        {
-            using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
-            con.Open();
-            var cmd = new SqliteCommand("INSERT INTO LicenseInfo (PCID, Edition, Status, LicenseKey, Modules, Connectors) VALUES (@pcid, @edition, @status, @key, @modules, @connectors)", con);           
-            cmd.Parameters.AddWithValue("@pcid", license.PCID);
-            cmd.Parameters.AddWithValue("@edition", license.Edition);
-            cmd.Parameters.AddWithValue("@status", license.IsExpired ? "Expired" : "Active");           
-            cmd.Parameters.AddWithValue("@key", license.LicenseKey);
-            cmd.Parameters.AddWithValue("@modules",
-                JsonConvert.SerializeObject(license.Modules));
-            cmd.Parameters.AddWithValue("@connectors",
-                JsonConvert.SerializeObject(license.Connectors));
-            cmd.ExecuteNonQuery();
-        }
-        public void UpdateLocalLicense(LicenseInfoModel lic)
-        {
-            using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
-            con.Open();
-            var sql = "UPDATE LicenseInfo SET Email = @email ,PCID =@pc , LicenseType =@type, ExpiryDate =@expiry, LicenseKey =@licenseKey";
-            using var cmd = new SqliteCommand(sql, con);
-            cmd.Parameters.AddWithValue("@pc", lic.PCID);
-            cmd.Parameters.AddWithValue("@email", lic.Email);
-            cmd.Parameters.AddWithValue("@edition", lic.Edition);
-            cmd.Parameters.AddWithValue("@status", lic.IsExpired ? "Expired" : "Active");
-            cmd.Parameters.AddWithValue("@expiry", lic.ExpiryDate  == null ? "" :lic.ExpiryDate?.ToString("yyyy-MM-dd"));
-            cmd.Parameters.AddWithValue("@licenseKey", lic.LicenseKey);
-            cmd.ExecuteNonQuery();
+            catch (Exception ex)
+            {
 
+                if (trn != null)
+                {
+                    trn.Rollback();
+                }
+                message = ex.Message;
+                return false;
+            }                           
+           
+        }
+        public void UpdateLicense()
+        {
+            try
+            {
+                var licenses = GetLicenses();
+                if (licenses == null || licenses.Count == 0) return;
+                foreach (var lic in licenses)
+                {
+                    using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
+                    con.Open();
+                    var sql = "UPDATE LicenseInfo SET PCID =@pc , Edition =@edition, Status = @status, ExpiryDate = @expiry where  LicenseKey =@licenseKey";
+                    using var cmd = new SqliteCommand(sql, con);
+                    cmd.Parameters.AddWithValue("@pc", lic.DeviceId);
+                    cmd.Parameters.AddWithValue("@edition", lic.LicenseName);                   
+                    cmd.Parameters.AddWithValue("@status", lic.IsExpired ? "Expired" : "Active");
+                    cmd.Parameters.AddWithValue("@expiry", lic.ExpiryDate);
+                    cmd.Parameters.AddWithValue("@licenseKey", lic.LicenseKey);
+                    cmd.ExecuteNonQuery();
+                }                
+            }
+            catch 
+            {                
+            }
             // Tip: Call your Vercel API here too to sync the email to Supabase
         }
-        public LicenseInfoModel GetLocalLicense()
+        
+        public List<LicenseDataModel> GetLicenses()
         {
+            List<LicenseDataModel> licenses = new List<LicenseDataModel>();
+            var pcID = fingerprintGenerator.GetId();
             using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
             con.Open();
 
             // We only ever expect one row in this table
-            var sql = "SELECT * FROM LicenseInfo LIMIT 1";
+            var sql = "SELECT * FROM LicenseInfo where PCID = @pcid";
 
             using var cmd = new SqliteCommand(sql, con);
+            cmd.Parameters.AddWithValue("@pcid", pcID);
             using var reader = cmd.ExecuteReader();           
 
-            if (reader.Read())
+            while (reader.Read())
             {
-                return new LicenseInfoModel
-                {                    
-                    Edition = reader["Edition"].ToString(),
-                    ExpiryDate = reader["ExpiryDate"] == DBNull.Value
-                        ? null
-                        : DateTime.Parse(reader["ExpiryDate"].ToString()),
-                    IsExpired = reader["Status"].ToString() == "Expired",
-                    Status = reader["Status"].ToString(),
-                     LicenseKey = reader["LicenseKey"].ToString(),
-                    Modules = JsonConvert.DeserializeObject<HashSet<string>>(
-                    reader["Modules"]?.ToString() ?? "[]"),
-
-                            Connectors = JsonConvert.DeserializeObject<HashSet<string>>(
-                    reader["Connectors"]?.ToString() ?? "[]")
-                };
+                if (string.IsNullOrWhiteSpace(reader["LicenseKey"].ToString())) continue;
+                var valid = LicenseService.VerifyLicense(reader["LicenseKey"].ToString(), out LicenseDataModel data);
+                if (valid)
+                {
+                    var isExpired = LicenseService.IsLicenseExpired(data.ExpiryDate);
+                    licenses.Add(new LicenseDataModel
+                    {
+                        LicenseName = data.LicenseName,
+                        ExpiryDate = data.ExpiryDate,
+                        IsExpired = isExpired,
+                        DeviceId = data.DeviceId,
+                        LicenseKey = data.LicenseKey,
+                    });
+                }
+                
             }
-           return null;
-        }       
-        public bool HasModule(string moduleCode, LicenseInfoModel Current)
-        {
-            if (Current == null)
-                return false;
-
-            // Trial: allow everything
-            if (Current.Edition == "Trial" && !Current.IsExpired)
-                return true;
-
-            // Free edition: no paid modules
-            if (Current.Edition == "Free")
-                return false;
-
-            // Lite edition: allow core modules only
-            if (Current.Edition == "Lite")
-            {
-                return Current.Modules.Contains(moduleCode);
-            }
-
-            // Pro edition: check purchased modules
-            if (Current.Edition == "Pro")
-            {
-                return Current.Modules.Contains(moduleCode);
-            }
-
-            return false;
+           return licenses;
         }
 
-
-        public string[] LoadAndVerifyLicense()
+        public List<LicenseDataModel> GetLicByName(string Licname)
         {
-            if (!File.Exists(_licFilePath)) return null;
+            List<LicenseDataModel> licenses = new List<LicenseDataModel>();
+            var pcID = fingerprintGenerator.GetId();
+            using var con = new SqliteConnection(DatabaseHelper.ConnectionString);
+            con.Open();
+
+            // We only ever expect one row in this table
+            var sql = "SELECT * FROM LicenseInfo where PCID = @pcid and Edition = @licname";
+
+            using var cmd = new SqliteCommand(sql, con);
+            cmd.Parameters.AddWithValue("@pcid", pcID);
+            cmd.Parameters.AddWithValue("@licname", Licname);
+            using var reader = cmd.ExecuteReader();
+
+            while (reader.Read())
+            {
+                if (string.IsNullOrWhiteSpace(reader["LicenseKey"].ToString())) continue;
+                var valid = LicenseService.VerifyLicense(reader["LicenseKey"].ToString(), out LicenseDataModel data);
+                if (valid)
+                {
+                    var isExpired = LicenseService.IsLicenseExpired(data.ExpiryDate);
+                    licenses.Add(new LicenseDataModel
+                    {
+                        LicenseName = data.LicenseName,
+                        ExpiryDate = data.ExpiryDate,
+                        IsExpired = isExpired,
+                        DeviceId = data.DeviceId,
+                        LicenseKey = data.LicenseKey,
+                    });
+                }
+
+            }
+            return licenses;
+        }
+
+        // =====================================
+        // VERIFY LICENSE
+        // =====================================
+        public static bool VerifyLicense(string licenseKey,out LicenseDataModel data)
+        {
+            data = null;
 
             try
             {
-                string encrypted = File.ReadAllText(_licFilePath);
-                string decrypted = DecryptString(encrypted, fingerprintGenerator.GetId() + SecretSalt);
-                string[] parts = decrypted.Split('|');
+                string[] parts =
+                    licenseKey.Split('.');
 
-                // Verification: Does the Hardware ID in the file match THIS PC?
-                if (parts.Length == 4 && parts[3] == fingerprintGenerator.GetId())
-                {
-                    return parts; // Returns [Key, Email, Expiry, DeviceId]
-                }
+                if (parts.Length != 2)
+                    return false;
 
-            }
-            catch { /* Tampered or wrong PC */ }
-            return null;
-        }
+                string json =
+                    Encoding.UTF8.GetString(
+                        Convert.FromBase64String(parts[0]));
 
-        public LicenseInfoModel GetLicenseInfo()
-        {
-            LicenseInfoModel licenseInfo = new();
-            var licData = LoadAndVerifyLicense();
-            if (licData != null && licData.Length == 4)
-            {
-                licenseInfo.Edition = $"{licData[0].Split("-")[0]}";
-                
-                licenseInfo.Email = $"{licData[1]}";
-                licenseInfo.LicenseKey = $"{licData[0]}";
-                DateTime expiry = DateTime.Parse(licData[2]);
-                if (expiry > DateTime.Now)
-                {
-                    // Valid license found - Show Main Screen
-                    licenseInfo.Status = $"(Trial ends on: {expiry:d})";
-                }
-                else {
-                    licenseInfo.Status = $"Trial ends";
-                    licenseInfo.Edition = "Free";
-                }
+                string signature = parts[1];
+
+                bool valid =
+                    VerifySignature(
+                        json,
+                        signature,
+                        publicCertKey);
+
+                if (!valid)
+                    return false;
+
+                data = JsonConvert.DeserializeObject<LicenseDataModel>(json);
+
+                return true;
             }
-            else
+            catch
             {
-                licenseInfo.Edition = "Free";
-                licenseInfo.Status = "";
-                licenseInfo.Email ="";
-                licenseInfo.LicenseKey ="";
-            }
-            return licenseInfo;
-        }
-        private string EncryptString(string text, string key)
-        {
-            var bKey = Encoding.UTF8.GetBytes(key.PadRight(32).Substring(0, 32));
-            using (var aes = Aes.Create())
-            {
-                aes.Key = bKey;
-                aes.GenerateIV();
-                using (var ms = new MemoryStream())
-                {
-                    ms.Write(aes.IV, 0, aes.IV.Length);
-                    using (var cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
-                    {
-                        byte[] data = Encoding.UTF8.GetBytes(text);
-                        cs.Write(data, 0, data.Length);
-                    }
-                    return Convert.ToBase64String(ms.ToArray());
-                }
+                return false;
             }
         }
 
-        private string DecryptString(string encrypted, string key)
+
+        // =====================================
+        // VERIFY RSA SIGNATURE
+        // =====================================
+        private static bool VerifySignature(
+            string data,
+            string signature,
+            string publicKey)
         {
-            var bKey = Encoding.UTF8.GetBytes(key.PadRight(32).Substring(0, 32));
-            byte[] fullData = Convert.FromBase64String(encrypted);
-            using (var aes = Aes.Create())
-            {
-                aes.Key = bKey;
-                byte[] iv = new byte[aes.BlockSize / 8];
-                Array.Copy(fullData, 0, iv, 0, iv.Length);
-                aes.IV = iv;
-                using (var ms = new MemoryStream())
-                {
-                    using (var cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Read))
-                    {
-                        ms.Write(fullData, iv.Length, fullData.Length - iv.Length);
-                        ms.Position = 0;
-                        using (var reader = new StreamReader(cs)) return reader.ReadToEnd();
-                    }
-                }
-            }
+            using RSA rsa = RSA.Create();
+
+            rsa.ImportFromPem(publicKey);
+
+            byte[] dataBytes =
+                Encoding.UTF8.GetBytes(data);
+
+            byte[] signBytes =
+                Convert.FromBase64String(signature);
+
+            return rsa.VerifyData(
+                dataBytes,
+                signBytes,
+                HashAlgorithmName.SHA256,
+                RSASignaturePadding.Pkcs1);
+        }
+
+
+
+        // ==============================
+        // CHECK LICENSE EXPIRED
+        // ==============================
+        public static bool IsLicenseExpired(string expiryDate)
+        {
+            // Parse dynamic date format
+            // Example: 112026 => 1/1/2026
+
+            string year = expiryDate.Substring(expiryDate.Length - 4);
+
+            string remain =
+                expiryDate.Substring(0, expiryDate.Length - 4);
+
+            int day;
+            int month;
+
+            day = int.Parse(remain.Substring(0, 2));
+            month = int.Parse(remain.Substring(2, 2));
+
+            DateTime expDate =
+                new DateTime(
+                    int.Parse(year),
+                    month,
+                    day);
+
+            return DateTime.Now.Date > expDate.Date;
         }
     }
 }

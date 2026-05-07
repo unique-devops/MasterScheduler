@@ -25,8 +25,7 @@ namespace MasterScheduler.ViewModels
 
         [ObservableProperty]
         private JobTypeModel? selectedTaskType;
-
-        LicenseService licenseService = new LicenseService();
+       
         public TaskTypeSelectionViewModel(INavigationService navigationService)
         {
             HeaderTitle = "Choose task";
@@ -38,21 +37,7 @@ namespace MasterScheduler.ViewModels
                 //new JobTypeModel { Type = "CLEANUP", Name = "Folder Cleanup", Description = "Delete old logs and temp files." },
                 //new JobTypeModel { Type = "Report", Name = "Report", Description = "Generate and email status reports." }
             };
-
-            LicenseInfoModel current = new LicenseInfoModel();
-            try
-            {
-                current = licenseService.GetLicenseInfo();
-                
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-            foreach (var job in TaskTypeList)
-            {
-                job.IsLocked = !licenseService.HasModule(job.Type, current);
-            }
+           
             SelectedTaskType = TaskTypeList.FirstOrDefault();
         }
 

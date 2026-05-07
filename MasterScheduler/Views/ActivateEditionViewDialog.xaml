@@ -6,28 +6,35 @@
         xmlns:fa="http://schemas.fontawesome.io/icons/"
         xmlns:local="clr-namespace:MasterScheduler.Views"
         mc:Ignorable="d"
-        Title="Activate Edition" WindowStyle="SingleBorderWindow" Height="300" Width="600">
+        Title="Activate Edition" WindowStyle="ToolWindow" Height="280" Width="620" WindowStartupLocation="CenterOwner" Loaded="Window_Loaded">
+    <Window.InputBindings>
+        <KeyBinding Key="Esc" Command="{Binding CancelCommand}"/>
+    </Window.InputBindings>
     <Border Padding="10">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="30"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="30"/>
+                <RowDefinition Height="30"/>
             </Grid.RowDefinitions>
             <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
                 <TextBlock FontWeight="SemiBold">PC ID:</TextBlock>
-                <TextBlock FontWeight="SemiBold" Margin="10,0" Text="{Binding PCID}"></TextBlock>
-                <Button Margin="10,0" Background="Transparent" BorderThickness="0">
+                <TextBlock FontWeight="SemiBold" Margin="10,0" Text="{Binding PCID , UpdateSourceTrigger=PropertyChanged}"></TextBlock>
+                <Button Visibility="{Binding IsCopied, Converter={StaticResource FalseToVisibleConverter}}" Margin="10,0" Background="Transparent" BorderThickness="0" Command="{Binding CopyCommand}">
                     <fa:ImageAwesome Icon="Copy" Width="14" Height="14" Foreground="#28A745" Margin="0,0,8,0"/>
                 </Button>
+                <TextBlock Visibility="{Binding IsCopied, Converter={StaticResource BoolToVisibilityConverter}}" FontWeight="SemiBold" Margin="10,0">
+                     <fa:ImageAwesome Icon="Check" Width="14" Height="14" Foreground="#28A745" Margin="0,0,8,0"/>
+                </TextBlock>
             </StackPanel>
 
-            <StackPanel Grid.Row="1" VerticalAlignment="Center">
+            <StackPanel Grid.Row="1" VerticalAlignment="Top">
                 <TextBlock TextAlignment="Center">
                     <fa:ImageAwesome Icon="Key" Width="70" Height="70" Foreground="Gray"/>
                 </TextBlock>
                 <TextBlock HorizontalAlignment="Center" FontSize="18" FontWeight="Bold">Enter License  Key</TextBlock>
-                <TextBox HorizontalAlignment="Center" Padding="5" Background="LightYellow" TextAlignment="Center" Text="124544" MinWidth="580">
+                <TextBox x:Name="txtLicKey" Text="{Binding Key, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" Padding="5" Background="LightYellow" TextAlignment="Center"  MinWidth="580">
                     <TextBox.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="4"/>
@@ -35,11 +42,11 @@
                     </TextBox.Resources>
                 </TextBox>
             </StackPanel>
-            
-            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <TextBlock Grid.Row="2" HorizontalAlignment="Center" Foreground="Red" Text="{Binding ErrorMessage, UpdateSourceTrigger=PropertyChanged}"></TextBlock>
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button x:Name="ActivateButton"
                   Content="Activate"                 
-                  Command="{Binding ActivateCommand}"
+                  Command="{Binding ActivateKeyCommand}"
                   Cursor="Hand">
 
                     <Button.Resources>
