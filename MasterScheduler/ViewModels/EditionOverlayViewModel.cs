@@ -70,6 +70,14 @@ namespace MasterScheduler.ViewModels
                
         }
 
+
+        [RelayCommand]
+        private void ActivateEdition()
+        {
+            ActivateEditionViewDialog _view = new ActivateEditionViewDialog();
+            _view.ShowDialog();
+        }
+
         [RelayCommand]
         private void ShowEmailForm()
         {
