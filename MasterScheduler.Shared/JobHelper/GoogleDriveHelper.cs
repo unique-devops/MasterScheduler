@@ -38,8 +38,8 @@ namespace MasterScheduler.Shared.JobHelper
                 // This call will now be 100% silent because the token exists in the dataStore
                 return await GoogleWebAuthorizationBroker.AuthorizeAsync(
                     GoogleClientSecrets.FromStream(stream).Secrets,
-                    new[] { DriveService.Scope.DriveFile, "https://www.googleapis.com/auth/userinfo.email" },
-                    "temp",
+                    new[] { DriveService.Scope.Drive, "https://www.googleapis.com/auth/userinfo.email" },
+                    "user_v1",
                     CancellationToken.None,
                     new NullDataStore());
             }
