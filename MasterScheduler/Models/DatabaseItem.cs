@@ -10,6 +10,8 @@ namespace MasterScheduler.Models
     public class DatabaseItem : INotifyPropertyChanged
     {
         public string Name { get; set; }
+        public string Size { get; set; }
+        public string DisplayName => $"{Name} {Size}";
 
         private bool _isChecked;
         public bool IsChecked

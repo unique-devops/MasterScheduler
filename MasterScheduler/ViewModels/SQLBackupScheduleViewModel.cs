@@ -239,18 +239,52 @@ namespace MasterScheduler.ViewModels
                 var list = new List<DatabaseItem>();
                 using SqlConnection connection = new SqlConnection(ConnectionString);
                 connection.Open();
-                using var cmd = new SqlCommand("SELECT Name FROM sys.databases WHERE database_id > 4", connection);
+
+                // Querying sys.master_files to sum the size of all files (Data and Log) for each DB
+                // Size is stored in 8KB pages, so (size * 8) / 1024 converts to MB
+                string sql = @"
+                SELECT 
+                    d.name, 
+                    SUM(CAST(f.size AS BIGINT) * 8 / 1024) AS SizeMB
+                FROM sys.databases d
+                JOIN sys.master_files f ON d.database_id = f.database_id
+                WHERE d.database_id > 4
+                GROUP BY d.name";
+
+                using var cmd = new SqlCommand(sql, connection);
                 using var reader = cmd.ExecuteReader();
+
                 while (reader.Read())
                 {
+                    var dbName = reader.GetString(0);
+                    var dbSize = reader.GetInt64(1); // The calculated SizeMB
+
                     list.Add(new DatabaseItem
                     {
-                        Name = reader.GetString(0),
-                        IsChecked = SelectedDatabases.Contains(reader.GetString(0))
+                        Name = dbName,
+                        Size = $"{dbSize} MB", // Assuming you add a 'Size' property to DatabaseItem
+                        IsChecked = SelectedDatabases.Contains(dbName)
                     });
                 }
                 return list;
             });
+            //return await Task.Run(() =>
+            //{
+            //    var list = new List<DatabaseItem>();
+            //    using SqlConnection connection = new SqlConnection(ConnectionString);
+            //    connection.Open();
+            //    using var cmd = new SqlCommand("SELECT Name FROM sys.databases WHERE database_id > 4", connection);
+            //    using var reader = cmd.ExecuteReader();
+            //    while (reader.Read())
+            //    {
+            //        list.Add(new DatabaseItem
+            //        {
+            //            Name = reader.GetString(0),
+            //            IsChecked = SelectedDatabases.Contains(reader.GetString(0))
+            //        });
+            //    }
+            //    return list;
+            //});
         }
 
         [RelayCommand]
