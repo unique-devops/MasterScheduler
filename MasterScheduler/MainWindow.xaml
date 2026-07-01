@@ -10,6 +10,9 @@
         Title="MainWindow" Height="570" Width="910" WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.Resources>
+            <DataTemplate DataType="{x:Type vm:HomeViewModel}">
+                <views:HomeView />
+            </DataTemplate>
             <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
                 <views:DashboardView />
             </DataTemplate>

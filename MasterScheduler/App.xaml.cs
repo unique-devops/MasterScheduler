@@ -26,6 +26,7 @@ namespace MasterScheduler
 
             // Register viewmodels
             services.AddSingleton<MainViewModel>();
+            services.AddTransient<HomeViewModel>();            
             services.AddTransient<DashboardViewModel>();            
             services.AddTransient<TaskTypeSelectionViewModel>();            
             services.AddTransient<SQLBackupScheduleViewModel>();                                                                                

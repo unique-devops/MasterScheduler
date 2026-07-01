@@ -88,7 +88,7 @@ namespace MasterScheduler.Worker
                         }                       
                         //await Task.WhenAll(concurrentTasks);
                         _logger.LogInformation("Completed execution of {count} jobs at: {time}",
-                            nextJobGroup.Count(), DateTimeOffset.Now);
+                        nextJobGroup.Count(), DateTimeOffset.Now);
                     }
                 }
                 catch (OperationCanceledException)

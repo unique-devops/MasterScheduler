@@ -24,7 +24,7 @@ namespace MasterScheduler.ViewModels
     public partial class SQLBackupScheduleViewModel : ObservableValidator, INavigationAware
     {
         private readonly INavigationService _navigationService;
-        private readonly JobRepository _repo = new JobRepository();
+        private readonly JobRepository _repo = new ();
         SQLServerService sqlService = new SQLServerService();
         SqlBackupDetails sqlBackupDetails = new SqlBackupDetails();
         private const string EmailRegexPattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";

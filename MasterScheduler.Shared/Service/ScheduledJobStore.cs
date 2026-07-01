@@ -24,32 +24,31 @@ namespace MasterScheduler.Shared.Service
         }
         public async Task RunSqlBackupAsync(JobModel job, CancellationToken token)
         {
-            var sqlBackupDetails = _jobRepository.GetJobConfiguration<SqlBackupDetails>(job.Id);
-            if (sqlBackupDetails == null)
+            var sqlBackupconfig = _jobRepository.GetJobConfiguration<SqlBackupDetails>(job.Id);
+            if (sqlBackupconfig == null)
             {
                 _logger.LogWarning("SQL Backup configuration missing for Job {Id}", job.Id);
                 return;
             }                                    
-            foreach (var db in sqlBackupDetails.Databases)
-            {
-                //var backFileName = $"{db}_{DateTime.Now:yyyyMMddHHmm}.bak";
+            foreach (var db in sqlBackupconfig.Databases)
+            {                
                 var tempFileName = $"{db}_{DateTime.Now:yyyyMMddHHmm}.bak";
-                var TempBackupPath = string.IsNullOrWhiteSpace(sqlBackupDetails.TempBackupPath) ? Path.Combine(GetDefaultSQLBackupPath(sqlBackupDetails.ConnectionString), tempFileName) : Path.Combine(sqlBackupDetails.TempBackupPath, tempFileName);
+                var TempBackupPath = string.IsNullOrWhiteSpace(sqlBackupconfig.TempBackupPath) ? Path.Combine(GetDefaultSQLBackupPath(sqlBackupconfig.ConnectionString), tempFileName) : Path.Combine(sqlBackupconfig.TempBackupPath, tempFileName);
                
                 try
                 {
                     _logger.LogInformation("Starting SQL Backup for {db}...", db);
-                    if (sqlBackupDetails.Compression.ToLower() == "zip" || sqlBackupDetails.Compression.ToLower() == "none")
+                    if (sqlBackupconfig.Compression.ToLower() == "zip" || sqlBackupconfig.Compression.ToLower() == "none")
                     {
-                        await PerformSqlBackupAsync(sqlBackupDetails.ConnectionString, db, TempBackupPath, false, token);
+                        await PerformSqlBackupAsync(sqlBackupconfig.ConnectionString, db, TempBackupPath, false, token);
                     }
                     else {
-                        await PerformSqlBackupAsync(sqlBackupDetails.ConnectionString, db, sqlBackupDetails.TempBackupPath, true, token);
+                        await PerformSqlBackupAsync(sqlBackupconfig.ConnectionString, db, sqlBackupconfig.TempBackupPath, true, token);
                     }
-                    _logger.LogInformation("SQL Backup to Temp successful: {path}", sqlBackupDetails.TempBackupPath);
+                    _logger.LogInformation("SQL Backup to Temp successful: {path}", sqlBackupconfig.TempBackupPath);
                     await Task.Delay(1000, token);
 
-                    if (sqlBackupDetails.Compression.ToLower() == "zip")
+                    if (sqlBackupconfig.Compression.ToLower() == "zip")
                     {
                         await FileCompressionHelper.ZipCompressAsync(TempBackupPath.Replace(".bak",".zip"), TempBackupPath, token);
                         TempBackupPath = TempBackupPath.Replace(".bak", ".zip");
@@ -57,26 +56,26 @@ namespace MasterScheduler.Shared.Service
 
 
                     bool allFinished = true;
-                    foreach (var dest in sqlBackupDetails.Destinations)
+                    foreach (var dest in sqlBackupconfig.Destinations)
                     {
                         //if (dest.Status == "Success") continue;
                         try
                         {
                             await SendToDestinationAsync(db, TempBackupPath, dest, job.Id, token);
                             dest.Status = "Success";
-                            _jobRepository.UpdateJobConfiguration(job.Id, sqlBackupDetails); // Save progress
+                            _jobRepository.UpdateJobConfiguration(job.Id, sqlBackupconfig); // Save progress
                         }
                         catch (OperationCanceledException)
                         {
                             dest.Status = "Cancelled";
-                            _jobRepository.UpdateJobConfiguration(job.Id, sqlBackupDetails);
+                            _jobRepository.UpdateJobConfiguration(job.Id, sqlBackupconfig);
                             allFinished = false;
                             throw; // Stop the loop
                         }
                         catch (Exception)
                         {
                             dest.Status = "Error";
-                            _jobRepository.UpdateJobConfiguration(job.Id, sqlBackupDetails);
+                            _jobRepository.UpdateJobConfiguration(job.Id, sqlBackupconfig);
                             allFinished = false;
                             // Continue to next destination or stop based on your preference
                         }                       
@@ -109,10 +108,10 @@ namespace MasterScheduler.Shared.Service
                 }               
             }
 
-            if (sqlBackupDetails.Notifications.ActiveAlert && !string.IsNullOrWhiteSpace(sqlBackupDetails?.Notifications?.EmailOnSuccess))
+            if (sqlBackupconfig.Notifications.ActiveAlert && !string.IsNullOrWhiteSpace(sqlBackupconfig?.Notifications?.EmailOnSuccess))
             {
                 
-                await _emailService.SendEmailAsync(sqlBackupDetails?.Notifications?.EmailOnSuccess, sqlBackupDetails?.JobName, $"The scheduler finished successfully at {DateTime.Now}", token);
+                await _emailService.SendEmailAsync(sqlBackupconfig?.Notifications?.EmailOnSuccess, sqlBackupconfig?.JobName, $"The scheduler finished successfully at {DateTime.Now}", token);
                 _logger.LogWarning("SQL Backup Notification succes for Job {Id}", job.Id);
             }
             
