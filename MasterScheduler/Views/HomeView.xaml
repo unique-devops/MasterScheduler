@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:MasterScheduler.Views"
+             xmlns:local="clr-namespace:MasterScheduler.Views" xmlns:controls="clr-namespace:WpfToolkit.Controls;assembly=VirtualizingWrapPanel"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Background="White">
     <Grid Background="#F5F6FA">
@@ -32,7 +32,7 @@
                 <TextBox Grid.Row="1"
                     Grid.Column="1"                                        
                     VerticalContentAlignment="Center"
-                    Text="Search Job...">
+                    Text="">
                     <TextBox.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="8"/>
@@ -50,7 +50,7 @@
                             </Style>
                         </Button.Resources>
                     </Button>
-                    <Button Margin="5,0,0,0" BorderThickness="0" Background="Blue" Foreground="White" Content="+ New Backup">
+                    <Button Margin="5,0,0,0" BorderThickness="0" Background="Blue" Foreground="White" Content="+ New Job" Command="{Binding AddJobCommand}">
                         <Button.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="8"/>
@@ -71,40 +71,33 @@
 
         <!-- Cards -->
 
-        <ScrollViewer Grid.Row="1"
-                      VerticalScrollBarVisibility="Auto">
 
-            <ItemsControl ItemsSource="{Binding BackupJobs}">
+        <ListBox Grid.Row="1" ItemsSource="{Binding BackupJobs}"
+         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+         ScrollViewer.VerticalScrollBarVisibility="Auto"
+         Background="Transparent"
+         BorderThickness="0">
 
-                <ItemsControl.ItemsPanel>
-
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <!-- Disables selection and mouse interactions -->
+                    <Setter Property="Focusable" Value="False"/>
+                </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemsPanel>
                     <ItemsPanelTemplate>
-
-                        <WrapPanel/>
-
+                        <controls:VirtualizingWrapPanel Orientation="Horizontal"/>
                     </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
 
-                </ItemsControl.ItemsPanel>
+                <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <local:JobCardView/>
+                </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
 
-                <ItemsControl.ItemTemplate>
-
-                    <DataTemplate>
-
-                        <!--<controls:BackupJobCard
-                            Width="360"
-                            Height="245"
-                            Margin="12"/>-->
-                        <StackPanel>
-                            <TextBlock>Hello</TextBlock>
-                        </StackPanel>
-
-                    </DataTemplate>
-
-                </ItemsControl.ItemTemplate>
-
-            </ItemsControl>
-
-        </ScrollViewer>
+       
 
     </Grid>
 </UserControl>

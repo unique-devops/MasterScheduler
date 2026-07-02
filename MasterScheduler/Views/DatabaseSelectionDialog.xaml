@@ -16,8 +16,8 @@
         <ListBox Grid.Row="1" ItemsSource="{Binding AvailableDatabases}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <CheckBox Content="{Binding DisplayName}" IsChecked="{Binding IsChecked}"/>
-                    </DataTemplate>
+                    <CheckBox Content="{Binding DisplayName}" IsChecked="{Binding IsChecked}"/>
+                </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
 

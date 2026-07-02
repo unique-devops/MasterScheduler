@@ -262,7 +262,7 @@ namespace MasterScheduler.ViewModels
                     list.Add(new DatabaseItem
                     {
                         Name = dbName,
-                        Size = $"{dbSize} MB", // Assuming you add a 'Size' property to DatabaseItem
+                        Size = dbSize > 1024 ? $"{dbSize/1024} GB" : $"{dbSize} MB", // Assuming you add a 'Size' property to DatabaseItem
                         IsChecked = SelectedDatabases.Contains(dbName)
                     });
                 }
@@ -479,7 +479,8 @@ namespace MasterScheduler.ViewModels
 
                 }
                 //MessageBox.Show($"Job {(editJobId == 0 ? "saved" : "updated")} successfully!");
-                _navigationService.NavigateTo<DashboardViewModel>();
+                //_navigationService.NavigateTo<DashboardViewModel>();
+                _navigationService.NavigateTo<HomeViewModel>();
             }
             catch (Exception ex)
             {
@@ -496,7 +497,8 @@ namespace MasterScheduler.ViewModels
         [RelayCommand]
         private void Cancel()
         {
-            _navigationService.NavigateTo<DashboardViewModel>();
+            //_navigationService.NavigateTo<DashboardViewModel>();
+            _navigationService.NavigateTo<HomeViewModel>();
         }
     }
 }

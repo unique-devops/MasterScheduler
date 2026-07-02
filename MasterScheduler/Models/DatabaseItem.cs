@@ -11,7 +11,7 @@ namespace MasterScheduler.Models
     {
         public string Name { get; set; }
         public string Size { get; set; }
-        public string DisplayName => $"{Name} {Size}";
+        public string DisplayName => $"{Name}  >> {Size}";
 
         private bool _isChecked;
         public bool IsChecked
