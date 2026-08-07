@@ -42,7 +42,10 @@ namespace MasterScheduler.ViewModels
         private string scheduledTime = "not schedule";
 
         [ObservableProperty]
-        private bool activeAlert;        
+        private bool activeAlert;
+
+        [ObservableProperty]
+        private string tempBackupPath ;
 
         private string _selectedCompression = "None"; // Default selected
 
@@ -78,6 +81,7 @@ namespace MasterScheduler.ViewModels
         private int editJobId =0;
         public ScheduleTimeModel scheduleTimeModel { get; set; } = new();
        
+
 
         LicenseService license = new LicenseService();
         public SQLBackupScheduleViewModel(IDialogService dialogService, INavigationService navigationService)
@@ -129,7 +133,8 @@ namespace MasterScheduler.ViewModels
                 ServerName = sqlBackupDetails?.Server;
                 ConnectionString = sqlBackupDetails?.ConnectionString;
                 ScheduledTime = sqlBackupDetails?.Schedule.ExecutionTime ?? "00:00";
-                SelectedCompression = sqlBackupDetails?.Compression ?? "None";                
+                SelectedCompression = sqlBackupDetails?.Compression ?? "None";
+                TempBackupPath = sqlBackupDetails?.TempBackupPath ?? "";                
                 IsServerConnected = true;
                 SelectedDatabases.Clear();
                 foreach (var db in sqlBackupDetails?.Databases) SelectedDatabases.Add(db);
@@ -414,6 +419,16 @@ namespace MasterScheduler.ViewModels
         }
 
         [RelayCommand]
+        private void TempBackupPathSettings()
+        {
+            var dialog = new Microsoft.WindowsAPICodePack.Dialogs.CommonOpenFileDialog { IsFolderPicker = true };
+            if (dialog.ShowDialog() == Microsoft.WindowsAPICodePack.Dialogs.CommonFileDialogResult.Ok)
+            {
+                TempBackupPath = dialog.FileName;
+            }
+        }
+
+        [RelayCommand]
         private void Delete(BackupDestination item)
         {
             Destinations.Remove(item);
@@ -443,9 +458,10 @@ namespace MasterScheduler.ViewModels
                     Message = "not run yet"
                 };                
                 sqlBackupDetails.Destinations = Destinations.ToList();
+                sqlBackupDetails.TempBackupPath = TempBackupPath;
                 sqlBackupDetails.Notifications.EmailOnSuccess = SendConfirmationMail ?? "";
                 sqlBackupDetails.Compression = SelectedCompression ?? "None";
-                sqlBackupDetails.Notifications.ActiveAlert = ActiveAlert;
+                sqlBackupDetails.Notifications.ActiveAlert = ActiveAlert;                
                 var options = new JsonSerializerOptions
                 {
                     WriteIndented = true
@@ -479,8 +495,8 @@ namespace MasterScheduler.ViewModels
 
                 }
                 //MessageBox.Show($"Job {(editJobId == 0 ? "saved" : "updated")} successfully!");
-                //_navigationService.NavigateTo<DashboardViewModel>();
-                _navigationService.NavigateTo<HomeViewModel>();
+                _navigationService.NavigateTo<DashboardViewModel>();
+                //_navigationService.NavigateTo<HomeViewModel>();
             }
             catch (Exception ex)
             {
@@ -497,8 +513,8 @@ namespace MasterScheduler.ViewModels
         [RelayCommand]
         private void Cancel()
         {
-            //_navigationService.NavigateTo<DashboardViewModel>();
-            _navigationService.NavigateTo<HomeViewModel>();
+            _navigationService.NavigateTo<DashboardViewModel>();
+            //_navigationService.NavigateTo<HomeViewModel>();
         }
     }
 }

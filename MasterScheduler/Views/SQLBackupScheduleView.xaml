@@ -447,6 +447,27 @@
                     </StackPanel>
                 </Grid>
             </ListBoxItem>
+
+            <!--Default Temp Backup Path-->
+            <ListBoxItem Style="{StaticResource ListItemStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="50"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Background="#FFF3E0" CornerRadius="20" Width="40" Height="40">
+                        <fa:ImageAwesome Icon="Folder" Foreground="#F57C00" Width="18"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0">
+                        <TextBlock Text="Execution Schedule" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding TempBackupPath, FallbackValue='Temp backupPath'}" Foreground="Gray" FontSize="12"/>
+                    </StackPanel>
+                    <Button Grid.Column="2" Style="{StaticResource IconButton}" Command="{Binding TempBackupPathSettingsCommand}">
+                        <fa:ImageAwesome Icon="Gear" Foreground="#777" Width="16"/>
+                    </Button>
+                </Grid>
+            </ListBoxItem>
         </ListBox>
 
         <Grid Grid.Row="3" Background="White">

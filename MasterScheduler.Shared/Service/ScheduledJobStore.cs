@@ -206,7 +206,10 @@ namespace MasterScheduler.Shared.Service
                             }
                         }
                     }
+                    if (config.TargetPath =="")
+                    { 
 
+                    }
                     string targetFile = Path.Combine(config.TargetPath, backFileName);
 
                     // Use Async copy for better performance

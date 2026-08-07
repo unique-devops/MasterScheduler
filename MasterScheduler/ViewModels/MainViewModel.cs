@@ -25,8 +25,8 @@ namespace MasterScheduler.ViewModels
             NavigationService = navigationService;
 
             // Default page
-            //NavigationService.NavigateTo<DashboardViewModel>();            
-            NavigationService.NavigateTo<HomeViewModel>();
+            NavigationService.NavigateTo<DashboardViewModel>();            
+            //NavigationService.NavigateTo<HomeViewModel>();
         }
         
         //[RelayCommand]
